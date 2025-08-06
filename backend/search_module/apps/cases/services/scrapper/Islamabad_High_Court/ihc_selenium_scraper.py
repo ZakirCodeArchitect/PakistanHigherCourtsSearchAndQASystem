@@ -418,30 +418,42 @@ class IHCSeleniumScraper:
                     print("ℹ️ No data rows found in table")
                     return None
                 
-                # Get data from first data row (skip header)
-                data_row = rows[1]  # First data row
-                cells = data_row.find_elements(By.TAG_NAME, "td")
-                print(f"📋 Found {len(cells)} cells in data row")
+                # Extract data from ALL data rows (skip header)
+                all_cases_data = []
                 
-                if len(cells) < 3:
-                    print("ℹ️ Not enough cells in data row")
+                for i in range(1, len(rows)):  # Skip header row (index 0)
+                    data_row = rows[i]
+                    cells = data_row.find_elements(By.TAG_NAME, "td")
+                    print(f"📋 Row {i}: Found {len(cells)} cells")
+                    
+                    if len(cells) < 3:
+                        print(f"⚠️ Row {i}: Not enough cells, skipping")
+                        continue
+                    
+                    # Extract data based on the table structure from the image
+                    case_data = {
+                        "SR": cells[0].text.strip() if len(cells) > 0 else "",
+                        "INSTITUTION": cells[1].text.strip() if len(cells) > 1 else "",
+                        "CASE_NO": cells[2].text.strip() if len(cells) > 2 else "",
+                        "CASE_TITLE": cells[3].text.strip() if len(cells) > 3 else "",
+                        "BENCH": cells[4].text.strip() if len(cells) > 4 else "",
+                        "HEARING_DATE": cells[5].text.strip() if len(cells) > 5 else "",
+                        "STATUS": cells[6].text.strip() if len(cells) > 6 else "",
+                        "HISTORY": cells[7].text.strip() if len(cells) > 7 else "",
+                        "DETAILS": cells[8].text.strip() if len(cells) > 8 else ""
+                    }
+                    
+                    all_cases_data.append(case_data)
+                    print(f"✅ Row {i}: Added case data")
+                
+                print(f"📊 Total cases found: {len(all_cases_data)}")
+                
+                if all_cases_data:
+                    # Return all cases as a list
+                    return all_cases_data
+                else:
+                    print("❌ No valid case data found")
                     return None
-                
-                # Extract data based on the table structure from the image
-                case_data = {
-                    "SR": cells[0].text.strip() if len(cells) > 0 else "",
-                    "INSTITUTION": cells[1].text.strip() if len(cells) > 1 else "",
-                    "CASE_NO": cells[2].text.strip() if len(cells) > 2 else "",
-                    "CASE_TITLE": cells[3].text.strip() if len(cells) > 3 else "",
-                    "BENCH": cells[4].text.strip() if len(cells) > 4 else "",
-                    "HEARING_DATE": cells[5].text.strip() if len(cells) > 5 else "",
-                    "STATUS": cells[6].text.strip() if len(cells) > 6 else "",
-                    "HISTORY": cells[7].text.strip() if len(cells) > 7 else "",
-                    "DETAILS": cells[8].text.strip() if len(cells) > 8 else ""
-                }
-                
-                print(f"✅ Found case data: {case_data}")
-                return case_data
                 
             except TimeoutException:
                 print("ℹ️ No results table found, checking for other result elements...")
@@ -479,7 +491,18 @@ class IHCSeleniumScraper:
             if not self.fill_search_form(case_no, year, case_type):
                 return None
                 
-            return self.scrape_results_table()
+            # Scrape all results (returns a list of cases)
+            all_cases = self.scrape_results_table()
+            
+            if all_cases:
+                print(f"📊 Found {len(all_cases)} cases for search criteria")
+                # Print first few cases for debugging
+                for i, case in enumerate(all_cases[:3]):  # Show first 3 cases
+                    print(f"  Case {i+1}: {case.get('CASE_NO', 'N/A')} - {case.get('CASE_TITLE', 'N/A')[:50]}...")
+                if len(all_cases) > 3:
+                    print(f"  ... and {len(all_cases) - 3} more cases")
+            
+            return all_cases
             
         except Exception as e:
             print(f"❌ Error searching case: {e}")
@@ -501,12 +524,13 @@ def run_selenium_scraper(start_case_no, end_case_no, year, case_type, headless=F
     try:
         for case_no in range(start_case_no, end_case_no + 1):
             print(f"\n🔍 Processing case {case_no}/{year}...")
-            case_data = scraper.search_case(case_no, year, case_type)
+            all_cases_data = scraper.search_case(case_no, year, case_type)
             
-            if case_data:
-                print("✅ Found case data:")
-                print(json.dumps(case_data, indent=2))
-                cases.append(case_data)
+            if all_cases_data:
+                print(f"✅ Found {len(all_cases_data)} cases for case number {case_no}")
+                # Add all cases to the results
+                cases.extend(all_cases_data)
+                print(f"📊 Total cases collected so far: {len(cases)}")
             else:
                 print(f"❌ NO REAL DATA found for case {case_no}/{year}")
             
@@ -532,6 +556,32 @@ def run_selenium_scraper(start_case_no, end_case_no, year, case_type, headless=F
     if not cases:
         print("\n❌ NO DATA COLLECTED!")
         print("   The website might be down or the search returned no results.")
+    else:
+        print(f"\n✅ SUCCESS! Collected {len(cases)} cases")
+        
+        # Save data to JSON file
+        output_file = "ihc_cases_2023.json"
+        try:
+            # Load existing data if file exists
+            existing_data = []
+            if os.path.exists(output_file):
+                with open(output_file, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                print(f"📁 Loaded {len(existing_data)} existing cases from {output_file}")
+            
+            # Add new cases to existing data
+            all_cases = existing_data + cases
+            print(f"📊 Total cases to save: {len(all_cases)}")
+            
+            # Save to JSON file
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(all_cases, f, indent=2, ensure_ascii=False)
+            
+            print(f"💾 Successfully saved {len(cases)} new cases to {output_file}")
+            print(f"📁 Total cases in file: {len(all_cases)}")
+            
+        except Exception as e:
+            print(f"❌ Error saving data to {output_file}: {e}")
     
     return cases
 
