@@ -437,54 +437,140 @@ class IHCSeleniumScraper:
                                 print(f"⚠️ Error while monitoring 100 rows loading: {e}")
                                 time.sleep(stability_check_interval)
                         
-                        # Now process the 100 rows
-                        print("🔍 Phase 5: Processing 100 rows...")
-                        final_rows = table.find_elements(By.TAG_NAME, "tr")
-                        print(f"📊 Processing {len(final_rows)} total rows")
+                        # Now process all pages with pagination
+                        print("🔍 Phase 5: Processing all pages with pagination...")
+                        all_cases = []
+                        page_number = 1
+                        total_processed = 0
                         
-                        if len(final_rows) > 1:
-                            cases = []
+                        while True:  # Continue until no more pages
+                            print(f"\n📄 Processing Page {page_number}...")
                             
-                            # Process ALL rows to find the actual data
-                            for i, row in enumerate(final_rows, 1):
-                                try:
-                                    cells = row.find_elements(By.TAG_NAME, "td")
-                                    
-                                    if len(cells) >= 7:
-                                        case_data = {
-                                            'SR': cells[0].text.strip() if len(cells) > 0 else '',
-                                            'INSTITUTION': cells[1].text.strip() if len(cells) > 1 else '',
-                                            'CASE_NO': cells[2].text.strip() if len(cells) > 2 else '',
-                                            'CASE_TITLE': cells[3].text.strip() if len(cells) > 3 else '',
-                                            'BENCH': cells[4].text.strip() if len(cells) > 4 else '',
-                                            'HEARING_DATE': cells[5].text.strip() if len(cells) > 5 else '',
-                                            'STATUS': cells[6].text.strip() if len(cells) > 6 else '',
-                                            'HISTORY': cells[7].text.strip() if len(cells) > 7 else '',
-                                            'DETAILS': cells[8].text.strip() if len(cells) > 8 else ''
-                                        }
+                            # Get current page rows
+                            current_rows = table.find_elements(By.TAG_NAME, "tr")
+                            print(f"📊 Found {len(current_rows)} rows on current page")
+                            
+                            if len(current_rows) > 1:
+                                page_cases = []
+                                
+                                # Process ALL rows on current page
+                                for i, row in enumerate(current_rows, 1):
+                                    try:
+                                        cells = row.find_elements(By.TAG_NAME, "td")
                                         
-                                        # Only add if we have meaningful data
-                                        if case_data['SR'] and case_data['SR'].isdigit() and case_data['CASE_NO']:
-                                            cases.append(case_data)
-                                            print(f"✅ Row {i}: Added case with SR={case_data['SR']}")
+                                        if len(cells) >= 7:
+                                            case_data = {
+                                                'SR': cells[0].text.strip() if len(cells) > 0 else '',
+                                                'INSTITUTION': cells[1].text.strip() if len(cells) > 1 else '',
+                                                'CASE_NO': cells[2].text.strip() if len(cells) > 2 else '',
+                                                'CASE_TITLE': cells[3].text.strip() if len(cells) > 3 else '',
+                                                'BENCH': cells[4].text.strip() if len(cells) > 4 else '',
+                                                'HEARING_DATE': cells[5].text.strip() if len(cells) > 5 else '',
+                                                'STATUS': cells[6].text.strip() if len(cells) > 6 else '',
+                                                'HISTORY': cells[7].text.strip() if len(cells) > 7 else '',
+                                                'DETAILS': cells[8].text.strip() if len(cells) > 8 else ''
+                                            }
+                                            
+                                            # Only add if we have meaningful data
+                                            if case_data['SR'] and case_data['SR'].isdigit() and case_data['CASE_NO']:
+                                                page_cases.append(case_data)
+                                                print(f"✅ Page {page_number}, Row {i}: Added case with SR={case_data['SR']}")
+                                            else:
+                                                print(f"⚠️ Page {page_number}, Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')")
                                         else:
-                                            print(f"⚠️ Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')")
-                                    else:
-                                        print(f"⚠️ Row {i}: Not enough cells ({len(cells)})")
+                                            print(f"⚠️ Page {page_number}, Row {i}: Not enough cells ({len(cells)})")
+                                            
+                                    except Exception as e:
+                                        print(f"⚠️ Error processing page {page_number}, row {i}: {e}")
+                                        continue
+                                
+                                # Add page cases to total
+                                all_cases.extend(page_cases)
+                                total_processed += len(page_cases)
+                                print(f"📊 Page {page_number}: Added {len(page_cases)} cases (Total: {total_processed})")
+                                
+                                # Check if this is the last page (less than 100 entries means last page)
+                                if len(page_cases) < 100:
+                                    print(f"🏁 Last page detected! Only {len(page_cases)} entries found (less than 100)")
+                                    print(f"✅ All data fetched successfully. Total: {total_processed} cases")
+                                    break
+                                
+                                # Check if there's a "Next" button to go to next page
+                                print("🔍 Looking for 'Next' button...")
+                                next_button = None
+                                
+                                # Try different selectors for the Next button
+                                next_button_selectors = [
+                                    (By.XPATH, "//a[contains(text(), 'Next')]"),
+                                    (By.XPATH, "//button[contains(text(), 'Next')]"),
+                                    (By.XPATH, "//input[@value='Next']"),
+                                    (By.XPATH, "//a[contains(@class, 'next')]"),
+                                    (By.XPATH, "//button[contains(@class, 'next')]"),
+                                    (By.CSS_SELECTOR, "a.next"),
+                                    (By.CSS_SELECTOR, "button.next"),
+                                    (By.CSS_SELECTOR, "input[value='Next']")
+                                ]
+                                
+                                for selector in next_button_selectors:
+                                    try:
+                                        next_button = WebDriverWait(self.driver, 3).until(
+                                            EC.element_to_be_clickable(selector)
+                                        )
+                                        print(f"✅ Found Next button with selector: {selector}")
+                                        break
+                                    except TimeoutException:
+                                        continue
+                                
+                                if next_button and next_button.is_enabled():
+                                    print(f"⏭️ Clicking Next button to go to page {page_number + 1}...")
+                                    try:
+                                        # Scroll to the Next button to make it visible
+                                        self.driver.execute_script("arguments[0].scrollIntoView(true);", next_button)
+                                        time.sleep(2)  # Wait for scroll
                                         
-                                except Exception as e:
-                                    print(f"⚠️ Error processing row {i}: {e}")
-                                    continue
-                            
-                            print(f"📊 Total cases found: {len(cases)}")
-                            
-                            if case_type_empty and len(cases) > 50:
-                                print(f"🎯 SUCCESS! Found {len(cases)} cases with empty case type (100 rows)")
-                            
-                            return cases
-                        else:
-                            print("❌ No data rows found after loading 100 rows")
-                            return []
+                                        next_button.click()
+                                        print(f"✅ Clicked Next button")
+                                        
+                                        # Wait for new page to load
+                                        print("⏳ Waiting for next page to load...")
+                                        time.sleep(5)  # Wait for page load
+                                        
+                                        # Wait for table to reload
+                                        table_reload_wait = 0
+                                        while table_reload_wait < 60:  # Wait up to 60 seconds for table reload
+                                            try:
+                                                new_rows = table.find_elements(By.TAG_NAME, "tr")
+                                                if len(new_rows) > 1:
+                                                    print(f"✅ New page loaded with {len(new_rows)} rows")
+                                                    break
+                                                else:
+                                                    print(f"⏳ Waiting for table to reload... ({table_reload_wait}/60s)")
+                                                    time.sleep(2)
+                                                    table_reload_wait += 2
+                                            except Exception as e:
+                                                print(f"⚠️ Error checking table reload: {e}")
+                                                time.sleep(2)
+                                                table_reload_wait += 2
+                                        
+                                        page_number += 1
+                                        continue  # Process next page
+                                        
+                                    except Exception as e:
+                                        print(f"❌ Error clicking Next button: {e}")
+                                        break
+                                else:
+                                    print("🏁 No Next button found or it's disabled - reached last page")
+                                    break
+                            else:
+                                print("❌ No data rows found on current page")
+                                break
+                        
+                        print(f"📊 Total cases processed: {len(all_cases)}")
+                        
+                        if case_type_empty and len(all_cases) > 50:
+                            print(f"🎯 SUCCESS! Found {len(all_cases)} cases with empty case type (all pages)")
+                        
+                        return all_cases
                             
                     except Exception as e:
                         print(f"❌ Error changing dropdown to 100: {e}")
@@ -678,11 +764,15 @@ class IHCSeleniumScraper:
             # Create directory if it doesn't exist
             os.makedirs(os.path.dirname(filename), exist_ok=True)
             
-            # Load existing data if file exists
+            # Load existing data if file exists and is not empty
             existing_data = []
-            if os.path.exists(filename):
-                with open(filename, 'r', encoding='utf-8') as f:
-                    existing_data = json.load(f)
+            if os.path.exists(filename) and os.path.getsize(filename) > 0:
+                try:
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        existing_data = json.load(f)
+                except json.JSONDecodeError:
+                    print(f"⚠️ Warning: {filename} contains invalid JSON, starting fresh")
+                    existing_data = []
             
             # Add new cases to existing data
             all_cases = existing_data + cases
