@@ -188,9 +188,9 @@ class IHCSeleniumScraper:
             return False
 
     def fill_search_form_simple(self, case_no=1):
-        """Simple form filling: reset form, set case number = 1, search"""
+        """Simple form filling: reset form, set case number, search"""
         try:
-            print("📝 Filling search form (SIMPLE MODE)...")
+            print(f"📝 Filling search form (SIMPLE MODE) for case {case_no}...")
             
             # Step 1: Clear all fields
             print("🧹 Step 1: Clearing all fields...")
@@ -214,13 +214,13 @@ class IHCSeleniumScraper:
                 print(f"❌ Failed to select institution: {e}")
                 return False
             
-            # Step 3: Enter case number = 1
-            print("🔢 Step 3: Entering case number = 1...")
+            # Step 3: Enter the specified case number
+            print(f"🔢 Step 3: Entering case number = {case_no}...")
             try:
                 case_input = self.driver.find_element(By.ID, "txtCaseno")
                 case_input.clear()
-                case_input.send_keys("1")
-                print("✅ Entered case number: 1")
+                case_input.send_keys(str(case_no))
+                print(f"✅ Entered case number: {case_no}")
             except Exception as e:
                 print(f"❌ Failed to enter case number: {e}")
                 return False
@@ -862,6 +862,243 @@ class IHCSeleniumScraper:
             print(f"❌ Error in bulk data test: {e}")
             return None
 
+    def parallel_scrape_cases(self, batch_number=1, cases_per_batch=5, max_workers=5):
+        """
+        Scrape cases in parallel with individual file saving
+        
+        Args:
+            batch_number: Which batch to process (1 = cases 1-5, 2 = cases 6-10, etc.)
+            cases_per_batch: Number of cases per batch (default: 5)
+            max_workers: Number of parallel browser windows (default: 5)
+        """
+        import concurrent.futures
+        import threading
+        from datetime import datetime
+        
+        # Calculate case numbers for this batch
+        start_case = ((batch_number - 1) * cases_per_batch) + 1
+        end_case = batch_number * cases_per_batch
+        
+        print(f"🚀 Starting BATCH {batch_number}: Cases {start_case}-{end_case}")
+        print(f"📊 Configuration: {max_workers} parallel windows, {cases_per_batch} cases per batch")
+        
+        # Create directory for individual case files
+        cases_dir = "cases_metadata/Islamabad_High_Court/individual_cases"
+        os.makedirs(cases_dir, exist_ok=True)
+        
+        # Create progress tracking file
+        progress_file = f"cases_metadata/Islamabad_High_Court/batch_{batch_number}_progress.json"
+        
+        # Load existing progress for this batch
+        completed_cases = set()
+        if os.path.exists(progress_file):
+            try:
+                with open(progress_file, 'r') as f:
+                    progress_data = json.load(f)
+                    completed_cases = set(progress_data.get('completed_cases', []))
+                    print(f"📋 Found {len(completed_cases)} previously completed cases in batch {batch_number}")
+            except:
+                pass
+        
+        # Create case numbers list for this batch
+        case_numbers = list(range(start_case, end_case + 1))
+        print(f"📦 Processing cases: {case_numbers}")
+        
+        # Thread-safe counters
+        lock = threading.Lock()
+        total_cases_found = 0
+        total_cases_processed = 0
+        
+        def scrape_single_case(case_no, worker_id):
+            """Scrape a single case number using a dedicated WebDriver instance"""
+            nonlocal total_cases_found, total_cases_processed
+            
+            # Skip if already completed
+            with lock:
+                if case_no in completed_cases:
+                    print(f"⏭️ Worker {worker_id}: Case {case_no} already completed, skipping")
+                    return None
+            
+            # Create dedicated scraper for this worker
+            worker_scraper = IHCSeleniumScraper(headless=True)
+            if not worker_scraper.start_driver():
+                print(f"❌ Worker {worker_id}: Failed to start WebDriver for case {case_no}")
+                return None
+            
+            case_results = []
+            case_start_time = datetime.now()
+            
+            try:
+                print(f"🔍 Worker {worker_id}: Starting case {case_no}")
+                
+                # Navigate and search
+                if not worker_scraper.navigate_to_case_status():
+                    print(f"❌ Worker {worker_id}: Failed to navigate for case {case_no}")
+                    return None
+                
+                if not worker_scraper.fill_search_form_simple(case_no):
+                    print(f"❌ Worker {worker_id}: Failed to fill form for case {case_no}")
+                    return None
+                
+                # Scrape results
+                cases = worker_scraper.scrape_results_table(case_type_empty=True)
+                
+                if cases:
+                    # Add metadata
+                    for case in cases:
+                        case['SEARCH_CASE_NO'] = case_no
+                        case['WORKER_ID'] = worker_id
+                        case['SCRAPE_TIMESTAMP'] = datetime.now().isoformat()
+                        case['BATCH_NUMBER'] = batch_number
+                    
+                    case_results.extend(cases)
+                    
+                    with lock:
+                        total_cases_found += len(cases)
+                        total_cases_processed += 1
+                        completed_cases.add(case_no)
+                    
+                    print(f"✅ Worker {worker_id}: Case {case_no} → {len(cases)} results")
+                    
+                    # Save to individual case file immediately
+                    case_filename = f"{cases_dir}/case{case_no}.json"
+                    worker_scraper.save_cases_to_file(cases, case_filename)
+                    print(f"💾 Worker {worker_id}: Saved case {case_no} to {case_filename}")
+                    
+                else:
+                    print(f"⚠️ Worker {worker_id}: Case {case_no} → No results")
+                    with lock:
+                        completed_cases.add(case_no)
+                
+                # Save progress for this case
+                with open(progress_file, 'w') as f:
+                    json.dump({
+                        'batch_number': batch_number,
+                        'completed_cases': list(completed_cases),
+                        'total_cases_found': total_cases_found,
+                        'last_updated': datetime.now().isoformat(),
+                        'current_case': case_no
+                    }, f, indent=2)
+                
+                case_duration = datetime.now() - case_start_time
+                print(f"✅ Worker {worker_id}: Case {case_no} completed in {case_duration.total_seconds():.1f}s")
+                
+            except Exception as e:
+                print(f"❌ Worker {worker_id}: Error processing case {case_no}: {e}")
+                # Mark as completed to avoid infinite retry
+                with lock:
+                    completed_cases.add(case_no)
+            finally:
+                worker_scraper.stop_driver()
+            
+            return case_results
+        
+        # Process cases with ThreadPoolExecutor
+        all_results = []
+        start_time = datetime.now()
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all cases for this batch
+            future_to_case = {
+                executor.submit(scrape_single_case, case_no, i): case_no 
+                for i, case_no in enumerate(case_numbers)
+            }
+            
+            # Process completed cases
+            for future in concurrent.futures.as_completed(future_to_case):
+                case_no = future_to_case[future]
+                try:
+                    case_results = future.result()
+                    if case_results:
+                        all_results.extend(case_results)
+                        print(f"✅ Case {case_no} completed with {len(case_results)} results")
+                    else:
+                        print(f"⚠️ Case {case_no} completed with no results")
+                        
+                except Exception as e:
+                    print(f"❌ Case {case_no} failed: {e}")
+        
+        # Final progress save
+        with open(progress_file, 'w') as f:
+            json.dump({
+                'batch_number': batch_number,
+                'completed_cases': list(completed_cases),
+                'total_cases_found': total_cases_found,
+                'last_updated': datetime.now().isoformat(),
+                'status': 'completed'
+            }, f, indent=2)
+        
+        # Save batch results
+        batch_filename = f"cases_metadata/Islamabad_High_Court/batch_{batch_number}_results.json"
+        self.save_cases_to_file(all_results, batch_filename)
+        
+        total_duration = datetime.now() - start_time
+        print(f"\n🎉 BATCH {batch_number} COMPLETED!")
+        print(f"📊 Cases processed: {total_cases_processed}/{len(case_numbers)}")
+        print(f"📋 Total cases found: {total_cases_found}")
+        print(f"⏱️ Total duration: {total_duration.total_seconds() / 60:.1f} minutes")
+        print(f"💾 Individual files saved in: {cases_dir}/")
+        print(f"💾 Batch results saved to: {batch_filename}")
+        
+        return all_results
+
+    def run_multiple_batches(self, start_batch=1, end_batch=200, cases_per_batch=5, max_workers=5):
+        """
+        Run multiple batches sequentially
+        
+        Args:
+            start_batch: Starting batch number (default: 1)
+            end_batch: Ending batch number (default: 200 for 1000 cases)
+            cases_per_batch: Number of cases per batch (default: 5)
+            max_workers: Number of parallel windows per batch (default: 5)
+        """
+        from datetime import datetime
+        
+        print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
+        print(f"📊 Total cases: {(end_batch - start_batch + 1) * cases_per_batch}")
+        print(f"⏱️ Estimated time: ~{((end_batch - start_batch + 1) * 10) // 60} minutes")
+        
+        all_batch_results = []
+        start_time = datetime.now()
+        
+        for batch_num in range(start_batch, end_batch + 1):
+            print(f"\n{'='*60}")
+            print(f"🔄 Processing BATCH {batch_num}/{end_batch}")
+            print(f"{'='*60}")
+            
+            try:
+                batch_results = self.parallel_scrape_cases(
+                    batch_number=batch_num,
+                    cases_per_batch=cases_per_batch,
+                    max_workers=max_workers
+                )
+                
+                if batch_results:
+                    all_batch_results.extend(batch_results)
+                    print(f"✅ Batch {batch_num} completed successfully")
+                else:
+                    print(f"⚠️ Batch {batch_num} completed with no results")
+                
+                # Small delay between batches
+                time.sleep(2)
+                
+            except Exception as e:
+                print(f"❌ Batch {batch_num} failed: {e}")
+                print(f"🔄 Continuing with next batch...")
+                continue
+        
+        # Save all results
+        final_filename = f"cases_metadata/Islamabad_High_Court/all_batches_{start_batch}_{end_batch}.json"
+        self.save_cases_to_file(all_batch_results, final_filename)
+        
+        total_duration = datetime.now() - start_time
+        print(f"\n🎉 ALL BATCHES COMPLETED!")
+        print(f"📊 Total cases found: {len(all_batch_results)}")
+        print(f"⏱️ Total duration: {total_duration.total_seconds() / 60:.1f} minutes")
+        print(f"💾 Final results saved to: {final_filename}")
+        
+        return all_batch_results
+
 def run_test_mode(headless=False):
     """Run a test to verify the case type vs no case type discovery"""
     print("🧪 Starting Test Mode to verify case type discovery...")
@@ -1066,6 +1303,61 @@ def run_simple_test(headless=False):
         if 'scraper' in locals():
             scraper.stop_driver()
 
+def run_single_batch(batch_number=1, cases_per_batch=5, max_workers=5):
+    """Run a single batch of cases"""
+    try:
+        print(f"🚀 Starting SINGLE BATCH {batch_number}")
+        print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
+        
+        scraper = IHCSeleniumScraper(headless=True)
+        results = scraper.parallel_scrape_cases(
+            batch_number=batch_number,
+            cases_per_batch=cases_per_batch,
+            max_workers=max_workers
+        )
+        
+        print(f"✅ Batch {batch_number} completed! Found {len(results)} total cases")
+        return results
+        
+    except Exception as e:
+        print(f"❌ Batch {batch_number} error: {e}")
+        return None
+
+def run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=5):
+    """Run multiple batches sequentially"""
+    try:
+        print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
+        print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
+        
+        scraper = IHCSeleniumScraper(headless=True)
+        results = scraper.run_multiple_batches(
+            start_batch=start_batch,
+            end_batch=end_batch,
+            cases_per_batch=cases_per_batch,
+            max_workers=max_workers
+        )
+        
+        print(f"✅ All batches completed! Found {len(results)} total cases")
+        return results
+        
+    except Exception as e:
+        print(f"❌ Multiple batches error: {e}")
+        return None
+
 if __name__ == "__main__":
-    # Run simple test by default
-    run_simple_test(headless=True)
+    # ========================================
+    # 🚀 BATCH-BASED SCRAPING SYSTEM
+    # ========================================
+    
+    # Option 1: Run a single batch (recommended for testing)
+    # Batch 1 = Cases 1-5, Batch 2 = Cases 6-10, etc.
+    run_single_batch(batch_number=1, cases_per_batch=5, max_workers=5)
+    
+    # Option 2: Run multiple batches
+    # run_multiple_batches(start_batch=1, end_batch=10, cases_per_batch=5, max_workers=5)
+    
+    # Option 3: Run all 1000 cases (200 batches of 5 cases each)
+    # run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=5)
+    
+    # Option 4: Simple test (single case)
+    # run_simple_test(headless=True)

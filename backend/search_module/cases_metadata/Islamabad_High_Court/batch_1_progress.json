@@ -1,0 +1,13 @@
+{
+  "batch_number": 1,
+  "completed_cases": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "total_cases_found": 2405,
+  "last_updated": "2025-08-07T18:12:44.784791",
+  "status": "completed"
+}
