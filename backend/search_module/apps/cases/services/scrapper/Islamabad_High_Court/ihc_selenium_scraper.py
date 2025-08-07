@@ -356,67 +356,145 @@ class IHCSeleniumScraper:
                     time.sleep(stability_check_interval)
                     data_wait_time += stability_check_interval
             
-            # Phase 3: Process the fully loaded data
-            print("🔍 Phase 3: Processing fully loaded data...")
+            # Phase 3: Change rows display to 100 and wait for more data
+            print("🔍 Phase 3: Changing rows display to 100...")
             try:
-                # Get the final rows after data is stable
-                final_rows = table.find_elements(By.TAG_NAME, "tr")
-                print(f"📊 Processing {len(final_rows)} total rows")
+                # Find and change the "Show" dropdown to 100
+                print("📊 Looking for 'Show' dropdown...")
+                show_dropdown = None
                 
-                if len(final_rows) > 1:  # More than just header
-                    cases = []
-                    
-                    # Process ALL rows to find the actual data (don't skip any rows)
-                    for i, row in enumerate(final_rows, 1):  # Process all rows
-                        try:
-                            cells = row.find_elements(By.TAG_NAME, "td")
-                            print(f"📋 Row {i}: Found {len(cells)} cells")
-                            
-                            # Debug: Print cell contents for first few rows
-                            if i <= 5:  # Show first 5 rows to see what's happening
-                                print(f"🔍 Row {i} debug:")
-                                for j, cell in enumerate(cells):
-                                    print(f"    Cell {j}: '{cell.text.strip()}'")
-                            
-                            if len(cells) >= 7:  # Ensure we have enough cells (SR, INSTITUTION, CASE_NO, CASE_TITLE, BENCH, HEARING_DATE, STATUS, HISTORY, DETAILS)
-                                case_data = {
-                                    'SR': cells[0].text.strip() if len(cells) > 0 else '',
-                                    'INSTITUTION': cells[1].text.strip() if len(cells) > 1 else '',
-                                    'CASE_NO': cells[2].text.strip() if len(cells) > 2 else '',
-                                    'CASE_TITLE': cells[3].text.strip() if len(cells) > 3 else '',
-                                    'BENCH': cells[4].text.strip() if len(cells) > 4 else '',
-                                    'HEARING_DATE': cells[5].text.strip() if len(cells) > 5 else '',
-                                    'STATUS': cells[6].text.strip() if len(cells) > 6 else '',
-                                    'HISTORY': cells[7].text.strip() if len(cells) > 7 else '',
-                                    'DETAILS': cells[8].text.strip() if len(cells) > 8 else ''
-                                }
+                # Try different selectors for the dropdown
+                dropdown_selectors = [
+                    (By.XPATH, "//select[contains(@onchange, 'Show')]"),
+                    (By.XPATH, "//select[contains(@name, 'Show')]"),
+                    (By.XPATH, "//select[contains(@id, 'Show')]"),
+                    (By.XPATH, "//select[option[contains(text(), '50')]]"),
+                    (By.XPATH, "//select[option[contains(text(), '100')]]"),
+                    (By.CSS_SELECTOR, "select"),
+                    (By.TAG_NAME, "select")
+                ]
+                
+                for selector in dropdown_selectors:
+                    try:
+                        show_dropdown = WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located(selector)
+                        )
+                        print(f"✅ Found dropdown with selector: {selector}")
+                        break
+                    except TimeoutException:
+                        continue
+                
+                if show_dropdown:
+                    # Change to 100 rows
+                    print("📊 Changing dropdown to 100 rows...")
+                    try:
+                        dropdown_select = Select(show_dropdown)
+                        dropdown_select.select_by_value("100")
+                        print("✅ Changed dropdown to 100 rows")
+                        
+                        # Wait for the page to reload with 100 rows
+                        print("⏳ Waiting for page to reload with 100 rows...")
+                        time.sleep(5)  # Initial wait for page reload
+                        
+                        # Wait for new data to load (100 rows)
+                        print("🔍 Phase 4: Waiting for 100 rows to load...")
+                        new_row_count = 0
+                        stable_count = 0
+                        
+                        while True:  # Wait until we have 100+ rows
+                            try:
+                                # Get current rows
+                                current_rows = table.find_elements(By.TAG_NAME, "tr")
+                                current_count = len(current_rows)
                                 
-                                # Only add if we have meaningful data (skip header row and empty rows)
-                                if case_data['SR'] and case_data['SR'].isdigit() and case_data['CASE_NO']:
-                                    cases.append(case_data)
-                                    print(f"✅ Row {i}: Added case with SR={case_data['SR']}")
+                                print(f"📊 Found {current_count} table rows (target: 100+)")
+                                
+                                if current_count >= 100:
+                                    print(f"🎯 SUCCESS! Found {current_count} rows (100+ required)")
+                                    stable_count += stability_check_interval
+                                    
+                                    if stable_count >= stability_threshold:
+                                        print(f"✅ 100 rows loading complete: {current_count} rows stable for {stable_count}s")
+                                        break
+                                    else:
+                                        print(f"⏳ Have 100+ rows but waiting for stability ({stable_count}/{stability_threshold}s)")
+                                elif current_count > new_row_count:
+                                    print(f"🔄 More rows loading... {current_count - new_row_count} new rows detected")
+                                    new_row_count = current_count
+                                    stable_count = 0
                                 else:
-                                    print(f"⚠️ Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')")
-                            else:
-                                print(f"⚠️ Row {i}: Not enough cells ({len(cells)})")
+                                    stable_count += stability_check_interval
+                                    print(f"⏳ Waiting for more rows... ({stable_count}s without new rows)")
+                                    
+                                    if stable_count > 120:  # 2 minutes without progress
+                                        print(f"⚠️ Warning: Only {current_count} rows found after 2 minutes")
+                                        print("⏳ Continuing to wait for more rows...")
+                                        stable_count = 0
                                 
-                        except Exception as e:
-                            print(f"⚠️ Error processing row {i}: {e}")
-                            continue
-                    
-                    print(f"📊 Total cases found: {len(cases)}")
-                    
-                    # If case type was empty and we got a lot of results, show progress
-                    if case_type_empty and len(cases) > 50:
-                        print(f"🎯 SUCCESS! Found {len(cases)} cases with empty case type (bulk data)")
-                    
-                    return cases
+                                time.sleep(stability_check_interval)
+                                
+                            except Exception as e:
+                                print(f"⚠️ Error while monitoring 100 rows loading: {e}")
+                                time.sleep(stability_check_interval)
+                        
+                        # Now process the 100 rows
+                        print("🔍 Phase 5: Processing 100 rows...")
+                        final_rows = table.find_elements(By.TAG_NAME, "tr")
+                        print(f"📊 Processing {len(final_rows)} total rows")
+                        
+                        if len(final_rows) > 1:
+                            cases = []
+                            
+                            # Process ALL rows to find the actual data
+                            for i, row in enumerate(final_rows, 1):
+                                try:
+                                    cells = row.find_elements(By.TAG_NAME, "td")
+                                    
+                                    if len(cells) >= 7:
+                                        case_data = {
+                                            'SR': cells[0].text.strip() if len(cells) > 0 else '',
+                                            'INSTITUTION': cells[1].text.strip() if len(cells) > 1 else '',
+                                            'CASE_NO': cells[2].text.strip() if len(cells) > 2 else '',
+                                            'CASE_TITLE': cells[3].text.strip() if len(cells) > 3 else '',
+                                            'BENCH': cells[4].text.strip() if len(cells) > 4 else '',
+                                            'HEARING_DATE': cells[5].text.strip() if len(cells) > 5 else '',
+                                            'STATUS': cells[6].text.strip() if len(cells) > 6 else '',
+                                            'HISTORY': cells[7].text.strip() if len(cells) > 7 else '',
+                                            'DETAILS': cells[8].text.strip() if len(cells) > 8 else ''
+                                        }
+                                        
+                                        # Only add if we have meaningful data
+                                        if case_data['SR'] and case_data['SR'].isdigit() and case_data['CASE_NO']:
+                                            cases.append(case_data)
+                                            print(f"✅ Row {i}: Added case with SR={case_data['SR']}")
+                                        else:
+                                            print(f"⚠️ Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')")
+                                    else:
+                                        print(f"⚠️ Row {i}: Not enough cells ({len(cells)})")
+                                        
+                                except Exception as e:
+                                    print(f"⚠️ Error processing row {i}: {e}")
+                                    continue
+                            
+                            print(f"📊 Total cases found: {len(cases)}")
+                            
+                            if case_type_empty and len(cases) > 50:
+                                print(f"🎯 SUCCESS! Found {len(cases)} cases with empty case type (100 rows)")
+                            
+                            return cases
+                        else:
+                            print("❌ No data rows found after loading 100 rows")
+                            return []
+                            
+                    except Exception as e:
+                        print(f"❌ Error changing dropdown to 100: {e}")
+                        return []
                 else:
-                    print("❌ No data rows found after waiting")
+                    print("❌ Could not find 'Show' dropdown")
                     return []
                     
             except Exception as e:
-                print(f"❌ Error processing final data: {e}")
+                print(f"❌ Error in Phase 3: {e}")
                 return []
             
         except Exception as e:
