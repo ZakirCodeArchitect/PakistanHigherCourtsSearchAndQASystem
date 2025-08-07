@@ -11,6 +11,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.keys import Keys
 
 class IHCSeleniumScraper:
     def __init__(self, headless=False):  # Changed default to False for testing
@@ -186,272 +187,237 @@ class IHCSeleniumScraper:
             print(f"❌ Error navigating to case status: {e}")
             return False
 
-    def fill_search_form(self, case_no=None, year=None, case_type=None, search_by_case_number=True):
-        """Fill the search form with the given parameters"""
+    def fill_search_form_simple(self, case_no=1):
+        """Simple form filling: reset form, set case number = 1, search"""
         try:
-            print("📝 Filling search form...")
+            print("📝 Filling search form (SIMPLE MODE)...")
             
-            # First, select the institution to populate other dropdowns
-            print("🏛️ Selecting institution...")
+            # Step 1: Clear all fields
+            print("🧹 Step 1: Clearing all fields...")
             try:
-                inst_select = Select(self.driver.find_element(By.ID, "ddlInst"))
-                inst_select.select_by_value("1")  # Islamabad High Court
+                clear_button = self.driver.find_element(By.ID, "btnClear")
+                clear_button.click()
+                time.sleep(3)  # Wait for form to reset
+                print("✅ Cleared all form fields")
+            except Exception as e:
+                print(f"❌ Could not find Clear button: {e}")
+                return False
+            
+            # Step 2: Select institution (required)
+            print("🏛️ Step 2: Selecting institution...")
+            try:
+                institution_select = Select(self.driver.find_element(By.ID, "ddlInst"))
+                institution_select.select_by_value("1")  # Islamabad High Court
+                time.sleep(3)  # Wait for dropdown to populate
                 print("✅ Selected Islamabad High Court")
-                time.sleep(3)  # Wait longer for dropdowns to populate
             except Exception as e:
-                print(f"⚠️ Could not select institution: {e}")
-
-            # Fill Case Type first to populate year dropdown
-            if case_type:
-                print("📋 Selecting case type...")
-                try:
-                    # Try to find case type dropdown
-                    case_type_select = None
-                    try:
-                        case_type_select = Select(self.driver.find_element(By.ID, "ddlCategory"))
-                    except:
-                        try:
-                            case_type_select = Select(self.driver.find_element(By.NAME, "ctl00$ContentPlaceHolder1$ddlCaseType"))
-                        except:
-                            print("⚠️ Could not find case type dropdown")
-                    
-                    if case_type_select:
-                        # Print available options for debugging
-                        options = [option.text for option in case_type_select.options]
-                        print(f"📋 Available case type options:")
-                        for opt in options:
-                            print(f"  - {opt}")
-                        
-                        # Try to select the case type
-                        try:
-                            case_type_select.select_by_visible_text(case_type)
-                            print(f"✅ Selected: {case_type}")
-                            time.sleep(2)  # Wait for year dropdown to populate
-                        except:
-                            # Try partial match
-                            for option in case_type_select.options:
-                                if case_type.lower() in option.text.lower():
-                                    case_type_select.select_by_visible_text(option.text)
-                                    print(f"✅ Selected by partial match: {option.text}")
-                                    time.sleep(2)  # Wait for year dropdown to populate
-                                    break
-                            else:
-                                print(f"⚠️ Could not select case type: {case_type}")
-                except Exception as e:
-                    print(f"⚠️ Error selecting case type: {e}")
-
-            # Fill Case Number (MANDATORY - cannot be left empty)
-            if search_by_case_number and case_no:
-                print("🔢 Entering case number...")
-                try:
-                    # Find all input elements for debugging
-                    inputs = self.driver.find_elements(By.TAG_NAME, "input")
-                    print("🔍 Available input elements:")
-                    for i, inp in enumerate(inputs):
-                        print(f"  Input {i+1}: id='{inp.get_attribute('id')}', name='{inp.get_attribute('name')}', type='{inp.get_attribute('type')}'")
-                    
-                    # Try to find case number input
-                    case_input = None
-                    try:
-                        case_input = self.driver.find_element(By.ID, "txtCaseno")
-                    except:
-                        try:
-                            case_input = self.driver.find_element(By.NAME, "txtCaseno")
-                        except:
-                            # Try to find any input with 'case' in the name
-                            for inp in inputs:
-                                if 'case' in inp.get_attribute('name', '').lower():
-                                    case_input = inp
-                                    break
-                    
-                    if case_input:
-                        case_input.clear()
-                        case_input.send_keys(str(case_no))
-                        print(f"✅ Entered case number: {case_no}")
-                    else:
-                        print("⚠️ Could not find case number input")
-                        return False  # Case number is mandatory
-                except Exception as e:
-                    print(f"⚠️ Error entering case number: {e}")
-                    return False  # Case number is mandatory
-            else:
-                print("❌ Case number is mandatory but not provided")
+                print(f"❌ Failed to select institution: {e}")
                 return False
-
-            # Fill Year (after case type selection to ensure dropdown is populated)
-            if year:
-                print("📅 Selecting case year...")
-                try:
-                    # Wait a bit more for year dropdown to populate after case type selection
-                    time.sleep(2)
-                    
-                    # Find all select elements for debugging
-                    selects = self.driver.find_elements(By.TAG_NAME, "select")
-                    print("🔍 All select elements:")
-                    for i, sel in enumerate(selects):
-                        print(f"  Select {i+1}: id='{sel.get_attribute('id')}', name='{sel.get_attribute('name')}'")
-                        options = [f"{j}: '{opt.text}' (value: '{opt.get_attribute('value')}')" for j, opt in enumerate(Select(sel).options)]
-                        for opt in options:
-                            print(f"    Options: {opt}")
-                    
-                    # Try to find year dropdown
-                    year_select = None
-                    try:
-                        year_select = Select(self.driver.find_element(By.ID, "ddlCaseyear"))
-                    except:
-                        try:
-                            year_select = Select(self.driver.find_element(By.NAME, "ctl00$ContentPlaceHolder1$ddlCaseYear"))
-                        except:
-                            # Try to find any select with 'year' in the name
-                            for sel in selects:
-                                if 'year' in sel.get_attribute('name', '').lower():
-                                    year_select = Select(sel)
-                                    break
-                    
-                    if year_select:
-                        # Check if dropdown has options
-                        options = year_select.options
-                        if len(options) > 1 or (len(options) == 1 and options[0].text.strip()):
-                            # Try to select year with fallbacks
-                            try:
-                                year_select.select_by_visible_text(str(year))
-                                print(f"✅ Selected year: {year}")
-                            except:
-                                try:
-                                    year_select.select_by_value(str(year))
-                                    print(f"✅ Selected year by value: {year}")
-                                except:
-                                    # Try to find a year that contains our target year
-                                    for option in options:
-                                        if str(year) in option.text:
-                                            year_select.select_by_visible_text(option.text)
-                                            print(f"✅ Selected year by partial match: {option.text}")
-                                            break
-                                    else:
-                                        print(f"⚠️ Year {year} not found in dropdown, using first available year")
-                                        if len(options) > 1:
-                                            year_select.select_by_index(1)  # Select first non-empty option
-                                            print(f"✅ Selected first available year: {options[1].text}")
-                        else:
-                            print("ℹ️ Year dropdown is empty - proceeding without year selection")
-                            print("ℹ️ This is normal for case number searches")
-                    else:
-                        print("⚠️ Could not find year dropdown")
-                except Exception as e:
-                    print(f"⚠️ Error selecting year: {e}")
-
-            # Click Search Button
-            print("🔍 Clicking search button...")
+            
+            # Step 3: Enter case number = 1
+            print("🔢 Step 3: Entering case number = 1...")
             try:
-                search_button = None
-                try:
-                    search_button = self.driver.find_element(By.ID, "btnSearch")
-                except:
-                    try:
-                        search_button = self.driver.find_element(By.NAME, "btnSearch")
-                    except:
-                        # Try to find any button with 'search' in the text or ID
-                        buttons = self.driver.find_elements(By.TAG_NAME, "button")
-                        for btn in buttons:
-                            if 'search' in btn.text.lower() or 'search' in btn.get_attribute('id', '').lower():
-                                search_button = btn
-                                break
-                
-                if search_button:
-                    print("✅ Found search button by ID")
-                    search_button.click()
-                    print("✅ Clicked search button")
-                    print("✅ Form submitted successfully")
-                else:
-                    print("⚠️ Could not find search button")
-                    return False
+                case_input = self.driver.find_element(By.ID, "txtCaseno")
+                case_input.clear()
+                case_input.send_keys("1")
+                print("✅ Entered case number: 1")
             except Exception as e:
-                print(f"⚠️ Error clicking search button: {e}")
+                print(f"❌ Failed to enter case number: {e}")
                 return False
             
-            return True
-            
+            # Step 4: Click search button
+            print("🔍 Step 4: Clicking search button...")
+            try:
+                search_button = self.driver.find_element(By.ID, "btnSearch")
+                search_button.click()
+                print("✅ Clicked search button")
+                print("✅ Form submitted successfully")
+                return True
+            except Exception as e:
+                print(f"❌ Failed to click search button: {e}")
+                return False
+                
         except Exception as e:
             print(f"❌ Error filling search form: {e}")
             return False
 
-    def scrape_results_table(self):
+    def scrape_results_table(self, case_type_empty=False):
         """Scrape the results table and return case data"""
         try:
             print("🔍 Looking for results...")
-            time.sleep(5)  # Wait for results to load
             
-            # Try different table selectors
-            table_selectors = [
-                (By.ID, "grdCaseStatus"),
-                (By.TAG_NAME, "table"),
-                (By.XPATH, "//table[contains(@class, 'Grid')]"),
-                (By.XPATH, "//table[contains(@class, 'table')]"),
-                (By.XPATH, "//div[contains(@class, 'Grid')]//table"),
-                (By.CSS_SELECTOR, "table.Grid"),
-                (By.CSS_SELECTOR, "table.table"),
-                (By.CSS_SELECTOR, "div.Grid table"),
-                (By.CSS_SELECTOR, "div.table table")
-            ]
+            # If case type is empty, we expect 500+ results, so wait much longer
+            if case_type_empty:
+                print("⏳ Case type is empty - expecting 500+ results, waiting longer...")
+                initial_wait = 30  # Wait 30 seconds initially for bulk data
+                stability_check_interval = 10  # Check for stability every 10 seconds
+                stability_threshold = 60  # Consider stable if no new data for 60 seconds
+            else:
+                initial_wait = 15   # Normal wait for filtered results
+                stability_check_interval = 5   # Check for stability every 5 seconds
+                stability_threshold = 30  # Consider stable if no new data for 30 seconds
             
+            print(f"⏳ Initial wait: {initial_wait} seconds...")
+            time.sleep(initial_wait)
+            
+            # Phase 1: Wait for table to appear
+            print("🔍 Phase 1: Waiting for results table to appear...")
             table = None
             used_selector = None
+            table_wait_time = 0
+            max_table_wait = 120  # Wait up to 2 minutes for table to appear
             
-            for selector in table_selectors:
-                try:
-                    table = WebDriverWait(self.driver, 5).until(
-                        EC.presence_of_element_located(selector)
-                    )
-                    used_selector = selector
-                    print(f"✅ Found results table with selector: {selector}")
+            while table_wait_time < max_table_wait:
+                # Try different table selectors
+                table_selectors = [
+                    (By.ID, "grdCaseStatus"),
+                    (By.TAG_NAME, "table"),
+                    (By.XPATH, "//table[contains(@class, 'Grid')]"),
+                    (By.XPATH, "//table[contains(@class, 'table')]"),
+                    (By.XPATH, "//div[contains(@class, 'Grid')]//table"),
+                    (By.CSS_SELECTOR, "table.Grid"),
+                    (By.CSS_SELECTOR, "table.table"),
+                    (By.CSS_SELECTOR, "div.Grid table"),
+                    (By.CSS_SELECTOR, "div.table table")
+                ]
+                
+                for selector in table_selectors:
+                    try:
+                        table = WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located(selector)
+                        )
+                        used_selector = selector
+                        print(f"✅ Found results table with selector: {selector}")
+                        break
+                    except TimeoutException:
+                        continue
+                
+                if table:
                     break
-                except TimeoutException:
-                    continue
+                else:
+                    print(f"⏳ No table found yet, waiting... ({table_wait_time}/{max_table_wait}s)")
+                    time.sleep(10)
+                    table_wait_time += 10
             
             if not table:
-                print("❌ No results table found")
+                print("❌ Table not found after maximum wait time")
                 return []
             
-            # Get all rows from the table
-            rows = table.find_elements(By.TAG_NAME, "tr")
-            print(f"📊 Found {len(rows)} table rows")
+            # Phase 2: Wait for data to be fully loaded - specifically wait for 50+ rows
+            print("🔍 Phase 2: Waiting for 50+ rows to be loaded...")
+            last_row_count = 0
+            stable_count = 0
+            data_wait_time = 0
             
-            cases = []
-            
-            # Skip header row and process data rows
-            for i, row in enumerate(rows[1:], 1):  # Skip first row (header)
+            while True:  # Infinite loop - wait until we have 50+ rows
                 try:
-                    cells = row.find_elements(By.TAG_NAME, "td")
-                    print(f"📋 Row {i}: Found {len(cells)} cells")
+                    # Get all rows from the table
+                    rows = table.find_elements(By.TAG_NAME, "tr")
+                    current_row_count = len(rows)
                     
-                    if len(cells) >= 8:  # Ensure we have enough cells
-                        case_data = {
-                            'CASE_NO': cells[0].text.strip() if len(cells) > 0 else '',
-                            'CASE_TITLE': cells[1].text.strip() if len(cells) > 1 else '',
-                            'PETITIONER': cells[2].text.strip() if len(cells) > 2 else '',
-                            'RESPONDENT': cells[3].text.strip() if len(cells) > 3 else '',
-                            'FILING_DATE': cells[4].text.strip() if len(cells) > 4 else '',
-                            'STATUS': cells[5].text.strip() if len(cells) > 5 else '',
-                            'COURT': cells[6].text.strip() if len(cells) > 6 else '',
-                            'JUDGE': cells[7].text.strip() if len(cells) > 7 else '',
-                            'REMARKS': cells[8].text.strip() if len(cells) > 8 else ''
-                        }
+                    print(f"📊 Found {current_row_count} table rows (was {last_row_count})")
+                    
+                    # Check if we have enough rows (50+)
+                    if current_row_count >= 50:
+                        print(f"🎯 SUCCESS! Found {current_row_count} rows (50+ required)")
+                        stable_count += stability_check_interval
                         
-                        # Only add if we have meaningful data
-                        if case_data['CASE_NO'] and case_data['CASE_TITLE']:
-                            cases.append(case_data)
-                            print(f"✅ Row {i}: Added case data")
+                        # If we have 50+ rows and they've been stable, we're done
+                        if stable_count >= stability_threshold:
+                            print(f"✅ Data loading complete: {current_row_count} rows stable for {stable_count}s")
+                            break
                         else:
-                            print(f"⚠️ Row {i}: Skipped (no meaningful data)")
-                    else:
-                        print(f"⚠️ Row {i}: Not enough cells ({len(cells)})")
+                            print(f"⏳ Have 50+ rows but waiting for stability ({stable_count}/{stability_threshold}s)")
+                    elif current_row_count > last_row_count:
+                        print(f"🔄 Data still loading... {current_row_count - last_row_count} new rows detected")
+                        last_row_count = current_row_count
+                        stable_count = 0  # Reset stability counter
+                    elif current_row_count == last_row_count:
+                        stable_count += stability_check_interval
+                        print(f"⏳ Waiting for more rows... ({stable_count}s without new rows)")
                         
+                        # If we've been waiting too long without reaching 50 rows, something is wrong
+                        if stable_count > 120:  # 2 minutes without progress
+                            print(f"⚠️ Warning: Only {current_row_count} rows found after 2 minutes")
+                            print("⏳ Continuing to wait for more rows...")
+                            stable_count = 0  # Reset and keep waiting
+                    elif current_row_count == 0:
+                        print("ℹ️ No rows found yet, waiting for initial data...")
+                        stable_count = 0
+                    elif current_row_count == 1:
+                        print("ℹ️ Only header row found, waiting for data rows...")
+                        stable_count = 0
+                    
+                    # Wait before next chec
+                    time.sleep(stability_check_interval)
+                    
                 except Exception as e:
-                    print(f"⚠️ Error processing row {i}: {e}")
-                    continue
+                    print(f"⚠️ Error while monitoring data loading: {e}")
+                    time.sleep(stability_check_interval)
+                    data_wait_time += stability_check_interval
             
-            print(f"📊 Total cases found: {len(cases)}")
-            return cases
+            # Phase 3: Process the fully loaded data
+            print("🔍 Phase 3: Processing fully loaded data...")
+            try:
+                # Get the final rows after data is stable
+                final_rows = table.find_elements(By.TAG_NAME, "tr")
+                print(f"📊 Processing {len(final_rows)} total rows")
+                
+                if len(final_rows) > 1:  # More than just header
+                    cases = []
+                    
+                    # Process ALL rows to find the actual data (don't skip any rows)
+                    for i, row in enumerate(final_rows, 1):  # Process all rows
+                        try:
+                            cells = row.find_elements(By.TAG_NAME, "td")
+                            print(f"📋 Row {i}: Found {len(cells)} cells")
+                            
+                            # Debug: Print cell contents for first few rows
+                            if i <= 5:  # Show first 5 rows to see what's happening
+                                print(f"🔍 Row {i} debug:")
+                                for j, cell in enumerate(cells):
+                                    print(f"    Cell {j}: '{cell.text.strip()}'")
+                            
+                            if len(cells) >= 7:  # Ensure we have enough cells (SR, INSTITUTION, CASE_NO, CASE_TITLE, BENCH, HEARING_DATE, STATUS, HISTORY, DETAILS)
+                                case_data = {
+                                    'SR': cells[0].text.strip() if len(cells) > 0 else '',
+                                    'INSTITUTION': cells[1].text.strip() if len(cells) > 1 else '',
+                                    'CASE_NO': cells[2].text.strip() if len(cells) > 2 else '',
+                                    'CASE_TITLE': cells[3].text.strip() if len(cells) > 3 else '',
+                                    'BENCH': cells[4].text.strip() if len(cells) > 4 else '',
+                                    'HEARING_DATE': cells[5].text.strip() if len(cells) > 5 else '',
+                                    'STATUS': cells[6].text.strip() if len(cells) > 6 else '',
+                                    'HISTORY': cells[7].text.strip() if len(cells) > 7 else '',
+                                    'DETAILS': cells[8].text.strip() if len(cells) > 8 else ''
+                                }
+                                
+                                # Only add if we have meaningful data (skip header row and empty rows)
+                                if case_data['SR'] and case_data['SR'].isdigit() and case_data['CASE_NO']:
+                                    cases.append(case_data)
+                                    print(f"✅ Row {i}: Added case with SR={case_data['SR']}")
+                                else:
+                                    print(f"⚠️ Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')")
+                            else:
+                                print(f"⚠️ Row {i}: Not enough cells ({len(cells)})")
+                                
+                        except Exception as e:
+                            print(f"⚠️ Error processing row {i}: {e}")
+                            continue
+                    
+                    print(f"📊 Total cases found: {len(cases)}")
+                    
+                    # If case type was empty and we got a lot of results, show progress
+                    if case_type_empty and len(cases) > 50:
+                        print(f"🎯 SUCCESS! Found {len(cases)} cases with empty case type (bulk data)")
+                    
+                    return cases
+                else:
+                    print("❌ No data rows found after waiting")
+                    return []
+                    
+            except Exception as e:
+                print(f"❌ Error processing final data: {e}")
+                return []
             
         except Exception as e:
             print(f"❌ Error scraping results table: {e}")
@@ -479,8 +445,11 @@ class IHCSeleniumScraper:
             if not self.fill_search_form(case_no, year, case_type, search_by_case_number):
                 return None
             
+            # Determine if case type is empty for bulk data handling
+            case_type_empty = (case_type is None)
+            
             # Scrape the results
-            all_cases_data = self.scrape_results_table()
+            all_cases_data = self.scrape_results_table(case_type_empty=case_type_empty)
             
             if all_cases_data:
                 print(f"📊 Found {len(all_cases_data)} cases for search criteria")
@@ -512,12 +481,14 @@ class IHCSeleniumScraper:
         total_searches = 0
         successful_searches = 0
         
-        # Strategy 1: Search by case number ranges for all years
-        print("\n📋 Strategy 1: Searching by case number ranges for all years...")
+        # Strategy 1: Search by case number ONLY (no case type) for maximum results
+        print("\n📋 Strategy 1: Searching by case number ONLY (no case type) for maximum coverage...")
+        print("💡 Discovery: Searching without case type gives 500+ results vs 16-21 with case type")
+        
         for year in self.years:
             for case_no in range(1, 101):  # Search first 100 case numbers per year
                 total_searches += 1
-                print(f"\n🔍 Search {total_searches}: Case Number: {case_no}, Year: {year}")
+                print(f"\n🔍 Search {total_searches}: Case Number: {case_no}, Year: {year} (NO CASE TYPE)")
                 
                 # Check if driver is still valid
                 try:
@@ -529,11 +500,12 @@ class IHCSeleniumScraper:
                         break
                 
                 try:
-                    cases = self.search_case(case_no=case_no, year=year, search_by_case_number=True)
+                    # Search WITHOUT case type for maximum results
+                    cases = self.search_case(case_no=case_no, year=year, case_type=None, search_by_case_number=True)
                     if cases:
                         successful_searches += 1
                         all_cases.extend(cases)
-                        print(f"✅ Found {len(cases)} cases for case {case_no}/{year}")
+                        print(f"✅ Found {len(cases)} cases for case {case_no}/{year} (no case type)")
                         
                         # Save intermediate results
                         self.save_cases_to_file(all_cases, f"cases_metadata/Islamabad_High_Court/comprehensive_search.json")
@@ -565,8 +537,8 @@ class IHCSeleniumScraper:
                 except:
                     pass
         
-        # Strategy 2: Search by case type with case numbers for recent years
-        print("\n📋 Strategy 2: Searching by case type with case numbers for recent years...")
+        # Strategy 2: Search by case type with case numbers for recent years (for specific filtering)
+        print("\n📋 Strategy 2: Searching by case type with case numbers for recent years (specific filtering)...")
         recent_years = [2023, 2024, 2025]
         for case_type in self.case_types:
             for year in recent_years:
@@ -645,6 +617,122 @@ class IHCSeleniumScraper:
             
         except Exception as e:
             print(f"❌ Error saving to {filename}: {e}")
+
+    def test_case_type_vs_no_case_type(self, case_no=1, year=2025):
+        """Test the difference between searching with and without case type"""
+        print(f"🧪 Testing case type vs no case type for case {case_no}/{year}")
+        
+        # Test 1: Search WITH case type
+        print(f"\n📋 Test 1: Searching WITH case type 'Writ Petition'")
+        try:
+            cases_with_type = self.search_case(case_no=case_no, year=year, case_type="Writ Petition", search_by_case_number=True)
+            if cases_with_type:
+                print(f"✅ WITH case type: Found {len(cases_with_type)} cases")
+            else:
+                print(f"❌ WITH case type: No cases found")
+        except Exception as e:
+            print(f"❌ Error in test with case type: {e}")
+        
+        # Reset for next test
+        try:
+            self.driver.switch_to.default_content()
+            self.navigate_to_case_status()
+        except:
+            pass
+        
+        # Test 2: Search WITHOUT case type
+        print(f"\n📋 Test 2: Searching WITHOUT case type (empty/default)")
+        try:
+            cases_without_type = self.search_case(case_no=case_no, year=year, case_type=None, search_by_case_number=True)
+            if cases_without_type:
+                print(f"✅ WITHOUT case type: Found {len(cases_without_type)} cases")
+            else:
+                print(f"❌ WITHOUT case type: No cases found")
+        except Exception as e:
+            print(f"❌ Error in test without case type: {e}")
+        
+        # Compare results
+        if cases_with_type and cases_without_type:
+            ratio = len(cases_without_type) / len(cases_with_type)
+            print(f"\n📊 Comparison:")
+            print(f"   With case type: {len(cases_with_type)} cases")
+            print(f"   Without case type: {len(cases_without_type)} cases")
+            print(f"   Ratio: {ratio:.1f}x more results without case type")
+            
+            if ratio > 10:
+                print(f"🎯 CONFIRMED: Leaving case type empty gives {ratio:.1f}x more results!")
+            else:
+                print(f"⚠️ Unexpected: Only {ratio:.1f}x difference")
+        
+        return cases_with_type, cases_without_type
+
+    def test_bulk_data_loading(self, case_no=1, year=2025):
+        """Test bulk data loading with empty case type"""
+        print(f"🧪 Testing bulk data loading for case {case_no}/{year} with empty case type")
+        print("⏳ This will take longer as it loads 500+ results...")
+        
+        try:
+            # Search WITHOUT case type for bulk data
+            cases = self.search_case(case_no=case_no, year=year, case_type=None, search_by_case_number=True)
+            if cases:
+                print(f"🎯 SUCCESS! Found {len(cases)} cases with bulk data loading")
+                print(f"📊 This confirms the longer wait times work for 500+ results")
+                
+                # Show sample of results
+                print(f"\n📋 Sample results:")
+                for i, case in enumerate(cases[:5]):
+                    print(f"  {i+1}. {case.get('CASE_NO', 'N/A')} - {case.get('CASE_TITLE', 'N/A')[:60]}...")
+                if len(cases) > 5:
+                    print(f"  ... and {len(cases) - 5} more cases")
+                
+                return cases
+            else:
+                print(f"❌ No cases found with bulk data loading")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error in bulk data test: {e}")
+            return None
+
+def run_test_mode(headless=False):
+    """Run a test to verify the case type vs no case type discovery"""
+    print("🧪 Starting Test Mode to verify case type discovery...")
+    
+    scraper = IHCSeleniumScraper(headless=headless)
+    if not scraper.start_driver():
+        return
+        
+    print("✅ WebDriver started successfully")
+    
+    try:
+        # Test the discovery
+        cases_with_type, cases_without_type = scraper.test_case_type_vs_no_case_type(case_no=1, year=2025)
+        
+        if cases_with_type and cases_without_type:
+            print(f"\n🎯 Test completed successfully!")
+            print(f"📊 Results confirm the discovery:")
+            print(f"   - With case type: {len(cases_with_type)} cases")
+            print(f"   - Without case type: {len(cases_without_type)} cases")
+            print(f"   - Improvement: {len(cases_without_type)/len(cases_with_type):.1f}x more results")
+        else:
+            print(f"\n⚠️ Test completed but results were inconclusive")
+        
+        # Test bulk data loading
+        print(f"\n🧪 Testing bulk data loading...")
+        bulk_cases = scraper.test_bulk_data_loading(case_no=1, year=2025)
+        
+        if bulk_cases and len(bulk_cases) > 50:
+            print(f"🎯 Bulk data test successful! Found {len(bulk_cases)} cases")
+            print(f"✅ Longer wait times are working correctly for 500+ results")
+        else:
+            print(f"⚠️ Bulk data test may need adjustment")
+            
+    except KeyboardInterrupt:
+        print("\n⚠️ Test interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Error during test: {e}")
+    finally:
+        scraper.stop_driver()
 
 def run_comprehensive_scraper(headless=False):
     """Run the comprehensive scraper with all filter combinations"""
@@ -760,22 +848,56 @@ def run_selenium_scraper(start_case_no, end_case_no, year, case_type, headless=F
     
     return cases
 
+def run_simple_test(headless=False):
+    """Run the scraper in simple test mode - just case number = 1"""
+    try:
+        print("🧪 Starting IHC Selenium Scraper in SIMPLE TEST MODE")
+        print("📋 Simple approach: Reset form → Set case number = 1 → Search → Wait for data → Fetch")
+        
+        scraper = IHCSeleniumScraper(headless=headless)
+        
+        if not scraper.start_driver():
+            print("❌ Failed to start WebDriver")
+            return
+        
+        # Step 1: Navigate to case status page
+        print("\n🔍 Step 1: Navigating to case status page...")
+        if not scraper.navigate_to_case_status():
+            print("❌ Failed to navigate to case status")
+            scraper.stop_driver()
+            return
+        
+        # Step 2: Fill form with simple approach
+        print("\n📝 Step 2: Filling search form (simple mode)...")
+        if not scraper.fill_search_form_simple():
+            print("❌ Failed to fill search form")
+            scraper.stop_driver()
+            return
+        
+        # Step 3: Wait for data to load completely
+        print("\n⏳ Step 3: Waiting for complete data to load...")
+        cases = scraper.scrape_results_table(case_type_empty=True)
+        
+        # Step 4: Process results
+        if cases:
+            print(f"\n✅ SUCCESS! Found {len(cases)} cases")
+            print("📊 First 3 cases:")
+            for i, case in enumerate(cases[:3]):
+                print(f"  {i+1}. {case.get('CASE_NO', 'N/A')} - {case.get('CASE_TITLE', 'N/A')[:50]}...")
+            
+            # Save results
+            scraper.save_cases_to_file(cases, "cases_metadata/Islamabad_High_Court/ihc_caseno_1.json")
+            print(f"💾 Saved {len(cases)} cases to ihc_caseno_1.json")
+        else:
+            print("❌ No cases found")
+        
+        scraper.stop_driver()
+        
+    except Exception as e:
+        print(f"❌ Simple test error: {e}")
+        if 'scraper' in locals():
+            scraper.stop_driver()
+
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Scrape case data from IHC website")
-    parser.add_argument("--comprehensive", action="store_true", help="Run comprehensive search with all filter combinations")
-    parser.add_argument("--year", type=int, default=2025, help="Year to search for")
-    parser.add_argument("--case-type", type=str, default="Writ Petition", help="Type of case")
-    parser.add_argument("--visible", action="store_true", help="Run in visible mode (not headless)")
-    args = parser.parse_args()
-    
-    if args.comprehensive:
-        print("🌐 Starting Comprehensive IHC Selenium Scraper")
-        print(f"👻 Headless: {not args.visible}")
-        run_comprehensive_scraper(headless=not args.visible)
-    else:
-        print("🌐 Starting IHC Selenium Scraper")
-        print(f"📅 Year: {args.year}")
-        print(f"📋 Case Type: {args.case_type}")
-        print(f"👻 Headless: {not args.visible}")
-        run_selenium_scraper(1, 10, args.year, args.case_type, headless=not args.visible)
+    # Run simple test by default
+    run_simple_test(headless=True)
