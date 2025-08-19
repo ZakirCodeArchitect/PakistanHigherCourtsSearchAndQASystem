@@ -37,3 +37,14 @@ tqdm==4.67.1
 transformers==4.54.1
 typing_extensions==4.14.1
 urllib3==2.5.0
+
+# ========================================
+# 🕷️ WEB SCRAPING DEPENDENCIES
+# ========================================
+selenium>=4.0.0
+webdriver-manager>=4.0.0
+
+# ========================================
+# 🔧 DEVELOPMENT DEPENDENCIES
+# ========================================
+python-decouple>=3.8

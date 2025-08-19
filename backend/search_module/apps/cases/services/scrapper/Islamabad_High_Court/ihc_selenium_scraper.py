@@ -13,6 +13,36 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 
+# ------------------------------------------------------------------
+# Ensure all relative file operations (e.g., saving JSON) happen
+# with respect to the *project* root directory (search_module) rather
+# than the deep scraper sub-directory from where this script is run.
+# This keeps every scraper run writing to
+#     search_module/cases_metadata/...
+# regardless of the current working directory.
+# ------------------------------------------------------------------
+from pathlib import Path
+
+# Determine the project root (the directory named "search_module")
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "search_module":
+        PROJECT_ROOT = parent
+        break
+
+# Fall back to five levels up if the directory name was not found
+if PROJECT_ROOT is None:
+    PROJECT_ROOT = Path(__file__).resolve().parents[5]
+
+# Change the working directory only if it's different
+try:
+    if Path.cwd() != PROJECT_ROOT:
+        os.chdir(PROJECT_ROOT)
+except Exception as _e:
+    # If changing directory fails, continue; absolute paths can still be built
+    pass
+
+
 class IHCSeleniumScraper:
     def __init__(self, headless=False):  # Changed default to False for testing
         self.base_url = "https://mis.ihc.gov.pk/index.aspx"
@@ -72,9 +102,79 @@ class IHCSeleniumScraper:
             # Set a realistic user agent
             options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
             
-            # Initialize Chrome WebDriver with ChromeDriverManager
-            service = Service(ChromeDriverManager().install())
-            self.driver = webdriver.Chrome(service=service, options=options)
+            # Add arguments to prevent file access issues
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-plugins")
+            options.add_argument("--disable-images")
+            options.add_argument("--disable-javascript")
+            options.add_argument("--disable-web-security")
+            options.add_argument("--allow-running-insecure-content")
+            options.add_argument("--disable-features=VizDisplayCompositor")
+            
+            # Use a custom download directory to avoid permission issues
+            import tempfile
+            temp_dir = tempfile.mkdtemp()
+            options.add_argument(f"--user-data-dir={temp_dir}")
+            options.add_argument(f"--data-path={temp_dir}")
+            
+            # Try multiple approaches for ChromeDriver installation
+            driver_path = None
+            service = None
+            
+            # Clear ChromeDriver cache first
+            try:
+                import shutil
+                cache_dir = os.path.expanduser("~/.wdm")
+                if os.path.exists(cache_dir):
+                    print(f"🧹 Clearing ChromeDriver cache at: {cache_dir}")
+                    shutil.rmtree(cache_dir, ignore_errors=True)
+            except Exception as cache_e:
+                print(f"⚠️ Could not clear cache: {cache_e}")
+            
+            # Method 1: Try ChromeDriverManager with custom cache
+            try:
+                from webdriver_manager.core.os_manager import ChromeType
+                driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
+                service = Service(driver_path)
+                print(f"✅ ChromeDriver installed at: {driver_path}")
+            except Exception as e1:
+                print(f"⚠️ ChromeDriverManager failed: {e1}")
+                
+                # Method 2: Try to find existing ChromeDriver
+                try:
+                    import subprocess
+                    result = subprocess.run(['where', 'chromedriver'], capture_output=True, text=True)
+                    if result.returncode == 0:
+                        driver_path = result.stdout.strip().split('\n')[0]
+                        service = Service(driver_path)
+                        print(f"✅ Found existing ChromeDriver at: {driver_path}")
+                    else:
+                        raise Exception("ChromeDriver not found in PATH")
+                except Exception as e2:
+                    print(f"⚠️ Existing ChromeDriver not found: {e2}")
+                    
+                    # Method 3: Manual download to temp directory
+                    try:
+                        import urllib.request
+                        import zipfile
+                        
+                        # Download ChromeDriver to temp directory
+                        temp_chrome_dir = os.path.join(temp_dir, "chromedriver")
+                        os.makedirs(temp_chrome_dir, exist_ok=True)
+                        
+                        # You would need to implement manual download here
+                        # For now, we'll raise an exception
+                        raise Exception("Manual ChromeDriver download not implemented")
+                        
+                    except Exception as e3:
+                        print(f"❌ All ChromeDriver installation methods failed")
+                        raise Exception(f"ChromeDriver installation failed: {e1}, {e2}, {e3}")
+            
+            # Initialize Chrome WebDriver
+            if service:
+                self.driver = webdriver.Chrome(service=service, options=options)
+            else:
+                raise Exception("No valid ChromeDriver service available")
             
             # Set longer timeouts
             self.driver.set_page_load_timeout(60)
@@ -862,14 +962,14 @@ class IHCSeleniumScraper:
             print(f"❌ Error in bulk data test: {e}")
             return None
 
-    def parallel_scrape_cases(self, batch_number=1, cases_per_batch=5, max_workers=5):
+    def parallel_scrape_cases(self, batch_number=1, cases_per_batch=5, max_workers=3):
         """
         Scrape cases in parallel with individual file saving
         
         Args:
             batch_number: Which batch to process (1 = cases 1-5, 2 = cases 6-10, etc.)
             cases_per_batch: Number of cases per batch (default: 5)
-            max_workers: Number of parallel browser windows (default: 5)
+            max_workers: Number of parallel browser windows (default: 3 - reduced to avoid conflicts)
         """
         import concurrent.futures
         import threading
@@ -919,10 +1019,27 @@ class IHCSeleniumScraper:
                     print(f"⏭️ Worker {worker_id}: Case {case_no} already completed, skipping")
                     return None
             
-            # Create dedicated scraper for this worker
-            worker_scraper = IHCSeleniumScraper(headless=True)
-            if not worker_scraper.start_driver():
-                print(f"❌ Worker {worker_id}: Failed to start WebDriver for case {case_no}")
+            # Create dedicated scraper for this worker with retry mechanism
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    worker_scraper = IHCSeleniumScraper(headless=True)
+                    if worker_scraper.start_driver():
+                        print(f"✅ Worker {worker_id}: WebDriver started successfully on attempt {attempt + 1}")
+                        break
+                    else:
+                        print(f"⚠️ Worker {worker_id}: WebDriver start failed on attempt {attempt + 1}")
+                        worker_scraper.stop_driver()
+                        if attempt < max_retries - 1:
+                            time.sleep(2)  # Wait before retry
+                        continue
+                except Exception as e:
+                    print(f"⚠️ Worker {worker_id}: WebDriver error on attempt {attempt + 1}: {e}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2)  # Wait before retry
+                    continue
+            else:
+                print(f"❌ Worker {worker_id}: Failed to start WebDriver after {max_retries} attempts for case {case_no}")
                 return None
             
             case_results = []
@@ -993,40 +1110,137 @@ class IHCSeleniumScraper:
             
             return case_results
         
-        # Process cases with ThreadPoolExecutor
+        # Process cases with ThreadPoolExecutor - IMPROVED DISTRIBUTION
         all_results = []
         start_time = datetime.now()
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all cases for this batch
-            future_to_case = {
-                executor.submit(scrape_single_case, case_no, i): case_no 
-                for i, case_no in enumerate(case_numbers)
-            }
-            
-            # Process completed cases
-            for future in concurrent.futures.as_completed(future_to_case):
-                case_no = future_to_case[future]
-                try:
-                    case_results = future.result()
-                    if case_results:
-                        all_results.extend(case_results)
-                        print(f"✅ Case {case_no} completed with {len(case_results)} results")
-                    else:
-                        print(f"⚠️ Case {case_no} completed with no results")
-                        
-                except Exception as e:
-                    print(f"❌ Case {case_no} failed: {e}")
+        # Create a queue of cases to process
+        case_queue = case_numbers.copy()
+        completed_futures = []
         
-        # Final progress save
+        print(f"📋 Case distribution strategy:")
+        print(f"   - Total cases in batch: {len(case_numbers)}")
+        print(f"   - Max workers: {max_workers}")
+        print(f"   - Cases to process: {case_numbers}")
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit initial batch of cases (one per worker)
+            active_futures = {}
+            for worker_id in range(min(max_workers, len(case_queue))):
+                if case_queue:
+                    case_no = case_queue.pop(0)
+                    future = executor.submit(scrape_single_case, case_no, worker_id)
+                    active_futures[future] = case_no
+                    print(f"🚀 Worker {worker_id} assigned case {case_no}")
+            
+            # Process cases as they complete and assign new ones
+            while active_futures:
+                # Wait for any future to complete
+                done, not_done = concurrent.futures.wait(
+                    active_futures.keys(), 
+                    return_when=concurrent.futures.FIRST_COMPLETED
+                )
+                
+                # Process completed futures
+                for future in done:
+                    case_no = active_futures[future]
+                    worker_id = None
+                    
+                    # Find which worker completed this case
+                    for f, c in active_futures.items():
+                        if c == case_no:
+                            # Extract worker_id from the future's function call
+                            worker_id = list(active_futures.keys()).index(f)
+                            break
+                    
+                    try:
+                        case_results = future.result()
+                        if case_results:
+                            all_results.extend(case_results)
+                            print(f"✅ Worker {worker_id}: Case {case_no} completed with {len(case_results)} results")
+                        else:
+                            print(f"⚠️ Worker {worker_id}: Case {case_no} completed with no results")
+                            
+                    except Exception as e:
+                        print(f"❌ Worker {worker_id}: Case {case_no} failed: {e}")
+                    
+                    # Remove completed future
+                    del active_futures[future]
+                    completed_futures.append(future)
+                    
+                    # Assign next case to this worker if available
+                    if case_queue:
+                        next_case = case_queue.pop(0)
+                        new_future = executor.submit(scrape_single_case, next_case, worker_id)
+                        active_futures[new_future] = next_case
+                        print(f"🔄 Worker {worker_id} assigned next case {next_case}")
+                    else:
+                        print(f"🏁 Worker {worker_id} finished - no more cases in queue")
+        
+        # Verify all cases were processed
+        missing_cases = set(case_numbers) - completed_cases
+        if missing_cases:
+            print(f"⚠️ WARNING: Missing cases in batch {batch_number}: {missing_cases}")
+            print(f"   Expected: {case_numbers}")
+            print(f"   Completed: {sorted(completed_cases)}")
+            print(f"   Missing: {sorted(missing_cases)}")
+        else:
+            print(f"✅ SUCCESS: All {len(case_numbers)} cases in batch {batch_number} were processed!")
+        
+        # Final progress save (after retries)
+        final_missing_cases = set(case_numbers) - completed_cases
         with open(progress_file, 'w') as f:
             json.dump({
                 'batch_number': batch_number,
                 'completed_cases': list(completed_cases),
                 'total_cases_found': total_cases_found,
                 'last_updated': datetime.now().isoformat(),
-                'status': 'completed'
+                'status': 'completed',
+                'missing_cases': list(final_missing_cases),
+                'expected_cases': case_numbers,
+                'retry_attempted': len(missing_cases) > 0 if 'missing_cases' in locals() else False
             }, f, indent=2)
+        
+        # Retry missing cases if any
+        if missing_cases:
+            print(f"🔄 Retrying {len(missing_cases)} missing cases: {sorted(missing_cases)}")
+            retry_results = []
+            for case_no in sorted(missing_cases):
+                try:
+                    print(f"🔄 Retrying case {case_no}...")
+                    retry_scraper = IHCSeleniumScraper(headless=True)
+                    if retry_scraper.start_driver():
+                        if retry_scraper.navigate_to_case_status() and retry_scraper.fill_search_form_simple(case_no):
+                            retry_cases = retry_scraper.scrape_results_table(case_type_empty=True)
+                            if retry_cases:
+                                # Add metadata
+                                for case in retry_cases:
+                                    case['SEARCH_CASE_NO'] = case_no
+                                    case['WORKER_ID'] = 'RETRY'
+                                    case['SCRAPE_TIMESTAMP'] = datetime.now().isoformat()
+                                    case['BATCH_NUMBER'] = batch_number
+                                    case['RETRY_ATTEMPT'] = True
+                                
+                                retry_results.extend(retry_cases)
+                                completed_cases.add(case_no)
+                                print(f"✅ Retry successful for case {case_no}: {len(retry_cases)} results")
+                                
+                                # Save individual case file
+                                case_filename = f"{cases_dir}/case{case_no}.json"
+                                retry_scraper.save_cases_to_file(retry_cases, case_filename)
+                            else:
+                                print(f"⚠️ Retry failed for case {case_no}: No results")
+                        else:
+                            print(f"❌ Retry failed for case {case_no}: Navigation/form filling failed")
+                    else:
+                        print(f"❌ Retry failed for case {case_no}: WebDriver failed to start")
+                    retry_scraper.stop_driver()
+                except Exception as e:
+                    print(f"❌ Retry error for case {case_no}: {e}")
+            
+            # Add retry results to total
+            all_results.extend(retry_results)
+            print(f"📊 Retry completed: {len(retry_results)} additional cases found")
         
         # Save batch results
         batch_filename = f"cases_metadata/Islamabad_High_Court/batch_{batch_number}_results.json"
@@ -1042,7 +1256,7 @@ class IHCSeleniumScraper:
         
         return all_results
 
-    def run_multiple_batches(self, start_batch=1, end_batch=200, cases_per_batch=5, max_workers=5):
+    def run_multiple_batches(self, start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3):
         """
         Run multiple batches sequentially
         
@@ -1303,7 +1517,7 @@ def run_simple_test(headless=False):
         if 'scraper' in locals():
             scraper.stop_driver()
 
-def run_single_batch(batch_number=1, cases_per_batch=5, max_workers=5):
+def run_single_batch(batch_number=1, cases_per_batch=5, max_workers=3):
     """Run a single batch of cases"""
     try:
         print(f"🚀 Starting SINGLE BATCH {batch_number}")
@@ -1323,7 +1537,7 @@ def run_single_batch(batch_number=1, cases_per_batch=5, max_workers=5):
         print(f"❌ Batch {batch_number} error: {e}")
         return None
 
-def run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=5):
+def run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3):
     """Run multiple batches sequentially"""
     try:
         print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
@@ -1351,13 +1565,13 @@ if __name__ == "__main__":
     
     # Option 1: Run a single batch (recommended for testing)
     # Batch 1 = Cases 1-5, Batch 2 = Cases 6-10, etc.
-    run_single_batch(batch_number=1, cases_per_batch=5, max_workers=5)
+    run_single_batch(batch_number=2, cases_per_batch=5, max_workers=3)
     
     # Option 2: Run multiple batches
-    # run_multiple_batches(start_batch=1, end_batch=10, cases_per_batch=5, max_workers=5)
+    # run_multiple_batches(start_batch=1, end_batch=10, cases_per_batch=5, max_workers=3)
     
     # Option 3: Run all 1000 cases (200 batches of 5 cases each)
-    # run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=5)
+    # run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3)
     
     # Option 4: Simple test (single case)
     # run_simple_test(headless=True)

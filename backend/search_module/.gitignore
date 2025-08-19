@@ -1,0 +1,423 @@
+# ========================================
+# 🚀 PAKISTAN HIGHER COURTS SEARCH & QA SYSTEM
+# ========================================
+# Cross-platform .gitignore for Django + Selenium + ML project
+# Supports: Windows, macOS, Linux development
+
+# ========================================
+# 🐍 PYTHON
+# ========================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ========================================
+# 🌐 DJANGO
+# ========================================
+# Django specific
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+
+# Django migrations (uncomment if you want to ignore migrations)
+# migrations/
+
+# Django cache
+.cache/
+
+# ========================================
+# 🗄️ DATABASE
+# ========================================
+# PostgreSQL
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+
+# Database backups
+*.dump
+*.backup
+*.bak
+
+# ========================================
+# 🤖 MACHINE LEARNING & AI
+# ========================================
+# Model files
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pb
+*.onnx
+*.tflite
+*.pt
+*.pth
+
+# Hugging Face cache
+.cache/huggingface/
+transformers_cache/
+sentence_transformers_cache/
+
+# FAISS indexes
+*.faiss
+*.index
+
+# TensorFlow
+.tensorboard/
+logs/
+checkpoints/
+
+# PyTorch
+*.pth
+*.pt
+checkpoints/
+runs/
+
+# ========================================
+# 🕷️ SELENIUM & WEB SCRAPING
+# ========================================
+# ChromeDriver cache
+.wdm/
+chromedriver*
+geckodriver*
+msedgedriver*
+
+# Selenium screenshots
+screenshots/
+*.png
+*.jpg
+*.jpeg
+
+# Browser downloads
+downloads/
+temp_downloads/
+
+# ========================================
+# 📊 DATA FILES
+# ========================================
+# Large data files (uncomment if you want to ignore all data)
+# cases_metadata/
+# *.json
+# *.csv
+# *.xlsx
+# *.xls
+
+# Note: Case data files are INCLUDED in this repository
+# All scraped case data will be pushed to GitHub
+
+# ========================================
+# 🖥️ OPERATING SYSTEMS
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# 🔧 DEVELOPMENT TOOLS
+# ========================================
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ========================================
+# 🔐 SECURITY & CONFIGURATION
+# ========================================
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# API keys and secrets
+secrets.json
+config.json
+credentials.json
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ========================================
+# 📦 PACKAGE MANAGERS
+# ========================================
+# Node.js (if you have any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# ========================================
+# 🚀 DEPLOYMENT
+# ========================================
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Kubernetes
+*.yaml
+*.yml
+!requirements.txt
+
+# ========================================
+# 📝 DOCUMENTATION
+# ========================================
+# Keep documentation but ignore generated files
+docs/_build/
+docs/build/
+
+# ========================================
+# 🧪 TESTING
+# ========================================
+# Test results
+test_results/
+test_output/
+.pytest_cache/
+
+# ========================================
+# 📱 MOBILE (if applicable)
+# ========================================
+# React Native
+.expo/
+dist/
+web-build/
+
+# ========================================
+# 🎯 PROJECT SPECIFIC
+# ========================================
+# Scraper specific
+scraper_logs/
+scraper_output/
+temp/
+tmp/
+
+# Large files that shouldn't be in git
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# ========================================
+# ✅ KEEP THESE FILES
+# ========================================
+# Important files to keep
+!requirements.txt
+!README.md
+!*.md
+!.gitignore
+!Dockerfile
+!docker-compose.yml
+!manage.py
+!core/settings.py
+!apps/*/models.py
+!apps/*/views.py
+!apps/*/urls.py
+
+# Keep empty directories
+!.gitkeep

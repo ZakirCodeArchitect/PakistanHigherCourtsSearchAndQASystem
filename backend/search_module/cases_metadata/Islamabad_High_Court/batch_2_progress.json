@@ -1,0 +1,22 @@
+{
+  "batch_number": 2,
+  "completed_cases": [
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "total_cases_found": 985,
+  "last_updated": "2025-08-20T00:22:29.472189",
+  "status": "completed",
+  "missing_cases": [],
+  "expected_cases": [
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "retry_attempted": false
+}
