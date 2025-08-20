@@ -1,0 +1,21 @@
+<div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                    <h4 class="modal-title" id="myModalCmsLabel" style="text-align:left;">CMs of Case Having Code: (<label id="lblMdCseCdeCms"></label>)
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12">
+
+                            <div class="table-responsive">
+                                <div id="tblCmsHstry_wrapper" class="dataTables_wrapper no-footer"><div class="dataTables_length" id="tblCmsHstry_length"><label>Show <select name="tblCmsHstry_length" aria-controls="tblCmsHstry" class=""><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select> records</label></div><div id="tblCmsHstry_filter" class="dataTables_filter"><label>Search:<input type="search" class="" placeholder="" aria-controls="tblCmsHstry"></label></div><table class="table table-bordered no-footer dataTable" id="tblCmsHstry" style="background-color: white; opacity: 0.9;" role="grid" aria-describedby="tblCmsHstry_info"><thead class="table_heading_custom" style="background-color: #428bca; color: white;"><tr role="row"><th class="sorting_asc" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="Sr: activate to sort column ascending" style="width: 28.4px;" aria-sort="ascending">Sr</th><th class="sorting" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="CM: activate to sort column ascending" style="width: 31.4px;">CM</th><th class="sorting" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="INSTITUTION: activate to sort column ascending" style="width: 107.4px;">INSTITUTION</th><th class="sorting" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="DISPOSAL DATE: activate to sort column ascending" style="width: 135.4px;">DISPOSAL DATE</th><th class="sorting" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="ORDER PASSED: activate to sort column ascending" style="width: 134.4px;">ORDER PASSED</th><th class="sorting" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="DESCRIPTION: activate to sort column ascending" style="width: 116.4px;">DESCRIPTION</th><th class="sorting" tabindex="0" aria-controls="tblCmsHstry" rowspan="1" colspan="1" aria-label="STATUS: activate to sort column ascending" style="width: 68.4px;">STATUS</th></tr></thead><tbody><tr class="odd"><td valign="top" colspan="7" class="dataTables_empty">No data available</td></tr></tbody></table><div class="dataTables_info" id="tblCmsHstry_info" role="status" aria-live="polite">Showing 0 to 0 of 0 entries</div><div class="dataTables_paginate paging_simple_numbers" id="tblCmsHstry_paginate"><a class="paginate_button previous disabled" aria-controls="tblCmsHstry" data-dt-idx="0" tabindex="0" id="tblCmsHstry_previous">Previous</a><span></span><a class="paginate_button next disabled" aria-controls="tblCmsHstry" data-dt-idx="1" tabindex="0" id="tblCmsHstry_next">Next</a></div></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
