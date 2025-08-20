@@ -1185,6 +1185,15 @@ class IHCSeleniumScraper:
                 print(f"✅ Successfully extracted {len(case_details)} detailed fields")
                 print(f"📋 Extracted fields: {list(case_details.keys())}")
                 
+                # Now fetch data from the 4 additional options (Parties, Comments, Case CMs, Hearing Details)
+                additional_details = self.fetch_case_detail_options()
+                if additional_details:
+                    case_details.update(additional_details)
+                    print(f"✅ Added data from case detail options: {list(additional_details.keys())}")
+                    print(f"📊 Total case details fields: {len(case_details)}")
+                else:
+                    print("⚠️ No additional details extracted from case detail options")
+                
                 # If we didn't extract any fields, try alternative methods
                 if len(case_details) == 0:
                     print("⚠️ No fields extracted, trying alternative methods...")
@@ -1934,11 +1943,18 @@ class IHCSeleniumScraper:
                     history_content['content']['headers'] = headers
                     print(f"✅ Orders: Found {len(headers)} headers: {headers}")
                 
-                # Extract rows with VIEW column links
+                # Comprehensive row extraction - try multiple approaches
                 rows = []
-                row_elements = table.find_elements(By.TAG_NAME, "tr")[1:]  # Skip header row
-                for row_index, row in enumerate(row_elements):
-                    cells = row.find_elements(By.TAG_NAME, "td")
+                
+                # Method 1: Get ALL tr elements in the table (including nested ones)
+                all_tr_elements = table.find_elements(By.XPATH, ".//tr")
+                print(f"🔍 Orders: Found {len(all_tr_elements)} total tr elements in table")
+                
+                # Skip the first tr if it's a header
+                data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
+                
+                for tr_index, tr in enumerate(data_tr_elements):
+                    cells = tr.find_elements(By.TAG_NAME, "td")
                     row_data = []
                     
                     for cell_index, cell in enumerate(cells):
@@ -1968,7 +1984,7 @@ class IHCSeleniumScraper:
                                     
                                     if link_data:
                                         row_data.append(link_data)
-                                        print(f"✅ Orders: Found {len(link_data)} download link(s) in row {row_index + 1}")
+                                        print(f"✅ Orders: Found {len(link_data)} download link(s) in TR {tr_index + 1}")
                                     else:
                                         row_data.append(cell_text)
                                 else:
@@ -1979,8 +1995,85 @@ class IHCSeleniumScraper:
                         else:
                             row_data.append(cell_text)
                     
-                    if row_data and len(row_data) > 1:  # Avoid empty rows
-                        rows.append(row_data)
+                    print(f"🔍 Orders: TR {tr_index + 1} has {len(cells)} cells: {row_data}")
+                    
+                    # Include row if it has any data (not just empty cells)
+                    if row_data and any(cell_text for cell_text in row_data if isinstance(cell_text, str)):
+                        # Skip rows that contain "No data available"
+                        if not any("No data available" in str(cell_text) for cell_text in row_data):
+                            # Check if this row is already added
+                            if row_data not in rows:
+                                rows.append(row_data)
+                                print(f"✅ Orders: Added TR {tr_index + 1}: {row_data}")
+                        else:
+                            print(f"⚠️ Orders: Skipping 'No data available' TR {tr_index + 1}: {row_data}")
+                    else:
+                        print(f"⚠️ Orders: Skipping empty TR {tr_index + 1}: {row_data}")
+                
+                # Method 2: Also check tbody specifically
+                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                if tbody_elements:
+                    print(f"🔍 Orders: Found {len(tbody_elements)} tbody elements")
+                    for tbody_index, tbody in enumerate(tbody_elements):
+                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
+                        print(f"🔍 Orders: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
+                        
+                        for row_index, row in enumerate(tbody_rows):
+                            cells = row.find_elements(By.TAG_NAME, "td")
+                            row_data = []
+                            
+                            for cell_index, cell in enumerate(cells):
+                                cell_text = cell.text.strip()
+                                
+                                # Special handling for VIEW column (last column)
+                                if cell_index == len(cells) - 1 and "VIEW" in headers[-1]:
+                                    # Look for download links in the VIEW column
+                                    try:
+                                        # Find download links within this cell
+                                        download_links = cell.find_elements(By.TAG_NAME, "a")
+                                        if download_links:
+                                            # Extract href attributes from download links
+                                            link_data = []
+                                            for link in download_links:
+                                                href = link.get_attribute("href")
+                                                title = link.get_attribute("title") or ""
+                                                link_text = link.text.strip()
+                                                
+                                                if href:
+                                                    link_info = {
+                                                        "href": href,
+                                                        "title": title,
+                                                        "text": link_text
+                                                    }
+                                                    link_data.append(link_info)
+                                            
+                                            if link_data:
+                                                row_data.append(link_data)
+                                                print(f"✅ Orders: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}")
+                                            else:
+                                                row_data.append(cell_text)
+                                        else:
+                                            row_data.append(cell_text)
+                                    except Exception as link_error:
+                                        print(f"⚠️ Error extracting VIEW column links: {link_error}")
+                                        row_data.append(cell_text)
+                                else:
+                                    row_data.append(cell_text)
+                            
+                            print(f"🔍 Orders: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                            
+                            # Include row if it has any data (not just empty cells)
+                            if row_data and any(cell_text for cell_text in row_data if isinstance(cell_text, str)):
+                                # Skip rows that contain "No data available"
+                                if not any("No data available" in str(cell_text) for cell_text in row_data):
+                                    # Check if this row is already added
+                                    if row_data not in rows:
+                                        rows.append(row_data)
+                                        print(f"✅ Orders: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                else:
+                                    print(f"⚠️ Orders: Skipping 'No data available' tbody row: {row_data}")
+                            else:
+                                print(f"⚠️ Orders: Skipping empty tbody row: {row_data}")
                 
                 if rows:
                     history_content['content']['rows'] = rows
@@ -2282,6 +2375,630 @@ class IHCSeleniumScraper:
                 
         except Exception as e:
             print(f"❌ Error in close_history_modal: {e}")
+            return False
+    
+    def fetch_case_detail_options(self):
+        """
+        Fetch data from the 4 additional options in the case details modal:
+        Parties, Comments, Case CMs, and Hearing Details
+        
+        Returns:
+            dict: Additional details data or empty dict if failed
+        """
+        try:
+            print("🔍 Looking for case detail options (Parties, Comments, Case CMs, Hearing Details)...")
+            
+            # Store current window handle
+            original_window = self.driver.current_window_handle
+            
+            additional_details = {}
+            
+            # Define the four options we want to fetch
+            detail_options = ["Parties", "Comments", "Case CMs", "Hearing Details"]
+            
+            for option_type in detail_options:
+                print(f"🔍 Looking for '{option_type}' button...")
+                
+                # Find the button for this option type
+                target_element = None
+                
+                # Look for buttons with specific text
+                try:
+                    buttons = self.driver.find_elements(By.TAG_NAME, "button")
+                    for button in buttons:
+                        button_text = button.text.strip()
+                        if option_type.lower() in button_text.lower():
+                            target_element = button
+                            print(f"✅ Found '{option_type}' button")
+                            break
+                except:
+                    pass
+                
+                # If not found as button, look for other elements
+                if not target_element:
+                    try:
+                        all_elements = self.driver.find_elements(By.XPATH, f"//*[contains(text(), '{option_type}')]")
+                        for element in all_elements:
+                            if element.is_displayed() and element.is_enabled():
+                                target_element = element
+                                print(f"✅ Found '{option_type}' element")
+                                break
+                    except:
+                        pass
+                
+                if not target_element:
+                    print(f"⚠️ Could not find '{option_type}' button")
+                    continue
+                
+                # Click the option button
+                try:
+                    print(f"🖱️ Clicking '{option_type}' button...")
+                    target_element.click()
+                    time.sleep(3)  # Wait for modal/popup to load
+                    
+                    # Extract data from the opened modal/popup
+                    option_content = self.extract_case_detail_option_content(option_type)
+                    if option_content:
+                        additional_details[f"{option_type.upper().replace(' ', '_')}_DETAIL_DATA"] = option_content
+                        print(f"✅ Extracted '{option_type}' data")
+                    else:
+                        print(f"⚠️ No data extracted for '{option_type}'")
+                    
+                    # Close the option modal/popup
+                    print(f"🔍 Closing '{option_type}' modal...")
+                    close_success = False
+                    try:
+                        close_success = self.close_case_detail_option_modal()
+                        if close_success:
+                            print(f"✅ Successfully closed '{option_type}' modal")
+                        else:
+                            print(f"⚠️ Failed to close '{option_type}' modal, trying alternative methods...")
+                    except Exception as close_error:
+                        print(f"⚠️ Error closing '{option_type}' modal: {close_error}")
+                    
+                    # Try alternative closing methods if needed
+                    if not close_success:
+                        try:
+                            from selenium.webdriver.common.keys import Keys
+                            self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                            print(f"✅ Used Escape key to close '{option_type}' modal")
+                            time.sleep(1)
+                        except Exception as escape_error:
+                            print(f"⚠️ Escape key also failed for '{option_type}' modal: {escape_error}")
+                    
+                    # Wait a moment to ensure modal is fully closed
+                    time.sleep(2)
+                    
+                except Exception as e:
+                    print(f"⚠️ Error processing '{option_type}': {e}")
+                    # Try to close any open modal to prevent blocking
+                    try:
+                        from selenium.webdriver.common.keys import Keys
+                        self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                        print(f"✅ Used Escape key to close modal after error")
+                        time.sleep(1)
+                    except:
+                        pass
+                    continue
+            
+            print(f"✅ Successfully extracted data for {len(additional_details)} detail options")
+            return additional_details
+            
+        except Exception as e:
+            print(f"❌ Error fetching case detail options: {e}")
+            return {}
+    
+    def extract_case_detail_option_content(self, option_type):
+        """
+        Extract content from a case detail option modal/popup
+        
+        Args:
+            option_type: Type of option (Parties, Comments, Case CMs, Hearing Details)
+            
+        Returns:
+            dict: Extracted option content
+        """
+        try:
+            option_content = {
+                'type': option_type,
+                'extracted_at': datetime.now().isoformat(),
+                'content': {}
+            }
+            
+            # Wait for content to load
+            time.sleep(2)
+            
+            # Handle different option types based on the modal titles
+            if option_type == "Parties":
+                # Parties opens "Case Parties" modal
+                return self._extract_parties_data(option_content)
+            elif option_type == "Comments":
+                # Comments opens "Doc History" modal
+                return self._extract_comments_detail_data(option_content)
+            elif option_type == "Case CMs":
+                # Case CMs opens "CMs of Case" modal
+                return self._extract_case_cms_detail_data(option_content)
+            elif option_type == "Hearing Details":
+                # Hearing Details opens hearing information modal
+                return self._extract_hearing_details_data(option_content)
+            else:
+                print(f"⚠️ Unknown option type: {option_type}")
+                return None
+            
+        except Exception as e:
+            print(f"❌ Error extracting {option_type} content: {e}")
+            return None
+    
+    def _extract_parties_data(self, option_content):
+        """Extract data from Parties modal (Case Parties)"""
+        try:
+            # Look for the specific table with id="tblPrty"
+            table = self.driver.find_element(By.ID, "tblPrty")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    option_content['content']['headers'] = headers
+                    print(f"✅ Parties: Found {len(headers)} headers: {headers}")
+                
+                # Comprehensive row extraction - try multiple approaches
+                rows = []
+                
+                # Method 1: Get ALL tr elements in the table (including nested ones)
+                all_tr_elements = table.find_elements(By.XPATH, ".//tr")
+                print(f"🔍 Parties: Found {len(all_tr_elements)} total tr elements in table")
+                
+                # Skip the first tr if it's a header
+                data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
+                
+                for tr_index, tr in enumerate(data_tr_elements):
+                    cells = tr.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    for cell in cells:
+                        cell_text = cell.text.strip()
+                        row_data.append(cell_text)
+                    
+                    print(f"🔍 Parties: TR {tr_index + 1} has {len(cells)} cells: {row_data}")
+                    
+                    # Include row if it has any data (not just empty cells)
+                    if row_data and any(cell_text for cell_text in row_data):
+                        # Skip rows that contain "No data available"
+                        if not any("No data available" in cell_text for cell_text in row_data):
+                            # Check if this row is already added
+                            if row_data not in rows:
+                                rows.append(row_data)
+                                print(f"✅ Parties: Added TR {tr_index + 1}: {row_data}")
+                        else:
+                            print(f"⚠️ Parties: Skipping 'No data available' TR {tr_index + 1}: {row_data}")
+                    else:
+                        print(f"⚠️ Parties: Skipping empty TR {tr_index + 1}: {row_data}")
+                
+                # Method 2: Also check tbody specifically
+                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                if tbody_elements:
+                    print(f"🔍 Parties: Found {len(tbody_elements)} tbody elements")
+                    for tbody_index, tbody in enumerate(tbody_elements):
+                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
+                        print(f"🔍 Parties: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
+                        
+                        for row_index, row in enumerate(tbody_rows):
+                            cells = row.find_elements(By.TAG_NAME, "td")
+                            row_data = []
+                            for cell in cells:
+                                cell_text = cell.text.strip()
+                                row_data.append(cell_text)
+                            
+                            print(f"🔍 Parties: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                            
+                            # Include row if it has any data (not just empty cells)
+                            if row_data and any(cell_text for cell_text in row_data):
+                                # Skip rows that contain "No data available"
+                                if not any("No data available" in cell_text for cell_text in row_data):
+                                    # Check if this row is already added
+                                    if row_data not in rows:
+                                        rows.append(row_data)
+                                        print(f"✅ Parties: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                else:
+                                    print(f"⚠️ Parties: Skipping 'No data available' tbody row: {row_data}")
+                            else:
+                                print(f"⚠️ Parties: Skipping empty tbody row: {row_data}")
+                
+                if rows:
+                    option_content['content']['rows'] = rows
+                    print(f"✅ Parties: Found {len(rows)} data rows")
+                else:
+                    print("⚠️ Parties: No data rows found")
+                
+                return option_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Parties data: {e}")
+            return None
+    
+    def _extract_comments_detail_data(self, option_content):
+        """Extract data from Comments modal (Doc History)"""
+        try:
+            # Look for the specific table with id="tblCmntsHstry"
+            table = self.driver.find_element(By.ID, "tblCmntsHstry")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    option_content['content']['headers'] = headers
+                    print(f"✅ Comments Detail: Found {len(headers)} headers: {headers}")
+                
+                # Comprehensive row extraction - try multiple approaches
+                rows = []
+                
+                # Method 1: Get ALL tr elements in the table (including nested ones)
+                all_tr_elements = table.find_elements(By.XPATH, ".//tr")
+                print(f"🔍 Comments Detail: Found {len(all_tr_elements)} total tr elements in table")
+                
+                # Skip the first tr if it's a header
+                data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
+                
+                for tr_index, tr in enumerate(data_tr_elements):
+                    cells = tr.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    for cell in cells:
+                        cell_text = cell.text.strip()
+                        row_data.append(cell_text)
+                    
+                    print(f"🔍 Comments Detail: TR {tr_index + 1} has {len(cells)} cells: {row_data}")
+                    
+                    # Include row if it has any data (not just empty cells)
+                    if row_data and any(cell_text for cell_text in row_data):
+                        # Skip rows that contain "No data available"
+                        if not any("No data available" in cell_text for cell_text in row_data):
+                            # Check if this row is already added
+                            if row_data not in rows:
+                                rows.append(row_data)
+                                print(f"✅ Comments Detail: Added TR {tr_index + 1}: {row_data}")
+                        else:
+                            print(f"⚠️ Comments Detail: Skipping 'No data available' TR {tr_index + 1}: {row_data}")
+                    else:
+                        print(f"⚠️ Comments Detail: Skipping empty TR {tr_index + 1}: {row_data}")
+                
+                # Method 2: Also check tbody specifically
+                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                if tbody_elements:
+                    print(f"🔍 Comments Detail: Found {len(tbody_elements)} tbody elements")
+                    for tbody_index, tbody in enumerate(tbody_elements):
+                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
+                        print(f"🔍 Comments Detail: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
+                        
+                        for row_index, row in enumerate(tbody_rows):
+                            cells = row.find_elements(By.TAG_NAME, "td")
+                            row_data = []
+                            for cell in cells:
+                                cell_text = cell.text.strip()
+                                row_data.append(cell_text)
+                            
+                            print(f"🔍 Comments Detail: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                            
+                            # Include row if it has any data (not just empty cells)
+                            if row_data and any(cell_text for cell_text in row_data):
+                                # Skip rows that contain "No data available"
+                                if not any("No data available" in cell_text for cell_text in row_data):
+                                    # Check if this row is already added
+                                    if row_data not in rows:
+                                        rows.append(row_data)
+                                        print(f"✅ Comments Detail: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                else:
+                                    print(f"⚠️ Comments Detail: Skipping 'No data available' tbody row: {row_data}")
+                            else:
+                                print(f"⚠️ Comments Detail: Skipping empty tbody row: {row_data}")
+                
+                if rows:
+                    option_content['content']['rows'] = rows
+                    print(f"✅ Comments Detail: Found {len(rows)} data rows")
+                else:
+                    print("⚠️ Comments Detail: No data rows found")
+                
+                return option_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Comments Detail data: {e}")
+            return None
+    
+    def _extract_case_cms_detail_data(self, option_content):
+        """Extract data from Case CMs modal (CMs of Case)"""
+        try:
+            # Look for the specific table with id="tblCmsHstry"
+            table = self.driver.find_element(By.ID, "tblCmsHstry")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    option_content['content']['headers'] = headers
+                    print(f"✅ Case CMs Detail: Found {len(headers)} headers: {headers}")
+                
+                # Comprehensive row extraction - try multiple approaches
+                rows = []
+                
+                # Method 1: Get ALL tr elements in the table (including nested ones)
+                all_tr_elements = table.find_elements(By.XPATH, ".//tr")
+                print(f"🔍 Case CMs Detail: Found {len(all_tr_elements)} total tr elements in table")
+                
+                # Skip the first tr if it's a header
+                data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
+                
+                for tr_index, tr in enumerate(data_tr_elements):
+                    cells = tr.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    for cell in cells:
+                        cell_text = cell.text.strip()
+                        row_data.append(cell_text)
+                    
+                    print(f"🔍 Case CMs Detail: TR {tr_index + 1} has {len(cells)} cells: {row_data}")
+                    
+                    # Include row if it has any data (not just empty cells)
+                    if row_data and any(cell_text for cell_text in row_data):
+                        # Skip rows that contain "No data available"
+                        if not any("No data available" in cell_text for cell_text in row_data):
+                            # Check if this row is already added
+                            if row_data not in rows:
+                                rows.append(row_data)
+                                print(f"✅ Case CMs Detail: Added TR {tr_index + 1}: {row_data}")
+                        else:
+                            print(f"⚠️ Case CMs Detail: Skipping 'No data available' TR {tr_index + 1}: {row_data}")
+                    else:
+                        print(f"⚠️ Case CMs Detail: Skipping empty TR {tr_index + 1}: {row_data}")
+                
+                # Method 2: Also check tbody specifically
+                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                if tbody_elements:
+                    print(f"🔍 Case CMs Detail: Found {len(tbody_elements)} tbody elements")
+                    for tbody_index, tbody in enumerate(tbody_elements):
+                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
+                        print(f"🔍 Case CMs Detail: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
+                        
+                        for row_index, row in enumerate(tbody_rows):
+                            cells = row.find_elements(By.TAG_NAME, "td")
+                            row_data = []
+                            for cell in cells:
+                                cell_text = cell.text.strip()
+                                row_data.append(cell_text)
+                            
+                            print(f"🔍 Case CMs Detail: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                            
+                            # Include row if it has any data (not just empty cells)
+                            if row_data and any(cell_text for cell_text in row_data):
+                                # Skip rows that contain "No data available"
+                                if not any("No data available" in cell_text for cell_text in row_data):
+                                    # Check if this row is already added
+                                    if row_data not in rows:
+                                        rows.append(row_data)
+                                        print(f"✅ Case CMs Detail: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                else:
+                                    print(f"⚠️ Case CMs Detail: Skipping 'No data available' tbody row: {row_data}")
+                            else:
+                                print(f"⚠️ Case CMs Detail: Skipping empty tbody row: {row_data}")
+                
+                if rows:
+                    option_content['content']['rows'] = rows
+                    print(f"✅ Case CMs Detail: Found {len(rows)} data rows")
+                else:
+                    print("⚠️ Case CMs Detail: No data rows found")
+                
+                return option_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Case CMs Detail data: {e}")
+            return None
+    
+    def _extract_hearing_details_data(self, option_content):
+        """Extract data from Hearing Details modal (Case History)"""
+        try:
+            # Look for the specific table with id="tblCseHstry" (same as Orders)
+            table = self.driver.find_element(By.ID, "tblCseHstry")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    option_content['content']['headers'] = headers
+                    print(f"✅ Hearing Details: Found {len(headers)} headers: {headers}")
+                
+                # Comprehensive row extraction - try multiple approaches
+                rows = []
+                
+                # Method 1: Get ALL tr elements in the table (including nested ones)
+                all_tr_elements = table.find_elements(By.XPATH, ".//tr")
+                print(f"🔍 Hearing Details: Found {len(all_tr_elements)} total tr elements in table")
+                
+                # Skip the first tr if it's a header
+                data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
+                
+                for tr_index, tr in enumerate(data_tr_elements):
+                    cells = tr.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    
+                    for cell_index, cell in enumerate(cells):
+                        cell_text = cell.text.strip()
+                        
+                        # Special handling for VIEW column (last column)
+                        if cell_index == len(cells) - 1 and "VIEW" in headers[-1]:
+                            # Look for download links in the VIEW column
+                            try:
+                                # Find download links within this cell
+                                download_links = cell.find_elements(By.TAG_NAME, "a")
+                                if download_links:
+                                    # Extract href attributes from download links
+                                    link_data = []
+                                    for link in download_links:
+                                        href = link.get_attribute("href")
+                                        title = link.get_attribute("title") or ""
+                                        link_text = link.text.strip()
+                                        
+                                        if href:
+                                            link_info = {
+                                                "href": href,
+                                                "title": title,
+                                                "text": link_text
+                                            }
+                                            link_data.append(link_info)
+                                    
+                                    if link_data:
+                                        row_data.append(link_data)
+                                        print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in TR {tr_index + 1}")
+                                    else:
+                                        row_data.append(cell_text)
+                                else:
+                                    row_data.append(cell_text)
+                            except Exception as link_error:
+                                print(f"⚠️ Error extracting VIEW column links: {link_error}")
+                                row_data.append(cell_text)
+                        else:
+                            row_data.append(cell_text)
+                    
+                    print(f"🔍 Hearing Details: TR {tr_index + 1} has {len(cells)} cells: {row_data}")
+                    
+                    # Include row if it has any data (not just empty cells)
+                    if row_data and any(cell_text for cell_text in row_data if isinstance(cell_text, str)):
+                        # Skip rows that contain "No data available"
+                        if not any("No data available" in str(cell_text) for cell_text in row_data):
+                            # Check if this row is already added
+                            if row_data not in rows:
+                                rows.append(row_data)
+                                print(f"✅ Hearing Details: Added TR {tr_index + 1}: {row_data}")
+                        else:
+                            print(f"⚠️ Hearing Details: Skipping 'No data available' TR {tr_index + 1}: {row_data}")
+                    else:
+                        print(f"⚠️ Hearing Details: Skipping empty TR {tr_index + 1}: {row_data}")
+                
+                # Method 2: Also check tbody specifically
+                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                if tbody_elements:
+                    print(f"🔍 Hearing Details: Found {len(tbody_elements)} tbody elements")
+                    for tbody_index, tbody in enumerate(tbody_elements):
+                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
+                        print(f"🔍 Hearing Details: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
+                        
+                        for row_index, row in enumerate(tbody_rows):
+                            cells = row.find_elements(By.TAG_NAME, "td")
+                            row_data = []
+                            
+                            for cell_index, cell in enumerate(cells):
+                                cell_text = cell.text.strip()
+                                
+                                # Special handling for VIEW column (last column)
+                                if cell_index == len(cells) - 1 and "VIEW" in headers[-1]:
+                                    # Look for download links in the VIEW column
+                                    try:
+                                        # Find download links within this cell
+                                        download_links = cell.find_elements(By.TAG_NAME, "a")
+                                        if download_links:
+                                            # Extract href attributes from download links
+                                            link_data = []
+                                            for link in download_links:
+                                                href = link.get_attribute("href")
+                                                title = link.get_attribute("title") or ""
+                                                link_text = link.text.strip()
+                                                
+                                                if href:
+                                                    link_info = {
+                                                        "href": href,
+                                                        "title": title,
+                                                        "text": link_text
+                                                    }
+                                                    link_data.append(link_info)
+                                            
+                                            if link_data:
+                                                row_data.append(link_data)
+                                                print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}")
+                                            else:
+                                                row_data.append(cell_text)
+                                        else:
+                                            row_data.append(cell_text)
+                                    except Exception as link_error:
+                                        print(f"⚠️ Error extracting VIEW column links: {link_error}")
+                                        row_data.append(cell_text)
+                                else:
+                                    row_data.append(cell_text)
+                            
+                            print(f"🔍 Hearing Details: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                            
+                            # Include row if it has any data (not just empty cells)
+                            if row_data and any(cell_text for cell_text in row_data if isinstance(cell_text, str)):
+                                # Skip rows that contain "No data available"
+                                if not any("No data available" in str(cell_text) for cell_text in row_data):
+                                    # Check if this row is already added
+                                    if row_data not in rows:
+                                        rows.append(row_data)
+                                        print(f"✅ Hearing Details: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                else:
+                                    print(f"⚠️ Hearing Details: Skipping 'No data available' tbody row: {row_data}")
+                            else:
+                                print(f"⚠️ Hearing Details: Skipping empty tbody row: {row_data}")
+                
+                if rows:
+                    option_content['content']['rows'] = rows
+                    print(f"✅ Hearing Details: Found {len(rows)} data rows with VIEW column links")
+                else:
+                    print("⚠️ Hearing Details: No data rows found")
+                
+                return option_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Hearing Details data: {e}")
+            return None
+    
+    def close_case_detail_option_modal(self):
+        """Close a case detail option modal/popup"""
+        try:
+            # Try to find close button
+            close_selectors = [
+                "//button[contains(@class, 'close')]",
+                "//button[@data-dismiss='modal']",
+                "//*[contains(@class, 'close')]",
+                "//img[contains(@src, 'close')]",
+                "//*[text()='×']",
+                "//*[text()='✕']"
+            ]
+            
+            for selector in close_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            element.click()
+                            print("✅ Clicked close button for case detail option modal")
+                            time.sleep(1)
+                            return True
+                except:
+                    continue
+            
+            # Try Escape key as fallback
+            try:
+                from selenium.webdriver.common.keys import Keys
+                self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                print("✅ Pressed Escape to close case detail option modal")
+                time.sleep(1)
+                return True
+            except:
+                pass
+            
+            print("⚠️ Could not close case detail option modal")
+            return False
+                
+        except Exception as e:
+            print(f"❌ Error closing case detail option modal: {e}")
             return False
 
     def restart_driver(self):
