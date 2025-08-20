@@ -312,5 +312,23 @@
       "row_index": 13,
       "sr_number": "13"
     }
+  },
+  {
+    "SR": "14",
+    "INSTITUTION": "11-01-2025",
+    "CASE_NO": "R.F.A. 11/2025 Against Judgement & Decree (SB)",
+    "CASE_TITLE": "Zafar Mehmood etc- VS -Dr. Muhammad Hafeez Abbasi",
+    "BENCH": "Honourable Mr. Justice Arbab Muhammad Tahir",
+    "HEARING_DATE": "TUE 25-03-2025 (FC)\nFOR ANNOUNCEMENT OF JUDGEMENT/ORDER",
+    "STATUS": "Decided",
+    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
+    "DETAILS": "",
+    "_metadata": {
+      "scraped_at": "2025-08-20T23:00:57.000700",
+      "case_number": 11,
+      "page_number": 1,
+      "row_index": 14,
+      "sr_number": "14"
+    }
   }
 ]
