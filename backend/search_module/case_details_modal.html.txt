@@ -1,0 +1,201 @@
+<div class="col-sm-12 col-lg-12 col-md-12">
+                
+                    <div id="grdRoster">
+                        <div id="rptHead" style="display:none;">
+                            <h1 style="text-align: center;"><u>Islamabad High Court</u></h1>
+                            <h3 style="text-align: center;">Case Detail Report</h3>
+                        </div>
+                        <table class=" table-responsive table-bordered" style="width: 100%;">
+                            <tbody><tr>
+                                <td class="col-xs-12 col-sm-12 col-lg-12 col-md-12" style="background-color: #ffffff;" colspan="4">
+                                    <label class="control-label  fa fa-2x" for="lblCseNo" id="lblCseNo" style="padding:0px; text-align:left;">R.A. 11/2025 Criminal  (SB)</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblCseSts">Case Status:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblCseSts" id="lblCseSts" style="font-weight: 100; line-height: 35px;">DECIDED</label>
+                                </td>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblHdate" style="text-align: right; line-height: 35px;">Hearing Date:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblHdate" id="lblHdate" style="font-weight: 100; line-height: 35px; background-color: #ffffff;">19-05-2025 ()</label>
+                                    <label style="font-size:9px; line-height:30px;">(Hearing Dates of current week are only valid...)</label>
+                                </td>
+                            </tr>
+                            
+                              <tr>
+                                
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblCseStge" style="text-align: right; line-height: 35px;">Case Stage:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblCseStge" id="lblCseStge" style="font-weight: 100; line-height: 35px; background-color: #ffffff;"></label>
+                                </td>
+                                  <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblCseSts" style="text-align: right; line-height: 35px;">Tentative Date:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblTdate" id="lblTdate" style="font-weight: 100; line-height: 35px;">N/A</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblLstOrdr" style="text-align: right; line-height: 35px;">Short Order:</label>
+                                    </td>
+                                
+                                    <td class="col-xs-10 col-sm-10 col-lg-10 col-md-10" style="background-color: #ffffff;" colspan="3">
+                                    <label class="control-label pull-left " for="lblLstOrdr" id="lblLstOrdr" style="font-weight: 100; line-height: 35px;">Allowed</label>
+                                </td>
+                                
+                                </tr>
+
+                             <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblBnch" style="text-align: right; line-height: 35px;">Before Bench:</label>
+                                    </td>
+                                
+                                    <td class="col-xs-10 col-sm-10 col-lg-10 col-md-10" style="background-color: #ffffff;" colspan="3">
+                                    <label class="control-label pull-left " for="lblBnch" id="lblBnch" style="font-weight: 100; line-height: 35px;">Honourable Mr. Justice Muhammad Azam Khan</label>
+                                </td>
+                                
+                                </tr>
+
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblPrtse" style="text-align: left; line-height: 35px;">Case Title:</label>
+                                    </td>
+                                
+                                    <td class="col-xs-10 col-sm-10 col-lg-10 col-md-10" style="background-color: #ffffff;" colspan="3">
+                                    <label class="control-label pull-left " for="lblPrtse" id="lblPrtse" style="font-weight: 100; line-height: 35px;">Abid Khan-VS-Azhar Rabbani &amp; others </label>
+                                </td>
+                                
+                                </tr>
+
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm">
+                                    <label class="control-label" for="lblAdv1" style="text-align: right; line-height: 35px;">Advocates <i style="font-size:12px;">(Petitioner)</i>:</label>
+                                </td>
+
+                                <td class="col-xs-10 col-sm-10 col-lg-10 col-md-10" style="background-color: #ffffff;" colspan="3">
+                                    <label class="control-label pull-left " for="lblAdv1" id="lblAdv1" style="font-weight: 100; line-height: 35px;">Sher Afzal Khan Marwat</label>
+                                </td>
+
+                            </tr>
+
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm">
+                                    <label class="control-label" for="lblAdv2" style="text-align: right; line-height: 35px;">Advocates <i style="font-size:12px;">(Respondent)</i>:</label>
+                                </td>
+
+                                <td class="col-xs-10 col-sm-10 col-lg-10 col-md-10" style="background-color: #ffffff;" colspan="3">
+                                    <label class="control-label pull-left " for="lblAdv2" id="lblAdv2" style="font-weight: 100; line-height: 35px;">N/A</label>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm">
+                                    <label class="control-label" for="lblCseDesc" style="text-align: left; line-height: 35px;">Case Description:</label>
+                                </td>
+
+                                <td class="col-xs-10 col-sm-10 col-lg-10 col-md-10" style="background-color: #ffffff;" colspan="3">
+                                    <label class="control-label pull-left " for="lblCseDesc" id="lblCseDesc" style="font-weight: 100; line-height: 35px;">RA in Crl Misc 882/2025: Challenges orders of AC and revisional order regarding section 145 Cr.P.C. regarding disputed property.</label>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td class="col-xs-12 col-sm-12 col-lg-12 col-md-12" style="background-color: #ffffff;" colspan="4">
+                                    <label class="control-label  fa fa-2x" style="padding:0px; text-align:left;">Disposal Information:</label>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblDstatus">Disposed Of Status:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblDstatus" id="lblDstatus" style="font-weight: 100; line-height: 35px;">DECIDED (Allowed)</label>
+                                </td>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblDdate" style="text-align: right; line-height: 35px;">Case Disposal Date:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblDdate" id="lblDdate" style="font-weight: 100; line-height: 35px; background-color: #ffffff;">19-05-2025</label>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblDBnch">Disposal Bench:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblDBnch" id="lblDBnch" style="font-weight: 100; line-height: 35px;">Honourable Mr. Justice Muhammad Azam Khan</label>
+                                </td>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblCnsgnDt" style="text-align: right; line-height: 35px;">Consigned date:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblCnsgnDt" id="lblCnsgnDt" style="font-weight: 100; line-height: 35px; background-color: #ffffff;">21-06-2025</label>
+                                </td>
+                            </tr>
+
+                             <tr>
+                                <td class="col-xs-12 col-sm-12 col-lg-12 col-md-12" style="background-color: #ffffff;" colspan="4">
+                                    <label class="control-label  fa fa-2x" style="padding:0px; text-align:left;">FIR Information:</label>
+                                </td>
+                            </tr>
+
+                             <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblFir">FIR #:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblFir" id="lblFir" style="font-weight: 100; line-height: 35px;">N/A</label>
+                                </td>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblFirDate" style="text-align: right; line-height: 35px;">FIR Date:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblFirDate" id="lblFirDate" style="font-weight: 100; line-height: 35px; background-color: #ffffff;">N/A</label>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblPstn">Police Station:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblPstn" id="lblPstn" style="font-weight: 100; line-height: 35px;">N/A</label>
+                                </td>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblUs" style="text-align: right; line-height: 35px;">Under Section:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblUs" id="lblUs" style="font-weight: 100; line-height: 35px; background-color: #ffffff;">N/A</label>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label" for="lblIncdnt">Incident:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblIncdnt" id="lblIncdnt" style="font-weight: 100; line-height: 35px;">N/A</label>
+                                </td>
+                                <td class="col-xs-2 col-sm-2 col-lg-2 col-md-2 tbl_hd_cstm" style="text-align: right;">
+                                    <label class="control-label tbl_hd_cstm" for="lblAcsd" style="text-align: right; line-height: 35px;">Name Of Accused:</label></td>
+                                <td class="col-xs-4 col-sm-4 col-lg-4 col-md-4" style="background-color: #ffffff;">
+                                    <label class="control-label pull-left " for="lblAcsd" id="lblAcsd" style="font-weight: 100; line-height: 35px; background-color: #ffffff;">N/A</label>
+                                </td>
+                            </tr>
+                        </tbody></table>
+                        <p style="font-size:6px; text-align:center; bottom:0px; margin-top:20px;"><b>Generated By:&nbsp;&nbsp;</b> Management Information System (MIS),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Developed By:&nbsp;&nbsp;</b> Umer Rasheed Dar (Programmer)</p>
+                        </div>
+                    
+                <div id="cmRw" class="row form-group">
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <i class="fa fa-users pull-right GrdB ButtonClass col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" title="" id="lnkPrtse" data-original-title="Other Parties of Case">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Parties&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <i class="fa fa-comment pull-right GrdB ButtonClass col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" title="" id="lnkCmnts" data-original-title="Comments of Parties">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Comments&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <i class="fa fa-file-text-o pull-right GrdB ButtonClass col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" title="" id="lnkCseCMs" data-original-title="Case Civil Miscelleneous (CM)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Case CMs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <i class="fa fa-eye pull-right GrdB ButtonClass col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" title="" id="lnkCseDtl" data-original-title="Show Hearing detail of current case">&nbsp;Hearing Details</i>
+                    </div>
+                </div>
+                <hr>
+                    <b>Note:</b><br>1. Hearing Dates after current week may be changed. 
+                    <br>2. Please contact the concerned Case Branch to get the missing / wrong data (if any) updated on the System.
+                    <br>3. Disclaimer: The content available on this site are just for Information. Users are advised not to depend on the information and use it for official purpose.  
+                    <br>4. Viewers are advised to confirm status of the cases from the concerned Courts or Branches as well. Some abbreviated short orders stands for: adj=adjourned, dnp=Dismiss for non procecution, W/O=Wait for order, L/O=Left Over.
+                   
+            </div>

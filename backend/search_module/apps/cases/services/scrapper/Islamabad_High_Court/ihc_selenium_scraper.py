@@ -2,6 +2,7 @@ import time
 import random
 import json
 import os
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -44,10 +45,11 @@ except Exception as _e:
 
 
 class IHCSeleniumScraper:
-    def __init__(self, headless=False):  # Changed default to False for testing
+    def __init__(self, headless=False, fetch_details=True):  # Changed default to False for testing
         self.base_url = "https://mis.ihc.gov.pk/index.aspx"
         self.driver = None
         self.headless = headless
+        self.fetch_details = fetch_details  # Whether to fetch detailed case information
         
         # Define comprehensive search filters
         self.case_types = [
@@ -295,13 +297,78 @@ class IHCSeleniumScraper:
             # Step 1: Clear all fields
             print("🧹 Step 1: Clearing all fields...")
             try:
+                # First, try to remove any overlay that might be blocking the button
+                print("🔍 Checking for overlay div that might block the Clear button...")
+                try:
+                    overlay_selectors = [
+                        "//div[@id='divstart']",
+                        "//div[contains(@style, 'z-index:10')]",
+                        "//div[contains(@style, 'position:absolute')]",
+                        "//div[contains(@style, 'background-color:white')]"
+                    ]
+                    
+                    for selector in overlay_selectors:
+                        try:
+                            overlays = self.driver.find_elements(By.XPATH, selector)
+                            for overlay in overlays:
+                                if overlay.is_displayed():
+                                    print(f"⚠️ Found overlay div, attempting to remove it...")
+                                    self.driver.execute_script("arguments[0].remove();", overlay)
+                                    print("✅ Removed overlay div")
+                                    time.sleep(1)
+                        except Exception as e:
+                            continue
+                except Exception as e:
+                    print(f"⚠️ Error handling overlay: {e}")
+                
+                # Now try to click the Clear button
                 clear_button = self.driver.find_element(By.ID, "btnClear")
-                clear_button.click()
+                
+                # Try multiple approaches to click the button
+                try:
+                    # Approach 1: Direct click
+                    clear_button.click()
+                    print("✅ Cleared all form fields (direct click)")
+                except Exception as e1:
+                    print(f"⚠️ Direct click failed: {e1}")
+                    try:
+                        # Approach 2: JavaScript click
+                        self.driver.execute_script("arguments[0].click();", clear_button)
+                        print("✅ Cleared all form fields (JavaScript click)")
+                    except Exception as e2:
+                        print(f"⚠️ JavaScript click failed: {e2}")
+                        try:
+                            # Approach 3: Scroll into view and click
+                            self.driver.execute_script("arguments[0].scrollIntoView(true);", clear_button)
+                            time.sleep(1)
+                            clear_button.click()
+                            print("✅ Cleared all form fields (scroll + click)")
+                        except Exception as e3:
+                            print(f"⚠️ Scroll + click failed: {e3}")
+                            # Approach 4: Try to clear fields manually
+                            print("🔄 Attempting manual field clearing...")
+                            try:
+                                # Clear case number field manually
+                                case_input = self.driver.find_element(By.ID, "txtCaseno")
+                                case_input.clear()
+                                print("✅ Manually cleared case number field")
+                            except:
+                                pass
+                            try:
+                                # Reset institution dropdown manually
+                                institution_select = Select(self.driver.find_element(By.ID, "ddlInst"))
+                                institution_select.select_by_index(0)
+                                print("✅ Manually reset institution dropdown")
+                            except:
+                                pass
+                
                 time.sleep(3)  # Wait for form to reset
-                print("✅ Cleared all form fields")
+                print("✅ Form clearing completed")
+                
             except Exception as e:
                 print(f"❌ Could not find Clear button: {e}")
-                return False
+                # Continue anyway - the form might already be clear
+                print("🔄 Continuing without clearing form...")
             
             # Step 2: Select institution (required)
             print("🏛️ Step 2: Selecting institution...")
@@ -341,10 +408,22 @@ class IHCSeleniumScraper:
             print(f"❌ Error filling search form: {e}")
             return False
 
-    def scrape_results_table(self, case_type_empty=False):
+    def scrape_results_table(self, case_type_empty=False, case_no=None):
         """Scrape the results table and return case data"""
         try:
             print("🔍 Looking for results...")
+            
+            # Check for any alerts that might appear
+            try:
+                alert = self.driver.switch_to.alert
+                alert_text = alert.text
+                print(f"⚠️ Alert detected: {alert_text}")
+                alert.accept()  # Dismiss the alert
+                print("✅ Alert dismissed")
+                time.sleep(2)  # Wait a bit after dismissing alert
+            except:
+                # No alert present, continue normally
+                pass
             
             # If case type is empty, we expect 500+ results, so wait much longer
             if case_type_empty:
@@ -573,8 +652,21 @@ class IHCSeleniumScraper:
                                             
                                             # Only add if we have meaningful data
                                             if case_data['SR'] and case_data['SR'].isdigit() and case_data['CASE_NO']:
+                                                # Fetch detailed information for decided cases (if enabled)
+                                                if self.fetch_details and case_data['STATUS'] == 'Decided':
+                                                    print(f"🔍 Page {page_number}, Row {i}: Fetching details for decided case {case_data['CASE_NO']}")
+                                                    detailed_info = self.fetch_case_details(row)
+                                                    if detailed_info:
+                                                        case_data.update(detailed_info)
+                                                        print(f"✅ Page {page_number}, Row {i}: Added detailed info for decided case")
+                                                    else:
+                                                        print(f"⚠️ Page {page_number}, Row {i}: Failed to fetch details for decided case")
+                                                
                                                 page_cases.append(case_data)
                                                 print(f"✅ Page {page_number}, Row {i}: Added case with SR={case_data['SR']}")
+                                                
+                                                # REAL-TIME SAVING: Save this row immediately to prevent data loss
+                                                self.save_single_row_realtime(case_data, case_no, page_number, i)
                                             else:
                                                 print(f"⚠️ Page {page_number}, Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')")
                                         else:
@@ -589,11 +681,19 @@ class IHCSeleniumScraper:
                                 total_processed += len(page_cases)
                                 print(f"📊 Page {page_number}: Added {len(page_cases)} cases (Total: {total_processed})")
                                 
-                                # Check if this is the last page (less than 100 entries means last page)
-                                if len(page_cases) < 100:
-                                    print(f"🏁 Last page detected! Only {len(page_cases)} entries found (less than 100)")
-                                    print(f"✅ All data fetched successfully. Total: {total_processed} cases")
-                                    break
+                                # Show real-time saving progress
+                                individual_case_file = f"cases_metadata/Islamabad_High_Court/individual_cases/case{case_no}.json"
+                                if os.path.exists(individual_case_file):
+                                    try:
+                                        with open(individual_case_file, 'r', encoding='utf-8') as f:
+                                            individual_case_data = json.load(f)
+                                            print(f"💾 REAL-TIME PROGRESS: {len(individual_case_data)} rows saved to case{case_no}.json")
+                                    except:
+                                        pass
+                                
+                                # Check if this is the last page by looking for Next button
+                                # Don't assume less than 100 entries means last page
+                                # Instead, always try to find the Next button
                                 
                                 # Check if there's a "Next" button to go to next page
                                 print("🔍 Looking for 'Next' button...")
@@ -657,9 +757,11 @@ class IHCSeleniumScraper:
                                         
                                     except Exception as e:
                                         print(f"❌ Error clicking Next button: {e}")
+                                        print("🏁 Stopping due to Next button error")
                                         break
                                 else:
                                     print("🏁 No Next button found or it's disabled - reached last page")
+                                    print(f"✅ All pages processed successfully. Total: {total_processed} cases")
                                     break
                             else:
                                 print("❌ No data rows found on current page")
@@ -687,6 +789,853 @@ class IHCSeleniumScraper:
             print(f"❌ Error scraping results table: {e}")
             return []
 
+    def fetch_case_details(self, case_row_element):
+        """
+        Fetch detailed case information by clicking the 'i' icon in the Details column
+        for cases with 'Decided' status
+        
+        Args:
+            case_row_element: The table row element containing the case
+            
+        Returns:
+            dict: Detailed case information or empty dict if failed
+        """
+        try:
+            # Check if this case has 'Decided' status
+            cells = case_row_element.find_elements(By.TAG_NAME, "td")
+            if len(cells) < 7:
+                return {}
+            
+            status = cells[6].text.strip()
+            if status != "Decided":
+                return {}  # Only fetch details for decided cases
+            
+            print(f"🔍 Fetching details for decided case: {cells[2].text.strip()}")
+            
+            # Find the 'i' icon in the Details column (last column)
+            details_cell = cells[-1] if len(cells) > 8 else None
+            if not details_cell:
+                print("⚠️ No details column found")
+                return {}
+            
+            # Look for the 'i' icon or clickable element
+            detail_links = details_cell.find_elements(By.TAG_NAME, "a")
+            detail_icons = details_cell.find_elements(By.TAG_NAME, "i")
+            detail_buttons = details_cell.find_elements(By.TAG_NAME, "button")
+            detail_spans = details_cell.find_elements(By.TAG_NAME, "span")
+            
+            detail_element = None
+            
+            # Try to find the clickable element
+            if detail_links:
+                detail_element = detail_links[0]
+                print("✅ Found detail link")
+            elif detail_icons:
+                detail_element = detail_icons[0]
+                print("✅ Found detail icon")
+            elif detail_buttons:
+                detail_element = detail_buttons[0]
+                print("✅ Found detail button")
+            elif detail_spans:
+                detail_element = detail_spans[0]
+                print("✅ Found detail span")
+            else:
+                # Try to click the cell itself
+                detail_element = details_cell
+                print("✅ Using detail cell")
+            
+            if not detail_element:
+                print("⚠️ No clickable detail element found")
+                return {}
+            
+            # Store current URL and window handle
+            original_url = self.driver.current_url
+            original_window = self.driver.current_window_handle
+            
+            print(f"📍 Current URL before click: {original_url}")
+            
+            # Click the detail element
+            try:
+                # Try different click methods
+                try:
+                    detail_element.click()
+                    print("✅ Clicked detail element (normal click)")
+                except:
+                    try:
+                        self.driver.execute_script("arguments[0].click();", detail_element)
+                        print("✅ Clicked detail element (JavaScript click)")
+                    except:
+                        # Try to get the href if it's a link
+                        href = detail_element.get_attribute("href")
+                        if href:
+                            self.driver.get(href)
+                            print(f"✅ Navigated to detail URL: {href}")
+                        else:
+                            print("⚠️ Could not click or navigate to detail element")
+                            return {}
+            except Exception as e:
+                print(f"⚠️ Error clicking detail element: {e}")
+                return {}
+            
+            # Wait for page change
+            time.sleep(3)
+            
+            # Check if we have a new window/tab
+            new_window = None
+            for window_handle in self.driver.window_handles:
+                if window_handle != original_window:
+                    new_window = window_handle
+                    break
+            
+            if new_window:
+                self.driver.switch_to.window(new_window)
+                print("✅ Switched to new detail window")
+            else:
+                print("ℹ️ No new window opened, checking if current page changed")
+                current_url = self.driver.current_url
+                if current_url != original_url:
+                    print(f"✅ Page URL changed to: {current_url}")
+                else:
+                    print("⚠️ Page URL did not change, might be a modal/popup")
+            
+            # Wait for detail page to load
+            time.sleep(2)
+            
+            # Check if we got the "Details not available" popup first
+            print("🔍 Checking for 'Details not available' popup...")
+            
+            try:
+                # Look for the "Details are not available" popup
+                details_not_available_selectors = [
+                    "//*[contains(text(), 'Details are not available')]",
+                    "//*[contains(text(), 'Case may not be fixed yet')]",
+                    "//*[contains(text(), 'Case connected with main case')]",
+                    "//*[contains(text(), 'Details are not available') or contains(text(), 'Case may not be fixed yet')]"
+                ]
+                
+                details_popup_found = False
+                for selector in details_not_available_selectors:
+                    try:
+                        elements = self.driver.find_elements(By.XPATH, selector)
+                        if elements:
+                            for element in elements:
+                                if element.is_displayed():
+                                    details_popup_found = True
+                                    print("⚠️ Found 'Details not available' popup")
+                                    break
+                        if details_popup_found:
+                            break
+                    except:
+                        continue
+                
+                # If we found the "Details not available" popup, click the Close button
+                if details_popup_found:
+                    print("🔍 Looking for 'Close' button in details not available popup...")
+                    
+                    close_button_selectors = [
+                        "//button[contains(text(), 'Close')]",
+                        "//button[@data-dismiss='modal']",
+                        "//button[contains(@class, 'ButtonClass')]",
+                        "//*[contains(text(), 'Close') and contains(@class, 'ButtonClass')]",
+                        "//button[contains(@class, 'btn') and contains(text(), 'Close')]"
+                    ]
+                    
+                    close_button = None
+                    for selector in close_button_selectors:
+                        try:
+                            elements = self.driver.find_elements(By.XPATH, selector)
+                            for element in elements:
+                                if element.is_displayed() and element.is_enabled():
+                                    close_button = element
+                                    print(f"✅ Found Close button with selector: {selector}")
+                                    break
+                            if close_button:
+                                break
+                        except:
+                            continue
+                    
+                    if close_button:
+                        try:
+                            print("🖱️ Clicking Close button to dismiss popup...")
+                            close_button.click()
+                            print("✅ Clicked Close button")
+                            time.sleep(2)  # Wait for popup to close
+                            print("✅ Returned to search results after dismissing popup")
+                            return {}  # Return empty dict since no details were available
+                        except Exception as e:
+                            print(f"⚠️ Error clicking Close button: {e}")
+                            # Try JavaScript click as fallback
+                            try:
+                                self.driver.execute_script("arguments[0].click();", close_button)
+                                print("✅ Clicked Close button using JavaScript")
+                                time.sleep(2)
+                                return {}  # Return empty dict since no details were available
+                            except Exception as e2:
+                                print(f"⚠️ JavaScript click also failed: {e2}")
+                                return {}  # Return empty dict since no details were available
+                    else:
+                        print("⚠️ Could not find Close button in popup")
+                        return {}  # Return empty dict since no details were available
+                
+            except Exception as e:
+                print(f"⚠️ Error checking for details not available popup: {e}")
+            
+            # Extract detailed case information (only if we didn't get the "not available" popup)
+            case_details = {}
+            
+            try:
+                print("🔍 Extracting case details from modal/popup...")
+                
+                # Wait for the modal content to be visible
+                time.sleep(1)
+                
+                # Look for the specific table structure with case details
+                # The modal content is in a table with specific IDs
+                
+                # Extract Case Status
+                try:
+                    case_status_element = self.driver.find_element(By.ID, "lblCseSts")
+                    if case_status_element:
+                        case_details['CASE_STATUS'] = case_status_element.text.strip()
+                        print(f"✅ Extracted CASE_STATUS: {case_details['CASE_STATUS']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_STATUS: {e}")
+                
+                # Extract Hearing Date
+                try:
+                    hearing_date_element = self.driver.find_element(By.ID, "lblHdate")
+                    if hearing_date_element:
+                        case_details['HEARING_DATE_DETAILED'] = hearing_date_element.text.strip()
+                        print(f"✅ Extracted HEARING_DATE_DETAILED: {case_details['HEARING_DATE_DETAILED']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting HEARING_DATE_DETAILED: {e}")
+                
+                # Extract Case Stage
+                try:
+                    case_stage_element = self.driver.find_element(By.ID, "lblCseStge")
+                    if case_stage_element:
+                        case_details['CASE_STAGE'] = case_stage_element.text.strip()
+                        print(f"✅ Extracted CASE_STAGE: {case_details['CASE_STAGE']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_STAGE: {e}")
+                
+                # Extract Tentative Date
+                try:
+                    tentative_date_element = self.driver.find_element(By.ID, "lblTdate")
+                    if tentative_date_element:
+                        case_details['TENTATIVE_DATE'] = tentative_date_element.text.strip()
+                        print(f"✅ Extracted TENTATIVE_DATE: {case_details['TENTATIVE_DATE']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting TENTATIVE_DATE: {e}")
+                
+                # Extract Short Order
+                try:
+                    short_order_element = self.driver.find_element(By.ID, "lblLstOrdr")
+                    if short_order_element:
+                        case_details['SHORT_ORDER'] = short_order_element.text.strip()
+                        print(f"✅ Extracted SHORT_ORDER: {case_details['SHORT_ORDER']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting SHORT_ORDER: {e}")
+                
+                # Extract Before Bench
+                try:
+                    before_bench_element = self.driver.find_element(By.ID, "lblBnch")
+                    if before_bench_element:
+                        case_details['BEFORE_BENCH'] = before_bench_element.text.strip()
+                        print(f"✅ Extracted BEFORE_BENCH: {case_details['BEFORE_BENCH']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting BEFORE_BENCH: {e}")
+                
+                # Extract Case Title
+                try:
+                    case_title_element = self.driver.find_element(By.ID, "lblPrtse")
+                    if case_title_element:
+                        case_details['CASE_TITLE_DETAILED'] = case_title_element.text.strip()
+                        print(f"✅ Extracted CASE_TITLE_DETAILED: {case_details['CASE_TITLE_DETAILED']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_TITLE_DETAILED: {e}")
+                
+                # Extract Advocates (Petitioner)
+                try:
+                    petitioner_element = self.driver.find_element(By.ID, "lblAdv1")
+                    if petitioner_element:
+                        case_details['ADVOCATES_PETITIONER'] = petitioner_element.text.strip()
+                        print(f"✅ Extracted ADVOCATES_PETITIONER: {case_details['ADVOCATES_PETITIONER']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting ADVOCATES_PETITIONER: {e}")
+                
+                # Extract Advocates (Respondent)
+                try:
+                    respondent_element = self.driver.find_element(By.ID, "lblAdv2")
+                    if respondent_element:
+                        case_details['ADVOCATES_RESPONDENT'] = respondent_element.text.strip()
+                        print(f"✅ Extracted ADVOCATES_RESPONDENT: {case_details['ADVOCATES_RESPONDENT']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting ADVOCATES_RESPONDENT: {e}")
+                
+                # Extract Case Description
+                try:
+                    description_element = self.driver.find_element(By.ID, "lblCseDesc")
+                    if description_element:
+                        case_details['CASE_DESCRIPTION'] = description_element.text.strip()
+                        print(f"✅ Extracted CASE_DESCRIPTION: {case_details['CASE_DESCRIPTION']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_DESCRIPTION: {e}")
+                
+                # Extract Disposed Of Status
+                try:
+                    disposal_status_element = self.driver.find_element(By.ID, "lblDstatus")
+                    if disposal_status_element:
+                        case_details['DISPOSED_OF_STATUS'] = disposal_status_element.text.strip()
+                        print(f"✅ Extracted DISPOSED_OF_STATUS: {case_details['DISPOSED_OF_STATUS']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting DISPOSED_OF_STATUS: {e}")
+                
+                # Extract Case Disposal Date
+                try:
+                    disposal_date_element = self.driver.find_element(By.ID, "lblDdate")
+                    if disposal_date_element:
+                        case_details['CASE_DISPOSAL_DATE'] = disposal_date_element.text.strip()
+                        print(f"✅ Extracted CASE_DISPOSAL_DATE: {case_details['CASE_DISPOSAL_DATE']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_DISPOSAL_DATE: {e}")
+                
+                # Extract Disposal Bench
+                try:
+                    disposal_bench_element = self.driver.find_element(By.ID, "lblDBnch")
+                    if disposal_bench_element:
+                        case_details['DISPOSAL_BENCH'] = disposal_bench_element.text.strip()
+                        print(f"✅ Extracted DISPOSAL_BENCH: {case_details['DISPOSAL_BENCH']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting DISPOSAL_BENCH: {e}")
+                
+                # Extract Consigned Date
+                try:
+                    consigned_date_element = self.driver.find_element(By.ID, "lblCnsgnDt")
+                    if consigned_date_element:
+                        case_details['CONSIGNED_DATE'] = consigned_date_element.text.strip()
+                        print(f"✅ Extracted CONSIGNED_DATE: {case_details['CONSIGNED_DATE']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CONSIGNED_DATE: {e}")
+                
+                # Extract FIR Number
+                try:
+                    fir_number_element = self.driver.find_element(By.ID, "lblFir")
+                    if fir_number_element:
+                        case_details['FIR_NUMBER'] = fir_number_element.text.strip()
+                        print(f"✅ Extracted FIR_NUMBER: {case_details['FIR_NUMBER']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting FIR_NUMBER: {e}")
+                
+                # Extract FIR Date
+                try:
+                    fir_date_element = self.driver.find_element(By.ID, "lblFirDate")
+                    if fir_date_element:
+                        case_details['FIR_DATE'] = fir_date_element.text.strip()
+                        print(f"✅ Extracted FIR_DATE: {case_details['FIR_DATE']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting FIR_DATE: {e}")
+                
+                # Extract Police Station
+                try:
+                    police_station_element = self.driver.find_element(By.ID, "lblPstn")
+                    if police_station_element:
+                        case_details['POLICE_STATION'] = police_station_element.text.strip()
+                        print(f"✅ Extracted POLICE_STATION: {case_details['POLICE_STATION']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting POLICE_STATION: {e}")
+                
+                # Extract Under Section
+                try:
+                    under_section_element = self.driver.find_element(By.ID, "lblUs")
+                    if under_section_element:
+                        case_details['UNDER_SECTION'] = under_section_element.text.strip()
+                        print(f"✅ Extracted UNDER_SECTION: {case_details['UNDER_SECTION']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting UNDER_SECTION: {e}")
+                
+                # Extract Incident
+                try:
+                    incident_element = self.driver.find_element(By.ID, "lblIncdnt")
+                    if incident_element:
+                        case_details['INCIDENT'] = incident_element.text.strip()
+                        print(f"✅ Extracted INCIDENT: {case_details['INCIDENT']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting INCIDENT: {e}")
+                
+                # Extract Name Of Accused
+                try:
+                    accused_element = self.driver.find_element(By.ID, "lblAcsd")
+                    if accused_element:
+                        case_details['NAME_OF_ACCUSED'] = accused_element.text.strip()
+                        print(f"✅ Extracted NAME_OF_ACCUSED: {case_details['NAME_OF_ACCUSED']}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting NAME_OF_ACCUSED: {e}")
+                
+                print(f"✅ Successfully extracted {len(case_details)} detailed fields")
+                print(f"📋 Extracted fields: {list(case_details.keys())}")
+                
+                # If we didn't extract any fields, try alternative methods
+                if len(case_details) == 0:
+                    print("⚠️ No fields extracted, trying alternative methods...")
+                    
+                    # Method 2: Try to find specific elements by their text content
+                    try:
+                        # Look for any element containing case details
+                        detail_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Case Status') or contains(text(), 'Short Order') or contains(text(), 'Advocates')]")
+                        if detail_elements:
+                            print(f"✅ Found {len(detail_elements)} detail elements")
+                            # Extract text from all found elements
+                            all_text = ""
+                            for element in detail_elements:
+                                all_text += element.text + "\n"
+                            
+                            # Try to parse the combined text
+                            if "Case Status:" in all_text:
+                                case_details['CASE_STATUS'] = "Found in alternative method"
+                                print("✅ Found case details using alternative method")
+                    except Exception as e:
+                        print(f"⚠️ Alternative method also failed: {e}")
+                
+            except Exception as e:
+                print(f"⚠️ Error extracting case details: {e}")
+                
+                # Case Status
+                try:
+                    if "Case Status:" in full_page_text:
+                        status_start = full_page_text.find("Case Status:")
+                        status_end = full_page_text.find("\n", status_start)
+                        if status_end == -1:
+                            status_end = len(full_page_text)
+                        status_value = full_page_text[status_start:status_end].replace("Case Status:", "").strip()
+                        case_details['CASE_STATUS'] = status_value
+                        print(f"✅ Extracted CASE_STATUS: {status_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_STATUS: {e}")
+                
+                # Case Stage
+                try:
+                    if "Case Stage:" in full_page_text:
+                        stage_start = full_page_text.find("Case Stage:")
+                        stage_end = full_page_text.find("\n", stage_start)
+                        if stage_end == -1:
+                            stage_end = len(full_page_text)
+                        stage_value = full_page_text[stage_start:stage_end].replace("Case Stage:", "").strip()
+                        case_details['CASE_STAGE'] = stage_value
+                        print(f"✅ Extracted CASE_STAGE: {stage_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_STAGE: {e}")
+                
+                # Hearing Date
+                try:
+                    if "Hearing Date:" in full_page_text:
+                        hearing_start = full_page_text.find("Hearing Date:")
+                        hearing_end = full_page_text.find("\n", hearing_start)
+                        if hearing_end == -1:
+                            hearing_end = len(full_page_text)
+                        hearing_value = full_page_text[hearing_start:hearing_end].replace("Hearing Date:", "").strip()
+                        case_details['HEARING_DATE_DETAILED'] = hearing_value
+                        print(f"✅ Extracted HEARING_DATE_DETAILED: {hearing_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting HEARING_DATE_DETAILED: {e}")
+                
+                # Tentative Date
+                try:
+                    if "Tentative Date:" in full_page_text:
+                        tentative_start = full_page_text.find("Tentative Date:")
+                        tentative_end = full_page_text.find("\n", tentative_start)
+                        if tentative_end == -1:
+                            tentative_end = len(full_page_text)
+                        tentative_value = full_page_text[tentative_start:tentative_end].replace("Tentative Date:", "").strip()
+                        case_details['TENTATIVE_DATE'] = tentative_value
+                        print(f"✅ Extracted TENTATIVE_DATE: {tentative_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting TENTATIVE_DATE: {e}")
+                
+                # Short Order
+                try:
+                    if "Short Order:" in full_page_text:
+                        short_order_start = full_page_text.find("Short Order:")
+                        short_order_end = full_page_text.find("\n", short_order_start)
+                        if short_order_end == -1:
+                            short_order_end = len(full_page_text)
+                        short_order_value = full_page_text[short_order_start:short_order_end].replace("Short Order:", "").strip()
+                        case_details['SHORT_ORDER'] = short_order_value
+                        print(f"✅ Extracted SHORT_ORDER: {short_order_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting SHORT_ORDER: {e}")
+                
+                # Before Bench
+                try:
+                    if "Before Bench:" in full_page_text:
+                        bench_start = full_page_text.find("Before Bench:")
+                        bench_end = full_page_text.find("\n", bench_start)
+                        if bench_end == -1:
+                            bench_end = len(full_page_text)
+                        bench_value = full_page_text[bench_start:bench_end].replace("Before Bench:", "").strip()
+                        case_details['BEFORE_BENCH'] = bench_value
+                        print(f"✅ Extracted BEFORE_BENCH: {bench_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting BEFORE_BENCH: {e}")
+                
+                # Case Title (Detailed)
+                try:
+                    if "Case Title:" in full_page_text:
+                        title_start = full_page_text.find("Case Title:")
+                        title_end = full_page_text.find("\n", title_start)
+                        if title_end == -1:
+                            title_end = len(full_page_text)
+                        title_value = full_page_text[title_start:title_end].replace("Case Title:", "").strip()
+                        case_details['CASE_TITLE_DETAILED'] = title_value
+                        print(f"✅ Extracted CASE_TITLE_DETAILED: {title_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_TITLE_DETAILED: {e}")
+                
+                # Advocates (Petitioner)
+                try:
+                    if "Advocates (Petitioner):" in full_page_text:
+                        petitioner_start = full_page_text.find("Advocates (Petitioner):")
+                        petitioner_end = full_page_text.find("Advocates (Respondent):", petitioner_start)
+                        if petitioner_end == -1:
+                            petitioner_end = full_page_text.find("\n", petitioner_start)
+                        petitioner_value = full_page_text[petitioner_start:petitioner_end].replace("Advocates (Petitioner):", "").strip()
+                        case_details['ADVOCATES_PETITIONER'] = petitioner_value
+                        print(f"✅ Extracted ADVOCATES_PETITIONER: {petitioner_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting ADVOCATES_PETITIONER: {e}")
+                
+                # Advocates (Respondent)
+                try:
+                    if "Advocates (Respondent):" in full_page_text:
+                        respondent_start = full_page_text.find("Advocates (Respondent):")
+                        respondent_end = full_page_text.find("Case Description:", respondent_start)
+                        if respondent_end == -1:
+                            respondent_end = full_page_text.find("\n", respondent_start)
+                        respondent_value = full_page_text[respondent_start:respondent_end].replace("Advocates (Respondent):", "").strip()
+                        case_details['ADVOCATES_RESPONDENT'] = respondent_value
+                        print(f"✅ Extracted ADVOCATES_RESPONDENT: {respondent_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting ADVOCATES_RESPONDENT: {e}")
+                
+                # Case Description
+                try:
+                    if "Case Description:" in full_page_text:
+                        desc_start = full_page_text.find("Case Description:")
+                        desc_end = full_page_text.find("Disposal Information:", desc_start)
+                        if desc_end == -1:
+                            desc_end = full_page_text.find("\n", desc_start)
+                        desc_value = full_page_text[desc_start:desc_end].replace("Case Description:", "").strip()
+                        case_details['CASE_DESCRIPTION'] = desc_value
+                        print(f"✅ Extracted CASE_DESCRIPTION: {desc_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_DESCRIPTION: {e}")
+                
+                # Disposed Of Status
+                try:
+                    if "Disposed Of Status:" in full_page_text:
+                        disposal_start = full_page_text.find("Disposed Of Status:")
+                        disposal_end = full_page_text.find("\n", disposal_start)
+                        if disposal_end == -1:
+                            disposal_end = len(full_page_text)
+                        disposal_value = full_page_text[disposal_start:disposal_end].replace("Disposed Of Status:", "").strip()
+                        case_details['DISPOSED_OF_STATUS'] = disposal_value
+                        print(f"✅ Extracted DISPOSED_OF_STATUS: {disposal_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting DISPOSED_OF_STATUS: {e}")
+                
+                # Disposal Bench
+                try:
+                    if "Disposal Bench:" in full_page_text:
+                        disposal_bench_start = full_page_text.find("Disposal Bench:")
+                        disposal_bench_end = full_page_text.find("\n", disposal_bench_start)
+                        if disposal_bench_end == -1:
+                            disposal_bench_end = len(full_page_text)
+                        disposal_bench_value = full_page_text[disposal_bench_start:disposal_bench_end].replace("Disposal Bench:", "").strip()
+                        case_details['DISPOSAL_BENCH'] = disposal_bench_value
+                        print(f"✅ Extracted DISPOSAL_BENCH: {disposal_bench_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting DISPOSAL_BENCH: {e}")
+                
+                # Case Disposal Date
+                try:
+                    if "Case Disposal Date:" in full_page_text:
+                        disposal_date_start = full_page_text.find("Case Disposal Date:")
+                        disposal_date_end = full_page_text.find("\n", disposal_date_start)
+                        if disposal_date_end == -1:
+                            disposal_date_end = len(full_page_text)
+                        disposal_date_value = full_page_text[disposal_date_start:disposal_date_end].replace("Case Disposal Date:", "").strip()
+                        case_details['CASE_DISPOSAL_DATE'] = disposal_date_value
+                        print(f"✅ Extracted CASE_DISPOSAL_DATE: {disposal_date_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CASE_DISPOSAL_DATE: {e}")
+                
+                # Consigned Date
+                try:
+                    if "Consigned date:" in full_page_text:
+                        consigned_start = full_page_text.find("Consigned date:")
+                        consigned_end = full_page_text.find("\n", consigned_start)
+                        if consigned_end == -1:
+                            consigned_end = len(full_page_text)
+                        consigned_value = full_page_text[consigned_start:consigned_end].replace("Consigned date:", "").strip()
+                        case_details['CONSIGNED_DATE'] = consigned_value
+                        print(f"✅ Extracted CONSIGNED_DATE: {consigned_value}")
+                except Exception as e:
+                    print(f"⚠️ Error extracting CONSIGNED_DATE: {e}")
+                
+                # FIR Information Section
+                try:
+                    if "FIR Information:" in full_page_text:
+                        fir_section_start = full_page_text.find("FIR Information:")
+                        fir_section_end = full_page_text.find("Generated By:", fir_section_start)
+                        if fir_section_end == -1:
+                            fir_section_end = len(full_page_text)
+                        fir_section = full_page_text[fir_section_start:fir_section_end]
+                        
+                        # Extract FIR #
+                        if "FIR #:" in fir_section:
+                            fir_start = fir_section.find("FIR #:")
+                            fir_end = fir_section.find("\n", fir_start)
+                            if fir_end == -1:
+                                fir_end = len(fir_section)
+                            fir_value = fir_section[fir_start:fir_end].replace("FIR #:", "").strip()
+                            case_details['FIR_NUMBER'] = fir_value
+                            print(f"✅ Extracted FIR_NUMBER: {fir_value}")
+                        
+                        # Extract FIR Date
+                        if "FIR Date:" in fir_section:
+                            fir_date_start = fir_section.find("FIR Date:")
+                            fir_date_end = fir_section.find("\n", fir_date_start)
+                            if fir_date_end == -1:
+                                fir_date_end = len(fir_section)
+                            fir_date_value = fir_section[fir_date_start:fir_date_end].replace("FIR Date:", "").strip()
+                            case_details['FIR_DATE'] = fir_date_value
+                            print(f"✅ Extracted FIR_DATE: {fir_date_value}")
+                        
+                        # Extract Police Station
+                        if "Police Station:" in fir_section:
+                            police_start = fir_section.find("Police Station:")
+                            police_end = fir_section.find("\n", police_start)
+                            if police_end == -1:
+                                police_end = len(fir_section)
+                            police_value = fir_section[police_start:police_end].replace("Police Station:", "").strip()
+                            case_details['POLICE_STATION'] = police_value
+                            print(f"✅ Extracted POLICE_STATION: {police_value}")
+                        
+                        # Extract Under Section
+                        if "Under Section:" in fir_section:
+                            section_start = fir_section.find("Under Section:")
+                            section_end = fir_section.find("\n", section_start)
+                            if section_end == -1:
+                                section_end = len(fir_section)
+                            section_value = fir_section[section_start:section_end].replace("Under Section:", "").strip()
+                            case_details['UNDER_SECTION'] = section_value
+                            print(f"✅ Extracted UNDER_SECTION: {section_value}")
+                        
+                        # Extract Incident
+                        if "Incident:" in fir_section:
+                            incident_start = fir_section.find("Incident:")
+                            incident_end = fir_section.find("\n", incident_start)
+                            if incident_end == -1:
+                                incident_end = len(fir_section)
+                            incident_value = fir_section[incident_start:incident_end].replace("Incident:", "").strip()
+                            case_details['INCIDENT'] = incident_value
+                            print(f"✅ Extracted INCIDENT: {incident_value}")
+                        
+                        # Extract Name Of Accused
+                        if "Name Of Accused:" in fir_section:
+                            accused_start = fir_section.find("Name Of Accused:")
+                            accused_end = fir_section.find("\n", accused_start)
+                            if accused_end == -1:
+                                accused_end = len(fir_section)
+                            accused_value = fir_section[accused_start:accused_end].replace("Name Of Accused:", "").strip()
+                            case_details['NAME_OF_ACCUSED'] = accused_value
+                            print(f"✅ Extracted NAME_OF_ACCUSED: {accused_value}")
+                            
+                except Exception as e:
+                    print(f"⚠️ Error extracting FIR information: {e}")
+                
+                print(f"✅ Successfully extracted {len(case_details)} detailed fields")
+                print(f"📋 Extracted fields: {list(case_details.keys())}")
+                
+                # If we didn't extract any fields, try alternative methods
+                if len(case_details) == 0:
+                    print("⚠️ No fields extracted, trying alternative methods...")
+                    
+                    # Method 2: Try to find specific elements by their text content
+                    try:
+                        # Look for any element containing case details
+                        detail_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Case Status') or contains(text(), 'Short Order') or contains(text(), 'Advocates')]")
+                        if detail_elements:
+                            print(f"✅ Found {len(detail_elements)} detail elements")
+                            # Extract text from all found elements
+                            all_text = ""
+                            for element in detail_elements:
+                                all_text += element.text + "\n"
+                            
+                            # Try to parse the combined text
+                            if "Case Status:" in all_text:
+                                case_details['CASE_STATUS'] = "Found in alternative method"
+                                print("✅ Found case details using alternative method")
+                    except Exception as e:
+                        print(f"⚠️ Alternative method also failed: {e}")
+                
+            except Exception as e:
+                print(f"⚠️ Error extracting case details: {e}")
+            
+            # Close the modal/popup and return to search results
+            print("🔍 Looking for 'Close / Back' button (red X with tooltip) to return to search results...")
+            
+            try:
+                # Try to find the red X close button with "Close / Back" tooltip
+                close_button_selectors = [
+                    "//img[@id='btnclsIco']",  # Exact ID from HTML inspection
+                    "//img[@src='img/close.ico']",  # Exact src from HTML inspection
+                    "//img[@data-original-title='Close / Bac k']",  # Exact data-original-title
+                    "//img[contains(@data-original-title, 'Close')]",  # Partial match
+                    "//img[contains(@data-original-title, 'Back')]",  # Partial match
+                    "//*[@id='btnclsIco']",  # Any element with this ID
+                    "//*[@src='img/close.ico']",  # Any element with this src
+                    "//img[contains(@src, 'close.ico')]",  # Partial src match
+                    "//*[contains(@data-original-title, 'Close')]",  # Any element with Close in tooltip
+                    "//*[contains(@data-original-title, 'Back')]",  # Any element with Back in tooltip
+                    "//img[@title*='Close']",  # Title attribute containing Close
+                    "//img[@title*='Back']",  # Title attribute containing Back
+                    "//*[@title*='Close']",  # Any element with Close in title
+                    "//*[@title*='Back']"  # Any element with Back in title
+                ]
+                
+                close_button = None
+                for selector in close_button_selectors:
+                    try:
+                        elements = self.driver.find_elements(By.XPATH, selector)
+                        for element in elements:
+                            if element.is_displayed():
+                                close_button = element
+                                print(f"✅ Found close button with selector: {selector}")
+                                break
+                        if close_button:
+                            break
+                    except:
+                        continue
+                
+                # If no close button found by selectors, try to find by looking for red X button
+                if not close_button:
+                    try:
+                        # Look for red X button by various methods
+                        red_x_selectors = [
+                            "//img[contains(@src, 'close')]",  # Any close image
+                            "//img[contains(@src, 'ico')]",  # Any ico image
+                            "//*[contains(@style, 'red')]",  # Red styling
+                            "//*[contains(@style, '#ff0000')]",  # Red color
+                            "//*[contains(@style, '#f00')]"  # Short red color
+                        ]
+                        
+                        for selector in red_x_selectors:
+                            elements = self.driver.find_elements(By.XPATH, selector)
+                            for element in elements:
+                                if element.is_displayed() and element.is_enabled():
+                                    # Check if it's likely the close button
+                                    element_src = element.get_attribute("src") or ""
+                                    element_id = element.get_attribute("id") or ""
+                                    element_title = element.get_attribute("title") or ""
+                                    element_data_title = element.get_attribute("data-original-title") or ""
+                                    
+                                    if ("close" in element_src.lower() or 
+                                        "close" in element_id.lower() or 
+                                        "close" in element_title.lower() or 
+                                        "close" in element_data_title.lower()):
+                                        close_button = element
+                                        print(f"✅ Found red X close button by fallback: {selector}")
+                                        break
+                            if close_button:
+                                break
+                    except:
+                        pass
+                
+                # If still no close button, try to find by position (top-right corner)
+                if not close_button:
+                    try:
+                        # Look for buttons or clickable elements in the top-right area
+                        all_buttons = self.driver.find_elements(By.TAG_NAME, "button")
+                        all_links = self.driver.find_elements(By.TAG_NAME, "a")
+                        all_spans = self.driver.find_elements(By.TAG_NAME, "span")
+                        all_divs = self.driver.find_elements(By.TAG_NAME, "div")
+                        
+                        potential_close_elements = all_buttons + all_links + all_spans + all_divs
+                        
+                        for element in potential_close_elements:
+                            try:
+                                if element.is_displayed() and element.is_enabled():
+                                    # Check if it's in the top-right area (you might need to adjust this logic)
+                                    location = element.location
+                                    size = element.size
+                                    if location and size:
+                                        # Simple check: if it's in the upper half of the page
+                                        if location['y'] < 100:  # Top 100 pixels
+                                            close_button = element
+                                            print("✅ Found potential close button in top area")
+                                            break
+                            except:
+                                continue
+                    except:
+                        pass
+                
+                # Click the close button if found
+                if close_button:
+                    try:
+                        print("🖱️ Clicking close button...")
+                        close_button.click()
+                        print("✅ Clicked close button")
+                        time.sleep(2)  # Wait for modal to close
+                        
+                        # Verify we're back to the search results
+                        current_url_after_close = self.driver.current_url
+                        if current_url_after_close == original_url:
+                            print("✅ Successfully returned to search results page")
+                        else:
+                            print(f"ℹ️ URL after close: {current_url_after_close}")
+                            
+                    except Exception as e:
+                        print(f"⚠️ Error clicking close button: {e}")
+                        # Try JavaScript click as fallback
+                        try:
+                            self.driver.execute_script("arguments[0].click();", close_button)
+                            print("✅ Clicked close button using JavaScript")
+                            time.sleep(2)
+                        except Exception as e2:
+                            print(f"⚠️ JavaScript click also failed: {e2}")
+                else:
+                    print("⚠️ Could not find close button")
+                    # Try pressing Escape key as fallback
+                    try:
+                        from selenium.webdriver.common.keys import Keys
+                        self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                        print("✅ Pressed Escape key to close modal")
+                        time.sleep(2)
+                    except Exception as e:
+                        print(f"⚠️ Escape key also failed: {e}")
+                
+            except Exception as e:
+                print(f"⚠️ Error in modal closing process: {e}")
+            
+            # Close the detail window and switch back (for new window case)
+            if new_window:
+                self.driver.close()
+                self.driver.switch_to.window(original_window)
+                print("✅ Closed detail window and switched back")
+            
+            return case_details
+            
+        except Exception as e:
+            print(f"❌ Error fetching case details: {e}")
+            # Try to switch back to original window if possible
+            try:
+                if len(self.driver.window_handles) > 1:
+                    self.driver.switch_to.window(self.driver.window_handles[0])
+            except:
+                pass
+            return {}
+
     def restart_driver(self):
         """Restart the WebDriver if it gets disconnected"""
         try:
@@ -713,7 +1662,7 @@ class IHCSeleniumScraper:
             case_type_empty = (case_type is None)
             
             # Scrape the results
-            all_cases_data = self.scrape_results_table(case_type_empty=case_type_empty)
+            all_cases_data = self.scrape_results_table(case_type_empty=case_type_empty, case_no=case_no)
             
             if all_cases_data:
                 print(f"📊 Found {len(all_cases_data)} cases for search criteria")
@@ -886,6 +1835,56 @@ class IHCSeleniumScraper:
         except Exception as e:
             print(f"❌ Error saving to {filename}: {e}")
 
+    def save_single_row_realtime(self, case_data, case_no, page_number, row_index):
+        """Save a single row immediately to prevent data loss during scraping"""
+        try:
+            # Use the existing individual_cases directory
+            individual_cases_dir = f"cases_metadata/Islamabad_High_Court/individual_cases"
+            os.makedirs(individual_cases_dir, exist_ok=True)
+            
+            # Create filename for this specific case (case11.json format)
+            case_filename = f"{individual_cases_dir}/case{case_no}.json"
+            
+            # Load existing data if file exists
+            existing_data = []
+            if os.path.exists(case_filename):
+                try:
+                    with open(case_filename, 'r', encoding='utf-8') as f:
+                        existing_data = json.load(f)
+                except:
+                    existing_data = []
+            
+            # Add metadata to the case data
+            case_data_with_metadata = case_data.copy()
+            case_data_with_metadata['_metadata'] = {
+                'scraped_at': datetime.now().isoformat(),
+                'case_number': case_no,
+                'page_number': page_number,
+                'row_index': row_index,
+                'sr_number': case_data.get('SR', 'N/A')
+            }
+            
+            # Add to existing data (avoid duplicates by SR number)
+            sr_number = case_data.get('SR', 'N/A')
+            existing_sr_numbers = [item.get('SR', '') for item in existing_data]
+            
+            if sr_number not in existing_sr_numbers:
+                existing_data.append(case_data_with_metadata)
+                
+                # Save immediately
+                with open(case_filename, 'w', encoding='utf-8') as f:
+                    json.dump(existing_data, f, indent=2, ensure_ascii=False)
+                
+                print(f"💾 REAL-TIME SAVE: Row {row_index} (SR={sr_number}) saved to {case_filename} (Total: {len(existing_data)} rows)")
+            else:
+                print(f"ℹ️ Row {row_index} (SR={sr_number}) already exists, skipping duplicate")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error in real-time saving for row {row_index}: {e}")
+            return False
+
     def test_case_type_vs_no_case_type(self, case_no=1, year=2025):
         """Test the difference between searching with and without case type"""
         print(f"🧪 Testing case type vs no case type for case {case_no}/{year}")
@@ -962,7 +1961,7 @@ class IHCSeleniumScraper:
             print(f"❌ Error in bulk data test: {e}")
             return None
 
-    def parallel_scrape_cases(self, batch_number=1, cases_per_batch=5, max_workers=3):
+    def parallel_scrape_cases(self, batch_number=1, cases_per_batch=5, max_workers=3, custom_case_numbers=None):
         """
         Scrape cases in parallel with individual file saving
         
@@ -970,17 +1969,25 @@ class IHCSeleniumScraper:
             batch_number: Which batch to process (1 = cases 1-5, 2 = cases 6-10, etc.)
             cases_per_batch: Number of cases per batch (default: 5)
             max_workers: Number of parallel browser windows (default: 3 - reduced to avoid conflicts)
+            custom_case_numbers: Override batch calculation with specific case numbers
         """
         import concurrent.futures
         import threading
         from datetime import datetime
         
         # Calculate case numbers for this batch
-        start_case = ((batch_number - 1) * cases_per_batch) + 1
-        end_case = batch_number * cases_per_batch
-        
-        print(f"🚀 Starting BATCH {batch_number}: Cases {start_case}-{end_case}")
-        print(f"📊 Configuration: {max_workers} parallel windows, {cases_per_batch} cases per batch")
+        if custom_case_numbers:
+            # Use custom case numbers if provided
+            case_numbers = custom_case_numbers
+            print(f"🚀 Starting CUSTOM CASES: {case_numbers}")
+            print(f"📊 Configuration: {max_workers} parallel windows, {len(case_numbers)} custom cases")
+        else:
+            # Use batch calculation
+            start_case = ((batch_number - 1) * cases_per_batch) + 1
+            end_case = batch_number * cases_per_batch
+            case_numbers = list(range(start_case, end_case + 1))
+            print(f"🚀 Starting BATCH {batch_number}: Cases {start_case}-{end_case}")
+            print(f"📊 Configuration: {max_workers} parallel windows, {cases_per_batch} cases per batch")
         
         # Create directory for individual case files
         cases_dir = "cases_metadata/Islamabad_High_Court/individual_cases"
@@ -1000,8 +2007,6 @@ class IHCSeleniumScraper:
             except:
                 pass
         
-        # Create case numbers list for this batch
-        case_numbers = list(range(start_case, end_case + 1))
         print(f"📦 Processing cases: {case_numbers}")
         
         # Thread-safe counters
@@ -1023,7 +2028,7 @@ class IHCSeleniumScraper:
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    worker_scraper = IHCSeleniumScraper(headless=True)
+                    worker_scraper = IHCSeleniumScraper(headless=True, fetch_details=True)
                     if worker_scraper.start_driver():
                         print(f"✅ Worker {worker_id}: WebDriver started successfully on attempt {attempt + 1}")
                         break
@@ -1057,8 +2062,33 @@ class IHCSeleniumScraper:
                     print(f"❌ Worker {worker_id}: Failed to fill form for case {case_no}")
                     return None
                 
-                # Scrape results
-                cases = worker_scraper.scrape_results_table(case_type_empty=True)
+                # Scrape results with retry mechanism
+                max_scrape_retries = 3
+                cases = None
+                
+                for scrape_attempt in range(max_scrape_retries):
+                    try:
+                        print(f"🔍 Worker {worker_id}: Scraping attempt {scrape_attempt + 1}/{max_scrape_retries}")
+                        cases = worker_scraper.scrape_results_table(case_type_empty=True, case_no=case_no)
+                        
+                        if cases:
+                            print(f"✅ Worker {worker_id}: Scraping successful on attempt {scrape_attempt + 1}")
+                            break
+                        else:
+                            print(f"⚠️ Worker {worker_id}: No results on attempt {scrape_attempt + 1}")
+                            if scrape_attempt < max_scrape_retries - 1:
+                                print(f"🔄 Worker {worker_id}: Retrying in 5 seconds...")
+                                time.sleep(5)
+                            continue
+                            
+                    except Exception as e:
+                        print(f"❌ Worker {worker_id}: Scraping error on attempt {scrape_attempt + 1}: {e}")
+                        if scrape_attempt < max_scrape_retries - 1:
+                            print(f"🔄 Worker {worker_id}: Retrying in 10 seconds...")
+                            time.sleep(10)
+                        else:
+                            print(f"❌ Worker {worker_id}: All scraping attempts failed for case {case_no}")
+                            cases = None
                 
                 if cases:
                     # Add metadata
@@ -1208,10 +2238,10 @@ class IHCSeleniumScraper:
             for case_no in sorted(missing_cases):
                 try:
                     print(f"🔄 Retrying case {case_no}...")
-                    retry_scraper = IHCSeleniumScraper(headless=True)
+                    retry_scraper = IHCSeleniumScraper(headless=True, fetch_details=True)
                     if retry_scraper.start_driver():
                         if retry_scraper.navigate_to_case_status() and retry_scraper.fill_search_form_simple(case_no):
-                            retry_cases = retry_scraper.scrape_results_table(case_type_empty=True)
+                            retry_cases = retry_scraper.scrape_results_table(case_type_empty=True, case_no=case_no)
                             if retry_cases:
                                 # Add metadata
                                 for case in retry_cases:
@@ -1495,7 +2525,7 @@ def run_simple_test(headless=False):
         
         # Step 3: Wait for data to load completely
         print("\n⏳ Step 3: Waiting for complete data to load...")
-        cases = scraper.scrape_results_table(case_type_empty=True)
+        cases = scraper.scrape_results_table(case_type_empty=True, case_no=1)
         
         # Step 4: Process results
         if cases:
@@ -1517,13 +2547,40 @@ def run_simple_test(headless=False):
         if 'scraper' in locals():
             scraper.stop_driver()
 
-def run_single_batch(batch_number=1, cases_per_batch=5, max_workers=3):
+def run_single_case(case_number, fetch_details=True):
+    """Run scraper for a single specific case number"""
+    try:
+        print(f"🚀 Starting SINGLE CASE {case_number}")
+        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
+        
+        # Calculate the correct batch number for this case
+        # Assuming 5 cases per batch: case 1-5 = batch 1, case 6-10 = batch 2, etc.
+        batch_number = ((case_number - 1) // 5) + 1
+        print(f"📊 Using batch {batch_number} for case {case_number}")
+        
+        scraper = IHCSeleniumScraper(headless=True, fetch_details=fetch_details)
+        results = scraper.parallel_scrape_cases(
+            batch_number=batch_number,  # Use correct batch number
+            cases_per_batch=1,  # Only 1 case
+            max_workers=1,  # Single worker
+            custom_case_numbers=[case_number]  # Override with specific case
+        )
+        
+        print(f"✅ Case {case_number} completed! Found {len(results)} total cases")
+        return results
+        
+    except Exception as e:
+        print(f"❌ Case {case_number} error: {e}")
+        return None
+
+def run_single_batch(batch_number=1, cases_per_batch=5, max_workers=3, fetch_details=True):
     """Run a single batch of cases"""
     try:
         print(f"🚀 Starting SINGLE BATCH {batch_number}")
         print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
+        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
         
-        scraper = IHCSeleniumScraper(headless=True)
+        scraper = IHCSeleniumScraper(headless=True, fetch_details=fetch_details)
         results = scraper.parallel_scrape_cases(
             batch_number=batch_number,
             cases_per_batch=cases_per_batch,
@@ -1543,7 +2600,7 @@ def run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_wo
         print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
         print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
         
-        scraper = IHCSeleniumScraper(headless=True)
+        scraper = IHCSeleniumScraper(headless=True, fetch_details=True)
         results = scraper.run_multiple_batches(
             start_batch=start_batch,
             end_batch=end_batch,
@@ -1563,15 +2620,21 @@ if __name__ == "__main__":
     # 🚀 BATCH-BASED SCRAPING SYSTEM
     # ========================================
     
-    # Option 1: Run a single batch (recommended for testing)
-    # Batch 1 = Cases 1-5, Batch 2 = Cases 6-10, etc.
-    run_single_batch(batch_number=2, cases_per_batch=5, max_workers=3)
+    # Option 1: Run a single specific case (NEW - recommended for testing)
+    # This will scrape exactly the case number you specify
+    # Test with case 11 which has a "Decided" case to see detailed fetching
+    run_single_case(case_number=11, fetch_details=True)
     
-    # Option 2: Run multiple batches
+    # Option 2: Run a single batch (cases 1-5, 6-10, etc.)
+    # Batch 1 = Cases 1-5, Batch 2 = Cases 6-10, etc.
+    # Set fetch_details=False for faster scraping without detailed case information
+    # run_single_batch(batch_number=3, cases_per_batch=5, max_workers=3, fetch_details=True)
+    
+    # Option 3: Run multiple batches
     # run_multiple_batches(start_batch=1, end_batch=10, cases_per_batch=5, max_workers=3)
     
-    # Option 3: Run all 1000 cases (200 batches of 5 cases each)
+    # Option 4: Run all 1000 cases (200 batches of 5 cases each)
     # run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3)
     
-    # Option 4: Simple test (single case)
+    # Option 5: Simple test (single case)
     # run_simple_test(headless=True)
