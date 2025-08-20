@@ -10,7 +10,7 @@
     "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
     "DETAILS": "",
     "_metadata": {
-      "scraped_at": "2025-08-20T22:55:09.663113",
+      "scraped_at": "2025-08-21T01:25:45.296201",
       "case_number": 11,
       "page_number": 1,
       "row_index": 1,
@@ -28,7 +28,7 @@
     "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
     "DETAILS": "",
     "_metadata": {
-      "scraped_at": "2025-08-20T22:55:09.796172",
+      "scraped_at": "2025-08-21T01:25:45.418568",
       "case_number": 11,
       "page_number": 1,
       "row_index": 2,
@@ -46,7 +46,7 @@
     "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
     "DETAILS": "",
     "_metadata": {
-      "scraped_at": "2025-08-20T22:55:09.938256",
+      "scraped_at": "2025-08-21T01:25:45.590500",
       "case_number": 11,
       "page_number": 1,
       "row_index": 3,
@@ -64,7 +64,7 @@
     "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
     "DETAILS": "",
     "_metadata": {
-      "scraped_at": "2025-08-20T22:55:10.075525",
+      "scraped_at": "2025-08-21T01:25:45.721386",
       "case_number": 11,
       "page_number": 1,
       "row_index": 4,
@@ -81,6 +81,80 @@
     "STATUS": "Decided",
     "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
     "DETAILS": "",
+    "ORDERS_DATA": {
+      "type": "Orders",
+      "extracted_at": "2025-08-21T01:26:29.324616",
+      "content": {
+        "headers": [
+          "SR",
+          "HEARING_DATE",
+          "BENCH",
+          "LIST_TYPE",
+          "CASE_STAGE",
+          "SHORT_ORDER",
+          "DISPOSAL_DATE",
+          "VIEW"
+        ],
+        "rows": [
+          [
+            "16",
+            "19-05-2025",
+            "Honourable Mr. Justice Muhammad Azam Khan",
+            "Urgent List",
+            "URGENT CASES",
+            "Allowed",
+            "19-05-2025",
+            [
+              {
+                "href": "https://mis.ihc.gov.pk/attachments/judgements/197094/3/Review_Application_No.11-2025_638834339454105958.pdf",
+                "title": "",
+                "text": ""
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "COMMENTS_DATA": {
+      "type": "Comments",
+      "extracted_at": "2025-08-21T01:26:39.347482",
+      "content": {
+        "headers": [
+          "",
+          "COMPLIANCE_DATE",
+          "CASE_NO",
+          "CASE_TITLE",
+          "DOC_TYPE",
+          "PARTIES",
+          "DESCRIPTION",
+          "VIEW"
+        ]
+      }
+    },
+    "CASE_CMS_DATA": {
+      "type": "Case CMs",
+      "extracted_at": "2025-08-21T01:26:49.366968",
+      "content": {
+        "headers": [
+          "SR",
+          "CM",
+          "INSTITUTION",
+          "DISPOSAL DATE",
+          "ORDER PASSED",
+          "DESCRIPTION",
+          "STATUS"
+        ]
+      }
+    },
+    "JUDGEMENT_DATA": {
+      "type": "Judgement",
+      "extracted_at": "2025-08-21T01:26:59.414526",
+      "content": {
+        "pdf_url": "https://mis.ihc.gov.pk/attachments/judgements/197094/1/W.P._NO._559_TO_565_OF_2025_638896620858287944.pdf",
+        "pdf_filename": "W.P._NO._559_TO_565_OF_2025_638896620858287944.pdf",
+        "page_title": ""
+      }
+    },
     "CASE_STATUS": "DECIDED",
     "HEARING_DATE_DETAILED": "19-05-2025 ()",
     "CASE_STAGE": "",
@@ -102,7 +176,7 @@
     "INCIDENT": "N/A",
     "NAME_OF_ACCUSED": "N/A",
     "_metadata": {
-      "scraped_at": "2025-08-20T22:56:19.487566",
+      "scraped_at": "2025-08-21T01:28:10.870761",
       "case_number": 11,
       "page_number": 1,
       "row_index": 5,
@@ -120,215 +194,11 @@
     "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
     "DETAILS": "",
     "_metadata": {
-      "scraped_at": "2025-08-20T22:56:19.628851",
+      "scraped_at": "2025-08-21T01:28:11.021272",
       "case_number": 11,
       "page_number": 1,
       "row_index": 6,
       "sr_number": "6"
-    }
-  },
-  {
-    "SR": "7",
-    "INSTITUTION": "08-02-2025",
-    "CASE_NO": "Cust. Ref. 11/2025 (DB)",
-    "CASE_TITLE": "Deputy Collector Custom- VS -Manzoor Enterprises",
-    "BENCH": "Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",
-    "HEARING_DATE": "WED 19-02-2025\nURGENT CASES",
-    "STATUS": "Decided",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "CASE_STATUS": "DECIDED",
-    "HEARING_DATE_DETAILED": "19-02-2025 ()",
-    "CASE_STAGE": "",
-    "TENTATIVE_DATE": "N/A",
-    "SHORT_ORDER": "N/A",
-    "BEFORE_BENCH": "Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",
-    "CASE_TITLE_DETAILED": "Deputy Collector Custom-VS-Manzoor Enterprises",
-    "ADVOCATES_PETITIONER": "Malik Nasir Abbas Awan",
-    "ADVOCATES_RESPONDENT": "N/A",
-    "CASE_DESCRIPTION": "Custom Reference",
-    "DISPOSED_OF_STATUS": "DECIDED (N/A)",
-    "CASE_DISPOSAL_DATE": "19-02-2025",
-    "DISPOSAL_BENCH": "Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",
-    "CONSIGNED_DATE": "03-03-2025",
-    "FIR_NUMBER": "N/A",
-    "FIR_DATE": "N/A",
-    "POLICE_STATION": "N/A",
-    "UNDER_SECTION": "N/A",
-    "INCIDENT": "N/A",
-    "NAME_OF_ACCUSED": "N/A",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:57:29.007419",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 7,
-      "sr_number": "7"
-    }
-  },
-  {
-    "SR": "8",
-    "INSTITUTION": "06-02-2025",
-    "CASE_NO": "C.M. A 11/2025 (DB)",
-    "CASE_TITLE": "The Deputy Commissioner Inland Revenue- VS -Ch Tanvir Khan etc",
-    "BENCH": "Honourable Mr. Justice Mohsin Akhtar Kayani, Honourable Mr. Justice Sardar Ejaz Ishaq Khan",
-    "HEARING_DATE": "WED 18-06-2025 (FC)\nCANCELLED - BENCH NOT AVAILABLE",
-    "STATUS": "Pending",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:57:29.123854",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 8,
-      "sr_number": "8"
-    }
-  },
-  {
-    "SR": "9",
-    "INSTITUTION": "27-01-2025",
-    "CASE_NO": "I.C.A. 11/2025 Writ (DB)",
-    "CASE_TITLE": "Munir Ahmed, etc- VS -Justice of Peace & others",
-    "BENCH": "Honourable Mr. Justice Arbab Muhammad Tahir, Honourable Mr. Justice Inaam Ameen Minhas",
-    "HEARING_DATE": "TUE 27-05-2025 (A)\nMOTION CASES",
-    "STATUS": "Decided",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "CASE_STATUS": "DECIDED",
-    "HEARING_DATE_DETAILED": "27-05-2025 (A)",
-    "CASE_STAGE": "",
-    "TENTATIVE_DATE": "N/A",
-    "SHORT_ORDER": "Dismissed In limine",
-    "BEFORE_BENCH": "Honourable Mr. Justice Arbab Muhammad Tahir, Honourable Mr. Justice Inaam Ameen Minhas",
-    "CASE_TITLE_DETAILED": "Munir Ahmed, etc-VS-Justice of Peace & others",
-    "ADVOCATES_PETITIONER": "Khawaja Shahid Rasool",
-    "ADVOCATES_RESPONDENT": "N/A",
-    "CASE_DESCRIPTION": "ICA in WP 2153/2024: Against dismissal of 22A by Justice of Peace for registration of FIR",
-    "DISPOSED_OF_STATUS": "DECIDED (Dismissed In limine)",
-    "CASE_DISPOSAL_DATE": "27-05-2025",
-    "DISPOSAL_BENCH": "Honourable Mr. Justice Arbab Muhammad Tahir, Honourable Mr. Justice Inaam Ameen Minhas",
-    "CONSIGNED_DATE": "30-06-2025",
-    "FIR_NUMBER": "N/A",
-    "FIR_DATE": "N/A",
-    "POLICE_STATION": "N/A",
-    "UNDER_SECTION": "N/A",
-    "INCIDENT": "N/A",
-    "NAME_OF_ACCUSED": "N/A",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:58:38.465882",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 9,
-      "sr_number": "9"
-    }
-  },
-  {
-    "SR": "10",
-    "INSTITUTION": "21-01-2025",
-    "CASE_NO": "Crl. Org. 11/2025 Writ (SB)",
-    "CASE_TITLE": "Rai Hassan Nawaz Khan- VS -Fop M/o Interior & others",
-    "BENCH": "Honourable Mr. Justice Inaam Ameen Minhas",
-    "HEARING_DATE": "MON 14-04-2025 (FC)\nNOTICE CASES",
-    "STATUS": "Decided",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "CASE_STATUS": "DECIDED",
-    "HEARING_DATE_DETAILED": "14-04-2025 (FC)",
-    "CASE_STAGE": "",
-    "TENTATIVE_DATE": "N/A",
-    "SHORT_ORDER": "Disposed Of",
-    "BEFORE_BENCH": "Honourable Mr. Justice Inaam Ameen Minhas",
-    "CASE_TITLE_DETAILED": "Rai Hassan Nawaz Khan-VS-Fop M/o Interior & others",
-    "ADVOCATES_PETITIONER": "Jawad Asghar",
-    "ADVOCATES_RESPONDENT": "Mian M. Faisal Irfan",
-    "CASE_DESCRIPTION": "Crl Org in WP 2639/2024: Petitioner files this writ against placement of name in ECL.",
-    "DISPOSED_OF_STATUS": "DECIDED (Disposed Of)",
-    "CASE_DISPOSAL_DATE": "14-04-2025",
-    "DISPOSAL_BENCH": "Honourable Mr. Justice Inaam Ameen Minhas",
-    "CONSIGNED_DATE": "08-05-2025",
-    "FIR_NUMBER": "N/A",
-    "FIR_DATE": "N/A",
-    "POLICE_STATION": "N/A",
-    "UNDER_SECTION": "N/A",
-    "INCIDENT": "N/A",
-    "NAME_OF_ACCUSED": "N/A",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:59:47.716998",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 10,
-      "sr_number": "10"
-    }
-  },
-  {
-    "SR": "11",
-    "INSTITUTION": "21-01-2025",
-    "CASE_NO": "Crl. Rev. 11/2025 Against Interim Order (SB)",
-    "CASE_TITLE": "Bushra Imran Khan - VS -Federal Investigation Agency through its DG etc.",
-    "BENCH": "Honourable Mr. Justice Inaam Ameen Minhas",
-    "HEARING_DATE": "FRI 25-04-2025\nURGENT CASES",
-    "STATUS": "Pending",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:59:47.836773",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 11,
-      "sr_number": "11"
-    }
-  },
-  {
-    "SR": "12",
-    "INSTITUTION": "18-01-2025",
-    "CASE_NO": "CR 11/2025 Against Judgement & Decree (SB)",
-    "CASE_TITLE": "Malik Riaz Hussain, etc- VS -Muhammad Younas etc",
-    "BENCH": "Honourable Mr. Justice Khadim Hussain Soomro",
-    "HEARING_DATE": "MON 22-09-2025 (A)\nNOTICE CASES",
-    "STATUS": "Pending",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:59:47.984946",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 12,
-      "sr_number": "12"
-    }
-  },
-  {
-    "SR": "13",
-    "INSTITUTION": "14-01-2025",
-    "CASE_NO": "Crl. Appeal 11/2025 Against Convct. PPC Upto 7 years (SB)",
-    "CASE_TITLE": "Shahnawaz Rind Baloch etc- VS -Qaiser Iqbal",
-    "BENCH": "Honourable Mr. Justice Arbab Muhammad Tahir",
-    "HEARING_DATE": "TUE 09-09-2025 (FC)\nNOTICE CASES",
-    "STATUS": "Pending",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "_metadata": {
-      "scraped_at": "2025-08-20T22:59:48.086951",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 13,
-      "sr_number": "13"
-    }
-  },
-  {
-    "SR": "14",
-    "INSTITUTION": "11-01-2025",
-    "CASE_NO": "R.F.A. 11/2025 Against Judgement & Decree (SB)",
-    "CASE_TITLE": "Zafar Mehmood etc- VS -Dr. Muhammad Hafeez Abbasi",
-    "BENCH": "Honourable Mr. Justice Arbab Muhammad Tahir",
-    "HEARING_DATE": "TUE 25-03-2025 (FC)\nFOR ANNOUNCEMENT OF JUDGEMENT/ORDER",
-    "STATUS": "Decided",
-    "HISTORY": "Orders \n Comments \n Case CMs \n Judgement",
-    "DETAILS": "",
-    "_metadata": {
-      "scraped_at": "2025-08-20T23:00:57.000700",
-      "case_number": 11,
-      "page_number": 1,
-      "row_index": 14,
-      "sr_number": "14"
     }
   }
 ]
