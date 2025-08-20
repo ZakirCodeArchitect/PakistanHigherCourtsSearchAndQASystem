@@ -655,6 +655,16 @@ class IHCSeleniumScraper:
                                                 # Fetch detailed information for decided cases (if enabled)
                                                 if self.fetch_details and case_data['STATUS'] == 'Decided':
                                                     print(f"🔍 Page {page_number}, Row {i}: Fetching details for decided case {case_data['CASE_NO']}")
+                                                    
+                                                    # First, fetch history data (Orders, Comments, Case CMs, Judgement)
+                                                    history_data = self.fetch_case_history(row, case_data)
+                                                    if history_data:
+                                                        case_data.update(history_data)
+                                                        print(f"✅ Page {page_number}, Row {i}: Added history data for decided case")
+                                                    else:
+                                                        print(f"⚠️ Page {page_number}, Row {i}: Failed to fetch history data for decided case")
+                                                    
+                                                    # Then, fetch detailed case information
                                                     detailed_info = self.fetch_case_details(row)
                                                     if detailed_info:
                                                         case_data.update(detailed_info)
@@ -1635,6 +1645,644 @@ class IHCSeleniumScraper:
             except:
                 pass
             return {}
+
+    def fetch_case_history(self, case_row_element, case_data):
+        """
+        Fetch case history data by clicking the four buttons in the HISTORY column:
+        Orders, Comments, Case CMs, and Judgement
+        
+        Args:
+            case_row_element: The table row element containing the case
+            case_data: The current case data dictionary
+            
+        Returns:
+            dict: History data or empty dict if failed
+        """
+        try:
+            # Check if this case has 'Decided' status
+            cells = case_row_element.find_elements(By.TAG_NAME, "td")
+            if len(cells) < 8:
+                return {}
+            
+            status = cells[6].text.strip()
+            if status != "Decided":
+                return {}  # Only fetch history for decided cases
+            
+            print(f"📋 Fetching history data for decided case: {case_data.get('CASE_NO', 'N/A')}")
+            
+            # Find the HISTORY column (8th column, index 7)
+            history_cell = cells[7] if len(cells) > 7 else None
+            if not history_cell:
+                print("⚠️ No history column found")
+                return {}
+            
+            # Look for the four buttons: Orders, Comments, Case CMs, Judgement
+            history_buttons = history_cell.find_elements(By.TAG_NAME, "button")
+            history_links = history_cell.find_elements(By.TAG_NAME, "a")
+            history_spans = history_cell.find_elements(By.TAG_NAME, "span")
+            
+            # Combine all potential clickable elements
+            all_elements = history_buttons + history_links + history_spans
+            
+            if not all_elements:
+                print("⚠️ No history buttons found")
+                return {}
+            
+            print(f"🔍 Found {len(all_elements)} potential history elements")
+            
+            # Store current URL and window handle
+            original_url = self.driver.current_url
+            original_window = self.driver.current_window_handle
+            
+            history_data = {}
+            
+            # Define the four history types we want to fetch
+            history_types = ["Orders", "Comments", "Case CMs", "Judgement"]
+            
+            for history_type in history_types:
+                print(f"🔍 Looking for '{history_type}' button...")
+                
+                # Find the button for this history type
+                target_element = None
+                for element in all_elements:
+                    try:
+                        element_text = element.text.strip()
+                        if history_type.lower() in element_text.lower():
+                            target_element = element
+                            print(f"✅ Found '{history_type}' button")
+                            break
+                    except:
+                        continue
+                
+                if not target_element:
+                    print(f"⚠️ Could not find '{history_type}' button")
+                    continue
+                
+                # Click the history button
+                try:
+                     print(f"🖱️ Clicking '{history_type}' button...")
+                     target_element.click()
+                     time.sleep(3)  # Wait for modal/popup to load
+                     
+                     # Special handling for Judgement (opens PDF in new tab)
+                     if history_type == "Judgement":
+                         # Check if we have a new window/tab for PDF
+                         new_window = None
+                         for window_handle in self.driver.window_handles:
+                             if window_handle != original_window:
+                                 new_window = window_handle
+                                 break
+                         
+                         if new_window:
+                             self.driver.switch_to.window(new_window)
+                             print(f"✅ Switched to new window for '{history_type}' PDF")
+                             
+                             # Extract PDF data
+                             history_content = self.extract_history_content(history_type)
+                             if history_content:
+                                 history_data[f"{history_type.upper().replace(' ', '_')}_DATA"] = history_content
+                                 print(f"✅ Extracted '{history_type}' PDF data")
+                             else:
+                                 print(f"⚠️ No data extracted for '{history_type}' PDF")
+                             
+                             # Close the PDF window and return to main page
+                             self.driver.close()
+                             self.driver.switch_to.window(original_window)
+                             print(f"✅ Closed '{history_type}' PDF window and switched back")
+                         else:
+                             print(f"⚠️ No new window opened for '{history_type}' PDF")
+                     else:
+                         # For Orders, Comments, Case CMs - these open modals
+                         # Check if we have a new window/tab (unlikely for modals)
+                         new_window = None
+                         for window_handle in self.driver.window_handles:
+                             if window_handle != original_window:
+                                 new_window = window_handle
+                                 break
+                         
+                         if new_window:
+                             self.driver.switch_to.window(new_window)
+                             print(f"✅ Switched to new window for '{history_type}'")
+                         else:
+                             print(f"ℹ️ No new window opened for '{history_type}', using modal")
+                         
+                         # Extract data from the history modal
+                         history_content = self.extract_history_content(history_type)
+                         if history_content:
+                             history_data[f"{history_type.upper().replace(' ', '_')}_DATA"] = history_content
+                             print(f"✅ Extracted '{history_type}' data")
+                         else:
+                             print(f"⚠️ No data extracted for '{history_type}'")
+                         
+                         # Close the history window/modal and return to main page
+                         if new_window:
+                             self.driver.close()
+                             self.driver.switch_to.window(original_window)
+                             print(f"✅ Closed '{history_type}' window and switched back")
+                         else:
+                             # Close modal if it's a popup - IMPORTANT: Must close before next button
+                             print(f"🔍 Closing '{history_type}' modal before proceeding...")
+                             if self.close_history_modal():
+                                 print(f"✅ Successfully closed '{history_type}' modal")
+                             else:
+                                 print(f"⚠️ Failed to close '{history_type}' modal, trying alternative methods...")
+                                 # Try alternative closing methods
+                                 try:
+                                     # Try Escape key
+                                     from selenium.webdriver.common.keys import Keys
+                                     self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                                     print(f"✅ Used Escape key to close '{history_type}' modal")
+                                     time.sleep(1)
+                                 except:
+                                     print(f"⚠️ Escape key also failed for '{history_type}' modal")
+                             
+                             # Wait a moment to ensure modal is fully closed
+                             time.sleep(2)
+                             
+                             # CRITICAL: Verify modal is actually closed before proceeding
+                             modal_still_open = False
+                             try:
+                                 modals = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'modal')]")
+                                 for modal in modals:
+                                     if modal.is_displayed():
+                                         modal_still_open = True
+                                         print(f"⚠️ Modal still open after closing '{history_type}' - attempting additional close...")
+                                         break
+                             except:
+                                 pass
+                             
+                             # If modal is still open, try additional closing methods
+                             if modal_still_open:
+                                 print(f"🔄 Modal still open for '{history_type}', trying additional close methods...")
+                                 
+                                 # Try clicking outside the modal
+                                 try:
+                                     self.driver.find_element(By.TAG_NAME, "body").click()
+                                     print("✅ Clicked outside modal")
+                                     time.sleep(1)
+                                 except:
+                                     pass
+                                 
+                                 # Try Escape key again
+                                 try:
+                                     from selenium.webdriver.common.keys import Keys
+                                     self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                                     print("✅ Pressed Escape key again")
+                                     time.sleep(2)
+                                 except:
+                                     pass
+                                 
+                                 # Final verification
+                                 try:
+                                     modals = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'modal')]")
+                                     modal_still_open = False
+                                     for modal in modals:
+                                         if modal.is_displayed():
+                                             modal_still_open = True
+                                             break
+                                     
+                                     if not modal_still_open:
+                                         print(f"✅ Modal finally closed for '{history_type}'")
+                                     else:
+                                         print(f"❌ Modal still open for '{history_type}' - may cause issues with next button")
+                                 except:
+                                     pass
+                             else:
+                                 print(f"✅ Modal successfully closed for '{history_type}'")
+                             
+                             # Verify we're back to the main search results page
+                             try:
+                                 current_url = self.driver.current_url
+                                 if "frmCseSrch" in current_url:
+                                     print(f"✅ Verified back to main search page after closing '{history_type}' modal")
+                                 else:
+                                     print(f"⚠️ URL after closing '{history_type}' modal: {current_url}")
+                             except:
+                                 print(f"⚠️ Could not verify URL after closing '{history_type}' modal")
+                    
+                except Exception as e:
+                    print(f"⚠️ Error processing '{history_type}': {e}")
+                    # Try to switch back to original window if possible
+                    try:
+                        if len(self.driver.window_handles) > 1:
+                            self.driver.switch_to.window(original_window)
+                    except:
+                        pass
+                    continue
+            
+            print(f"✅ Successfully extracted history data for {len(history_data)} types")
+            return history_data
+            
+        except Exception as e:
+            print(f"❌ Error fetching case history: {e}")
+            return {}
+    
+    def extract_history_content(self, history_type):
+        """
+        Extract content from a history page/modal based on the specific modal type
+        
+        Args:
+            history_type: Type of history (Orders, Comments, Case CMs, Judgement)
+            
+        Returns:
+            dict: Extracted history content
+        """
+        try:
+            history_content = {
+                'type': history_type,
+                'extracted_at': datetime.now().isoformat(),
+                'content': {}
+            }
+            
+            # Wait for content to load
+            time.sleep(2)
+            
+            # Handle different modal types based on the HTML structures provided
+            if history_type == "Orders":
+                # Orders opens "Case History" modal with table id="tblCseHstry"
+                return self._extract_orders_data(history_content)
+            elif history_type == "Comments":
+                # Comments opens "Doc History" modal with table id="tblCmntsHstry"
+                return self._extract_comments_data(history_content)
+            elif history_type == "Case CMs":
+                # Case CMs opens "CMs of Case" modal with table id="tblCmsHstry"
+                return self._extract_case_cms_data(history_content)
+            elif history_type == "Judgement":
+                # Judgement opens PDF in new tab
+                return self._extract_judgement_data(history_content)
+            else:
+                print(f"⚠️ Unknown history type: {history_type}")
+                return None
+            
+        except Exception as e:
+            print(f"❌ Error extracting history content: {e}")
+            return None
+    
+    def _extract_orders_data(self, history_content):
+        """Extract data from Orders modal (Case History)"""
+        try:
+            # Look for the specific table with id="tblCseHstry"
+            table = self.driver.find_element(By.ID, "tblCseHstry")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    history_content['content']['headers'] = headers
+                    print(f"✅ Orders: Found {len(headers)} headers: {headers}")
+                
+                # Extract rows with VIEW column links
+                rows = []
+                row_elements = table.find_elements(By.TAG_NAME, "tr")[1:]  # Skip header row
+                for row_index, row in enumerate(row_elements):
+                    cells = row.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    
+                    for cell_index, cell in enumerate(cells):
+                        cell_text = cell.text.strip()
+                        
+                        # Special handling for VIEW column (last column)
+                        if cell_index == len(cells) - 1 and "VIEW" in headers[-1]:
+                            # Look for download links in the VIEW column
+                            try:
+                                # Find download links within this cell
+                                download_links = cell.find_elements(By.TAG_NAME, "a")
+                                if download_links:
+                                    # Extract href attributes from download links
+                                    link_data = []
+                                    for link in download_links:
+                                        href = link.get_attribute("href")
+                                        title = link.get_attribute("title") or ""
+                                        link_text = link.text.strip()
+                                        
+                                        if href:
+                                            link_info = {
+                                                "href": href,
+                                                "title": title,
+                                                "text": link_text
+                                            }
+                                            link_data.append(link_info)
+                                    
+                                    if link_data:
+                                        row_data.append(link_data)
+                                        print(f"✅ Orders: Found {len(link_data)} download link(s) in row {row_index + 1}")
+                                    else:
+                                        row_data.append(cell_text)
+                                else:
+                                    row_data.append(cell_text)
+                            except Exception as link_error:
+                                print(f"⚠️ Error extracting VIEW column links: {link_error}")
+                                row_data.append(cell_text)
+                        else:
+                            row_data.append(cell_text)
+                    
+                    if row_data and len(row_data) > 1:  # Avoid empty rows
+                        rows.append(row_data)
+                
+                if rows:
+                    history_content['content']['rows'] = rows
+                    print(f"✅ Orders: Found {len(rows)} data rows with VIEW column links")
+                else:
+                    print("⚠️ Orders: No data rows found")
+                
+                return history_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Orders data: {e}")
+            return None
+    
+    def _extract_comments_data(self, history_content):
+        """Extract data from Comments modal (Doc History)"""
+        try:
+            # Look for the specific table with id="tblCmntsHstry"
+            table = self.driver.find_element(By.ID, "tblCmntsHstry")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    history_content['content']['headers'] = headers
+                    print(f"✅ Comments: Found {len(headers)} headers: {headers}")
+                
+                # Extract ALL rows including first entry
+                rows = []
+                row_elements = table.find_elements(By.TAG_NAME, "tr")[1:]  # Skip header row
+                print(f"🔍 Comments: Found {len(row_elements)} total row elements")
+                
+                for row_index, row in enumerate(row_elements):
+                    cells = row.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    
+                    # Check if this is a "No data available" row
+                    if len(cells) == 1:
+                        cell_text = cells[0].text.strip()
+                        if "No data available" in cell_text:
+                            print(f"⚠️ Comments: Row {row_index + 1} contains 'No data available'")
+                            continue
+                    
+                    for cell in cells:
+                        row_data.append(cell.text.strip())
+                    
+                    # Include ALL rows that have data (don't skip first entry)
+                    if row_data and len(row_data) > 0:
+                        rows.append(row_data)
+                        print(f"✅ Comments: Added row {row_index + 1} with {len(row_data)} cells: {row_data[0] if row_data else 'N/A'}")
+                    else:
+                        print(f"⚠️ Comments: Skipped empty row {row_index + 1}")
+                
+                if rows:
+                    history_content['content']['rows'] = rows
+                    print(f"✅ Comments: Found {len(rows)} data rows (including first entry)")
+                else:
+                    print("⚠️ Comments: No data rows found")
+                
+                return history_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Comments data: {e}")
+            return None
+    
+    def _extract_case_cms_data(self, history_content):
+        """Extract data from Case CMs modal (CMs of Case)"""
+        try:
+            # Look for the specific table with id="tblCmsHstry"
+            table = self.driver.find_element(By.ID, "tblCmsHstry")
+            if table:
+                # Extract headers
+                headers = []
+                header_elements = table.find_elements(By.TAG_NAME, "th")
+                for header in header_elements:
+                    headers.append(header.text.strip())
+                
+                if headers:
+                    history_content['content']['headers'] = headers
+                    print(f"✅ Case CMs: Found {len(headers)} headers: {headers}")
+                
+                # Extract ALL rows including first entry
+                rows = []
+                row_elements = table.find_elements(By.TAG_NAME, "tr")[1:]  # Skip header row
+                print(f"🔍 Case CMs: Found {len(row_elements)} total row elements")
+                
+                for row_index, row in enumerate(row_elements):
+                    cells = row.find_elements(By.TAG_NAME, "td")
+                    row_data = []
+                    
+                    # Check if this is a "No data available" row
+                    if len(cells) == 1:
+                        cell_text = cells[0].text.strip()
+                        if "No data available" in cell_text:
+                            print(f"⚠️ Case CMs: Row {row_index + 1} contains 'No data available'")
+                            continue
+                    
+                    for cell in cells:
+                        row_data.append(cell.text.strip())
+                    
+                    # Include ALL rows that have data (don't skip first entry)
+                    if row_data and len(row_data) > 0:
+                        rows.append(row_data)
+                        print(f"✅ Case CMs: Added row {row_index + 1} with {len(row_data)} cells: {row_data[0] if row_data else 'N/A'}")
+                    else:
+                        print(f"⚠️ Case CMs: Skipped empty row {row_index + 1}")
+                
+                if rows:
+                    history_content['content']['rows'] = rows
+                    print(f"✅ Case CMs: Found {len(rows)} data rows (including first entry)")
+                else:
+                    print("⚠️ Case CMs: No data rows found")
+                
+                return history_content
+            
+        except Exception as e:
+            print(f"❌ Error extracting Case CMs data: {e}")
+            return None
+    
+    def _extract_judgement_data(self, history_content):
+        """Extract data from Judgement (PDF link)"""
+        try:
+            # For Judgement, we need to get the PDF URL and download info
+            current_url = self.driver.current_url
+            
+            # Check if we're on a PDF page
+            if current_url.endswith('.pdf') or 'judgements' in current_url:
+                history_content['content']['pdf_url'] = current_url
+                history_content['content']['pdf_filename'] = current_url.split('/')[-1] if '/' in current_url else 'unknown.pdf'
+                
+                # Try to get the page title or any text content
+                try:
+                    page_title = self.driver.title
+                    history_content['content']['page_title'] = page_title
+                    print(f"✅ Judgement: Found PDF at {current_url}")
+                except:
+                    pass
+                
+                return history_content
+            else:
+                print("⚠️ Judgement: Not on a PDF page")
+                return None
+            
+        except Exception as e:
+            print(f"❌ Error extracting Judgement data: {e}")
+            return None
+    
+    def close_history_modal(self):
+        """Close a history modal/popup"""
+        try:
+            print("🔍 Attempting to close history modal...")
+            
+            # First, try to find the modal dialog itself
+            modal_selectors = [
+                "//div[contains(@class, 'modal')]",
+                "//div[contains(@class, 'modal-dialog')]",
+                "//div[contains(@class, 'modal-content')]",
+                "//div[contains(@id, 'myModal')]"
+            ]
+            
+            modal_found = False
+            for modal_selector in modal_selectors:
+                try:
+                    modals = self.driver.find_elements(By.XPATH, modal_selector)
+                    for modal in modals:
+                        if modal.is_displayed():
+                            modal_found = True
+                            print(f"✅ Found active modal: {modal.get_attribute('class')}")
+                            break
+                    if modal_found:
+                        break
+                except:
+                    continue
+            
+            if not modal_found:
+                print("⚠️ No active modal found")
+                return True  # Assume it's already closed
+            
+            # Try multiple close button selectors with more specific targeting
+            close_selectors = [
+                # Most specific - button with close class in modal header
+                "//div[contains(@class, 'modal-header')]//button[contains(@class, 'close')]",
+                "//div[contains(@class, 'modal-header')]//button[@data-dismiss='modal']",
+                "//div[contains(@class, 'modal-header')]//button[@aria-hidden='true']",
+                # X button with span
+                "//div[contains(@class, 'modal-header')]//button//span[contains(text(), '×')]",
+                "//div[contains(@class, 'modal-header')]//button//span[@aria-hidden='true']",
+                # General close buttons
+                "//button[contains(@class, 'close')]",
+                "//button[@data-dismiss='modal']",
+                "//button[@aria-hidden='true']",
+                # X text
+                "//*[text()='×']",
+                "//*[text()='✕']",
+                # Any button with close in class or title
+                "//button[contains(@class, 'close') or contains(@title, 'Close')]",
+                # Fallback - any clickable element that might be a close button
+                "//*[contains(@class, 'close') and (self::button or self::a or self::span)]"
+            ]
+            
+            for selector in close_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            element_text = element.text.strip()
+                            element_tag = element.tag_name
+                            element_class = element.get_attribute("class") or ""
+                            
+                            print(f"🔍 Found potential close element: {element_tag} with text='{element_text}', class='{element_class}'")
+                            
+                            # Try multiple click methods
+                            click_success = False
+                            
+                            # Method 1: Direct click
+                            try:
+                                element.click()
+                                print("✅ Clicked close button (direct)")
+                                click_success = True
+                            except Exception as e1:
+                                print(f"⚠️ Direct click failed: {e1}")
+                                
+                                # Method 2: JavaScript click
+                                try:
+                                    self.driver.execute_script("arguments[0].click();", element)
+                                    print("✅ Clicked close button (JavaScript)")
+                                    click_success = True
+                                except Exception as e2:
+                                    print(f"⚠️ JavaScript click failed: {e2}")
+                                    
+                                    # Method 3: Scroll into view and click
+                                    try:
+                                        self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+                                        time.sleep(0.5)
+                                        element.click()
+                                        print("✅ Clicked close button (scroll + click)")
+                                        click_success = True
+                                    except Exception as e3:
+                                        print(f"⚠️ Scroll + click failed: {e3}")
+                            
+                            if click_success:
+                                time.sleep(2)  # Wait for modal to close
+                                
+                                # Verify modal is actually closed
+                                try:
+                                    # Check if modal is still visible
+                                    modals = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'modal')]")
+                                    modal_still_open = False
+                                    for modal in modals:
+                                        if modal.is_displayed():
+                                            modal_still_open = True
+                                            break
+                                    
+                                    if not modal_still_open:
+                                        print("✅ Modal successfully closed")
+                                        return True
+                                    else:
+                                        print("⚠️ Modal still appears to be open after click")
+                                except:
+                                    print("✅ Modal close verification completed")
+                                    return True
+                            
+                except Exception as e:
+                    continue
+            
+            # Try Escape key as final fallback
+            try:
+                print("🔄 Trying Escape key as fallback...")
+                from selenium.webdriver.common.keys import Keys
+                self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                print("✅ Pressed Escape key")
+                time.sleep(2)
+                
+                # Verify modal is closed after Escape
+                try:
+                    modals = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'modal')]")
+                    modal_still_open = False
+                    for modal in modals:
+                        if modal.is_displayed():
+                            modal_still_open = True
+                            break
+                    
+                    if not modal_still_open:
+                        print("✅ Modal successfully closed with Escape key")
+                        return True
+                    else:
+                        print("⚠️ Modal still open after Escape key")
+                except:
+                    print("✅ Escape key modal close verification completed")
+                    return True
+                    
+            except Exception as e:
+                print(f"⚠️ Escape key failed: {e}")
+            
+            print("❌ Could not close modal with any method")
+            return False
+                
+        except Exception as e:
+            print(f"❌ Error in close_history_modal: {e}")
+            return False
 
     def restart_driver(self):
         """Restart the WebDriver if it gets disconnected"""
