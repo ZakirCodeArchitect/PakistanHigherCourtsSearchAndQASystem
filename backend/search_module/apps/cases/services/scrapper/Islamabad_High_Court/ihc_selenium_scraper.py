@@ -1748,8 +1748,8 @@ class IHCSeleniumScraper:
                              
                              # Extract PDF data
                              history_content = self.extract_history_content(history_type)
-                             if history_content:
-                                 history_data[f"{history_type.upper().replace(' ', '_')}_DATA"] = history_content
+                             if history_content and 'content' in history_content:
+                                 history_data[f"{history_type.upper().replace(' ', '_')}_DATA"] = history_content['content']
                                  print(f"✅ Extracted '{history_type}' PDF data")
                              else:
                                  print(f"⚠️ No data extracted for '{history_type}' PDF")
@@ -1777,8 +1777,8 @@ class IHCSeleniumScraper:
                          
                          # Extract data from the history modal
                          history_content = self.extract_history_content(history_type)
-                         if history_content:
-                             history_data[f"{history_type.upper().replace(' ', '_')}_DATA"] = history_content
+                         if history_content and 'content' in history_content:
+                             history_data[f"{history_type.upper().replace(' ', '_')}_DATA"] = history_content['content']
                              print(f"✅ Extracted '{history_type}' data")
                          else:
                              print(f"⚠️ No data extracted for '{history_type}'")
@@ -1898,8 +1898,6 @@ class IHCSeleniumScraper:
         """
         try:
             history_content = {
-                'type': history_type,
-                'extracted_at': datetime.now().isoformat(),
                 'content': {}
             }
             
@@ -2438,8 +2436,8 @@ class IHCSeleniumScraper:
                     
                     # Extract data from the opened modal/popup
                     option_content = self.extract_case_detail_option_content(option_type)
-                    if option_content:
-                        additional_details[f"{option_type.upper().replace(' ', '_')}_DETAIL_DATA"] = option_content
+                    if option_content and 'content' in option_content:
+                        additional_details[f"{option_type.upper().replace(' ', '_')}_DETAIL_DATA"] = option_content['content']
                         print(f"✅ Extracted '{option_type}' data")
                     else:
                         print(f"⚠️ No data extracted for '{option_type}'")
@@ -2500,8 +2498,6 @@ class IHCSeleniumScraper:
         """
         try:
             option_content = {
-                'type': option_type,
-                'extracted_at': datetime.now().isoformat(),
                 'content': {}
             }
             
@@ -3219,22 +3215,12 @@ class IHCSeleniumScraper:
                 except:
                     existing_data = []
             
-            # Add metadata to the case data
-            case_data_with_metadata = case_data.copy()
-            case_data_with_metadata['_metadata'] = {
-                'scraped_at': datetime.now().isoformat(),
-                'case_number': case_no,
-                'page_number': page_number,
-                'row_index': row_index,
-                'sr_number': case_data.get('SR', 'N/A')
-            }
-            
             # Add to existing data (avoid duplicates by SR number)
             sr_number = case_data.get('SR', 'N/A')
             existing_sr_numbers = [item.get('SR', '') for item in existing_data]
             
             if sr_number not in existing_sr_numbers:
-                existing_data.append(case_data_with_metadata)
+                existing_data.append(case_data)
                 
                 # Save immediately
                 with open(case_filename, 'w', encoding='utf-8') as f:
