@@ -23,13 +23,13 @@ class Case(models.Model):
     """Main case model representing basic case information from scraper"""
 
     # Basic case information from scraper
-    sr_number = models.CharField(max_length=20, db_index=True)  # SR
-    institution_date = models.CharField(max_length=20, blank=True)  # INSTITUTION
-    case_number = models.CharField(max_length=300, db_index=True)  # CASE_NO
-    case_title = models.CharField(max_length=800)  # CASE_TITLE
-    bench = models.CharField(max_length=400, blank=True)  # BENCH
-    hearing_date = models.CharField(max_length=300, blank=True)  # HEARING_DATE
-    status = models.CharField(max_length=50, db_index=True)  # STATUS
+    sr_number = models.CharField(max_length=20, db_index=True, blank=True, null=True)  # SR
+    institution_date = models.CharField(max_length=20, blank=True, null=True)  # INSTITUTION
+    case_number = models.CharField(max_length=300, db_index=True, blank=True, null=True)  # CASE_NO
+    case_title = models.CharField(max_length=800, blank=True, null=True)  # CASE_TITLE
+    bench = models.CharField(max_length=400, blank=True, null=True)  # BENCH
+    hearing_date = models.CharField(max_length=300, blank=True, null=True)  # HEARING_DATE
+    status = models.CharField(max_length=50, db_index=True, blank=True, null=True)  # STATUS
     # REMOVED: history_options (redundant UI text)
     # REMOVED: details (empty, redundant)
 
@@ -80,7 +80,7 @@ class Case(models.Model):
 
     class Meta:
         db_table = "cases"  # Use the actual table name from database
-        unique_together = ["sr_number", "case_number"]
+        unique_together = []  # Removed due to nullable fields
         indexes = [
             models.Index(fields=["sr_number"]),
             models.Index(fields=["case_number"]),
@@ -483,4 +483,110 @@ class ViewLinkData(models.Model):
         indexes = [
             models.Index(fields=["source_table"]),
             models.Index(fields=["file_type"]),
+        ]
+
+
+class Term(models.Model):
+    """Extracted legal terms with canonical forms"""
+    
+    # Term identification
+    type = models.CharField(max_length=50, db_index=True)  # 'section', 'statute', 'citation', 'court', 'judge'
+    canonical = models.CharField(max_length=500, db_index=True)  # Normalized canonical form
+    
+    # Statute-specific fields (optional)
+    statute_code = models.CharField(max_length=50, blank=True, null=True)  # 'ppc', 'crpc', 'cpc', etc.
+    section_num = models.CharField(max_length=50, blank=True, null=True)  # '302-b', '497', etc.
+    
+    # Metadata
+    first_seen = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+    occurrence_count = models.IntegerField(default=0)  # Total occurrences across all cases
+    
+    def __str__(self):
+        if self.statute_code and self.section_num:
+            return f"{self.type}: {self.statute_code}:{self.section_num}"
+        return f"{self.type}: {self.canonical}"
+    
+    class Meta:
+        db_table = "terms"
+        unique_together = ["type", "canonical"]
+        indexes = [
+            models.Index(fields=["type"]),
+            models.Index(fields=["canonical"]),
+            models.Index(fields=["statute_code", "section_num"]),
+        ]
+
+
+class TermOccurrence(models.Model):
+    """Specific occurrences of terms in case documents"""
+    
+    # Relationships
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="occurrences")
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="term_occurrences")
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="term_occurrences", null=True, blank=True)
+    
+    # Location information (mandatory)
+    start_char = models.IntegerField()  # Character position where term starts
+    end_char = models.IntegerField()    # Character position where term ends
+    
+    # Optional location information
+    page_no = models.IntegerField(null=True, blank=True)  # Page number if available
+    
+    # Extraction metadata
+    surface = models.CharField(max_length=500)  # Original text as found
+    confidence = models.FloatField(default=0.0)  # Confidence score (0.0-1.0)
+    source_rule = models.CharField(max_length=100)  # Which extraction rule matched
+    rules_version = models.CharField(max_length=20)  # Version of rules used
+    
+    # Processing metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.term} in {self.case.case_number} at chars {self.start_char}-{self.end_char}"
+    
+    class Meta:
+        db_table = "term_occurrences"
+        unique_together = ["term", "case", "start_char", "end_char"]
+        indexes = [
+            models.Index(fields=["term_id"]),
+            models.Index(fields=["case_id"]),
+            models.Index(fields=["document_id"]),
+            models.Index(fields=["page_no"]),
+            models.Index(fields=["confidence"]),
+            models.Index(fields=["rules_version"]),
+        ]
+
+
+class VocabularyProcessingLog(models.Model):
+    """Log of vocabulary extraction processing for idempotency"""
+    
+    # Processing identification
+    rules_version = models.CharField(max_length=20, db_index=True)
+    text_hash = models.CharField(max_length=64, db_index=True)  # SHA256 hash of processed text
+    
+    # Processing metadata
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="vocab_processing_logs")
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="vocab_processing_logs", null=True, blank=True)
+    
+    # Processing results
+    terms_extracted = models.IntegerField(default=0)
+    processing_time = models.FloatField(default=0.0)  # Processing time in seconds
+    
+    # Status
+    is_successful = models.BooleanField(default=True)
+    error_message = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Vocab processing {self.rules_version} for {self.case.case_number} ({self.text_hash[:8]})"
+    
+    class Meta:
+        db_table = "vocabulary_processing_logs"
+        unique_together = ["rules_version", "text_hash", "case", "document"]
+        indexes = [
+            models.Index(fields=["rules_version"]),
+            models.Index(fields=["text_hash"]),
+            models.Index(fields=["is_successful"]),
         ]
