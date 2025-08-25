@@ -299,6 +299,156 @@ class PartiesDetailData(models.Model):
 # These tables store the same data that's already in normalized tables
 
 
+class Document(models.Model):
+    """Model for storing PDF documents with metadata"""
+    
+    # File information
+    file_path = models.CharField(max_length=1000, unique=True)  # Local file path
+    file_name = models.CharField(max_length=255)  # Original filename
+    file_size = models.BigIntegerField()  # File size in bytes
+    sha256_hash = models.CharField(max_length=64, unique=True)  # SHA256 hash for deduplication
+    total_pages = models.IntegerField(null=True, blank=True)  # Total pages in PDF
+    
+    # Source information
+    original_url = models.URLField(max_length=1000)  # Original download URL
+    download_date = models.DateTimeField(auto_now_add=True)
+    
+    # Processing status
+    is_downloaded = models.BooleanField(default=False)
+    is_processed = models.BooleanField(default=False)  # Text extraction completed
+    is_cleaned = models.BooleanField(default=False)  # Text cleaning completed
+    
+    # Error handling
+    download_error = models.TextField(blank=True)  # Download error message
+    processing_error = models.TextField(blank=True)  # Processing error message
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Document: {self.file_name} ({self.sha256_hash[:8]})"
+    
+    class Meta:
+        db_table = "documents"
+        indexes = [
+            models.Index(fields=["sha256_hash"]),
+            models.Index(fields=["is_downloaded"]),
+            models.Index(fields=["is_processed"]),
+            models.Index(fields=["is_cleaned"]),
+        ]
+
+
+class CaseDocument(models.Model):
+    """Many-to-many relationship between cases and documents"""
+    
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="case_documents")
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="case_documents")
+    
+    # Source information (which table/row this document came from)
+    source_table = models.CharField(max_length=50)  # 'orders_data', 'comments_data', etc.
+    source_row_id = models.BigIntegerField()  # ID of the source row
+    source_link_index = models.IntegerField(default=0)  # Index in the view_link array
+    
+    # Document context
+    document_type = models.CharField(max_length=50, blank=True)  # 'order', 'judgment', 'comment', etc.
+    document_title = models.CharField(max_length=500, blank=True)  # Title from link metadata
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Case {self.case.case_number} - Document {self.document.file_name}"
+    
+    class Meta:
+        db_table = "case_documents"
+        unique_together = ["case", "document", "source_table", "source_row_id", "source_link_index"]
+        indexes = [
+            models.Index(fields=["source_table"]),
+            models.Index(fields=["document_type"]),
+        ]
+
+
+class DocumentText(models.Model):
+    """Extracted and cleaned text from PDF documents"""
+    
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="document_texts")
+    
+    # Page information
+    page_number = models.IntegerField()  # Page number (1-based)
+    
+    # Text content
+    raw_text = models.TextField()  # Raw extracted text
+    clean_text = models.TextField(blank=True)  # Cleaned text (after processing)
+    
+    # Processing metadata
+    extraction_method = models.CharField(max_length=20, default='pymupdf')  # 'pymupdf', 'ocr'
+    confidence_score = models.FloatField(null=True, blank=True)  # OCR confidence if applicable
+    processing_time = models.FloatField(null=True, blank=True)  # Processing time in seconds
+    
+    # Quality indicators
+    has_text = models.BooleanField(default=True)  # Whether page has extractable text
+    needs_ocr = models.BooleanField(default=False)  # Whether OCR was needed
+    is_cleaned = models.BooleanField(default=False)  # Whether text has been cleaned
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Document {self.document.file_name} - Page {self.page_number}"
+    
+    class Meta:
+        db_table = "document_texts"
+        unique_together = ["document", "page_number"]
+        indexes = [
+            models.Index(fields=["page_number"]),
+            models.Index(fields=["extraction_method"]),
+            models.Index(fields=["has_text"]),
+            models.Index(fields=["needs_ocr"]),
+        ]
+
+
+class UnifiedCaseView(models.Model):
+    """Unified view combining case metadata and PDF content"""
+    
+    case = models.OneToOneField(Case, on_delete=models.CASCADE, related_name="unified_view")
+    
+    # Case metadata (from existing tables)
+    case_metadata = models.JSONField(default=dict)  # Structured case information
+    
+    # PDF content summary
+    pdf_content_summary = models.JSONField(default=dict)  # Summary of PDF content
+    
+    # Status flags
+    has_pdf = models.BooleanField(default=False)
+    text_extracted = models.BooleanField(default=False)
+    text_cleaned = models.BooleanField(default=False)
+    metadata_complete = models.BooleanField(default=False)
+    
+    # Processing status
+    is_processed = models.BooleanField(default=False)
+    processing_error = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Unified View: {self.case.case_number}"
+    
+    class Meta:
+        db_table = "unified_case_views"
+        indexes = [
+            models.Index(fields=["has_pdf"]),
+            models.Index(fields=["text_extracted"]),
+            models.Index(fields=["text_cleaned"]),
+            models.Index(fields=["metadata_complete"]),
+            models.Index(fields=["is_processed"]),
+        ]
+
+
 class ViewLinkData(models.Model):
     """Dedicated model for VIEW column links from various tables"""
 
