@@ -1,6 +1,6 @@
 """
-Simple database saver for IHC scraper
-Add this to your scraper to save data directly to PostgreSQL
+Optimized database saver for IHC scraper
+Removed redundant fields and optimized for industry standards
 """
 
 import os
@@ -34,22 +34,21 @@ from apps.cases.models import (
     CommentsData,
     CaseCmsData,
     PartiesDetailData,
-    CaseHistoryData,
-    CaseDetailOptionsData,
+    ViewLinkData,
 )
 
 
 class DBSaver:
-    """Simple class to save scraper data to PostgreSQL"""
+    """Optimized class to save scraper data to PostgreSQL"""
 
     def __init__(self, court_name="Islamabad High Court", court_code="IHC"):
         self.court, _ = Court.objects.get_or_create(name=court_name, code=court_code)
 
     def save_case(self, case_data):
-        """Save a single case to database"""
+        """Save a single case to database with optimized structure"""
         try:
             with transaction.atomic():
-                # Create or update main case
+                # Create or update main case (removed redundant fields)
                 case, created = Case.objects.get_or_create(
                     sr_number=case_data.get("SR", ""),
                     case_number=case_data.get("CASE_NO", ""),
@@ -59,14 +58,14 @@ class DBSaver:
                         "bench": case_data.get("BENCH", ""),
                         "hearing_date": case_data.get("HEARING_DATE", ""),
                         "status": case_data.get("STATUS", ""),
-                        "history_options": case_data.get("HISTORY", ""),
-                        "details": case_data.get("DETAILS", ""),
+                        # REMOVED: history_options (redundant UI text)
+                        # REMOVED: details (empty, redundant)
                         "court": self.court,
                     },
                 )
 
                 if not created:
-                    # Update existing case
+                    # Update existing case (removed redundant fields)
                     case.institution_date = case_data.get(
                         "INSTITUTION", case.institution_date
                     )
@@ -74,10 +73,7 @@ class DBSaver:
                     case.bench = case_data.get("BENCH", case.bench)
                     case.hearing_date = case_data.get("HEARING_DATE", case.hearing_date)
                     case.status = case_data.get("STATUS", case.status)
-                    case.history_options = case_data.get(
-                        "HISTORY", case.history_options
-                    )
-                    case.details = case_data.get("DETAILS", case.details)
+                    # REMOVED: history_options and details
                     case.updated_at = timezone.now()
                     case.save()
 
@@ -121,7 +117,7 @@ class DBSaver:
                         },
                     )
 
-                # Save history data (main page data)
+                # Save normalized history data (removed redundant JSON storage)
                 self._save_orders_data(case, case_data, source_type='main')
                 self._save_comments_data(case, case_data, source_type='main')
                 self._save_case_cms_data(case, case_data, source_type='main')
@@ -137,32 +133,8 @@ class DBSaver:
                 if case_data.get("HEARING_DETAILS_DETAIL_DATA"):
                     self._save_orders_data(case, case_data, source_type='hearing')
 
-                # Save raw data for backup
-                CaseHistoryData.objects.get_or_create(
-                    case=case,
-                    defaults={
-                        "orders_data": case_data.get("ORDERS_DATA", {}),
-                        "comments_data": case_data.get("COMMENTS_DATA", {}),
-                        "case_cms_data": case_data.get("CASE_CMS_DATA", {}),
-                        "judgement_data": case_data.get("JUDGEMENT_DATA", {}),
-                    },
-                )
-
-                CaseDetailOptionsData.objects.get_or_create(
-                    case=case,
-                    defaults={
-                        "parties_detail_data": case_data.get("PARTIES_DETAIL_DATA", {}),
-                        "comments_detail_data": case_data.get(
-                            "COMMENTS_DETAIL_DATA", {}
-                        ),
-                        "case_cms_detail_data": case_data.get(
-                            "CASE_CMS_DETAIL_DATA", {}
-                        ),
-                        "hearing_details_detail_data": case_data.get(
-                            "HEARING_DETAILS_DETAIL_DATA", {}
-                        ),
-                    },
-                )
+                # REMOVED: CaseHistoryData and CaseDetailOptionsData - redundant JSON storage
+                # The data is already stored in normalized tables above
 
                 return {
                     "status": "success",
@@ -240,7 +212,7 @@ class DBSaver:
                     )
 
     def _save_judgement_data(self, case, case_data):
-        """Save judgement data"""
+        """Save judgement data (removed redundant page_title)"""
         judgement_data = case_data.get("JUDGEMENT_DATA", {})
         if judgement_data:
             JudgementData.objects.get_or_create(
@@ -248,7 +220,7 @@ class DBSaver:
                 defaults={
                     "pdf_url": judgement_data.get("pdf_url", ""),
                     "pdf_filename": judgement_data.get("pdf_filename", ""),
-                    "page_title": judgement_data.get("page_title", ""),
+                    # REMOVED: page_title (empty, redundant)
                 },
             )
 

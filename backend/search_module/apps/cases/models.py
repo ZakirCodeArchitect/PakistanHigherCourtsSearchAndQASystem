@@ -30,8 +30,8 @@ class Case(models.Model):
     bench = models.CharField(max_length=400, blank=True)  # BENCH
     hearing_date = models.CharField(max_length=300, blank=True)  # HEARING_DATE
     status = models.CharField(max_length=50, db_index=True)  # STATUS
-    history_options = models.CharField(max_length=200, blank=True)  # HISTORY
-    details = models.TextField(blank=True)  # DETAILS
+    # REMOVED: history_options (redundant UI text)
+    # REMOVED: details (empty, redundant)
 
     # Court relationship
     court = models.ForeignKey(Court, on_delete=models.CASCADE, null=True, blank=True)
@@ -43,8 +43,43 @@ class Case(models.Model):
     def __str__(self):
         return f"{self.case_number} - {self.case_title[:50]}"
 
+    # Computed properties for history data availability
+    @property
+    def has_orders(self):
+        """Check if case has orders data"""
+        return self.orders_data.exists()
+    
+    @property
+    def has_comments(self):
+        """Check if case has comments data"""
+        return self.comments_data.exists()
+    
+    @property
+    def has_case_cms(self):
+        """Check if case has case CMs data"""
+        return self.case_cms_data.exists()
+    
+    @property
+    def has_judgement(self):
+        """Check if case has judgement data"""
+        return self.judgement_data.exists()
+    
+    @property
+    def history_summary(self):
+        """Return summary of available history data"""
+        summary = []
+        if self.has_orders:
+            summary.append("Orders")
+        if self.has_comments:
+            summary.append("Comments")
+        if self.has_case_cms:
+            summary.append("Case CMs")
+        if self.has_judgement:
+            summary.append("Judgement")
+        return " \n ".join(summary) if summary else "No history data"
+
     class Meta:
-        db_table = "cases"
+        db_table = "cases"  # Use the actual table name from database
         unique_together = ["sr_number", "case_number"]
         indexes = [
             models.Index(fields=["sr_number"]),
@@ -104,7 +139,7 @@ class CaseDetail(models.Model):
         return f"Details for {self.case.case_number}"
 
     class Meta:
-        db_table = "case_details"
+        db_table = "case_details"  # Use the actual table name from database
 
 
 class JudgementData(models.Model):
@@ -117,7 +152,7 @@ class JudgementData(models.Model):
     # Judgement information from scraper
     pdf_url = models.URLField(max_length=800, blank=True)  # pdf_url
     pdf_filename = models.CharField(max_length=300, blank=True)  # pdf_filename
-    page_title = models.CharField(max_length=200, blank=True)  # page_title
+    # REMOVED: page_title (empty, redundant)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -127,7 +162,7 @@ class JudgementData(models.Model):
         return f"Judgement for {self.case.case_number}"
 
     class Meta:
-        db_table = "judgement_data"
+        db_table = "judgement_data"  # Use the actual table name from database
 
 
 class OrdersData(models.Model):
@@ -162,7 +197,7 @@ class OrdersData(models.Model):
         return f"Order {self.sr_number} for {self.case.case_number} ({self.source_type})"
 
     class Meta:
-        db_table = "orders_data"
+        db_table = "orders_data"  # Use the actual table name from database
         unique_together = ["case", "sr_number", "source_type"]
 
 
@@ -198,7 +233,7 @@ class CommentsData(models.Model):
         return f"Comment {self.compliance_date} for {self.case.case_number} ({self.source_type})"
 
     class Meta:
-        db_table = "comments_data"
+        db_table = "comments_data"  # Use the actual table name from database
         unique_together = ["case", "compliance_date", "case_no", "source_type"]
 
 
@@ -232,7 +267,7 @@ class CaseCmsData(models.Model):
         return f"Case CM {self.sr_number} for {self.case.case_number} ({self.source_type})"
 
     class Meta:
-        db_table = "case_cms_data"
+        db_table = "case_cms_data"  # Use the actual table name from database
         unique_together = ["case", "sr_number", "source_type"]
 
 
@@ -256,90 +291,27 @@ class PartiesDetailData(models.Model):
         return f"Party {self.party_number} for {self.case.case_number}"
 
     class Meta:
-        db_table = "parties_detail_data"
+        db_table = "parties_detail_data"  # Use the actual table name from database
         unique_together = ["case", "party_number"]
 
 
-
-
-
-
-
-
-
-
-
-class CaseHistoryData(models.Model):
-    """Raw history data storage from scraper"""
-
-    case = models.OneToOneField(
-        Case, on_delete=models.CASCADE, related_name="case_history_data"
-    )
-
-    # Complete raw data from scraper
-    orders_data = models.JSONField(default=dict, blank=True)  # Complete ORDERS_DATA
-    comments_data = models.JSONField(default=dict, blank=True)  # Complete COMMENTS_DATA
-    case_cms_data = models.JSONField(default=dict, blank=True)  # Complete CASE_CMS_DATA
-    judgement_data = models.JSONField(
-        default=dict, blank=True
-    )  # Complete JUDGEMENT_DATA
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"History data for {self.case.case_number}"
-
-    class Meta:
-        db_table = "case_history_data"
-
-
-class CaseDetailOptionsData(models.Model):
-    """Raw detail options data storage from scraper"""
-
-    case = models.OneToOneField(
-        Case, on_delete=models.CASCADE, related_name="case_detail_options_data"
-    )
-
-    # Complete raw data from scraper
-    parties_detail_data = models.JSONField(
-        default=dict, blank=True
-    )  # Complete PARTIES_DETAIL_DATA
-    comments_detail_data = models.JSONField(
-        default=dict, blank=True
-    )  # Complete COMMENTS_DETAIL_DATA
-    case_cms_detail_data = models.JSONField(
-        default=dict, blank=True
-    )  # Complete CASE_CMS_DETAIL_DATA
-    hearing_details_detail_data = models.JSONField(
-        default=dict, blank=True
-    )  # Complete HEARING_DETAILS_DETAIL_DATA
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Detail options data for {self.case.case_number}"
-
-    class Meta:
-        db_table = "case_detail_options_data"
+# REMOVED: CaseHistoryData and CaseDetailOptionsData - redundant JSON storage
+# These tables store the same data that's already in normalized tables
 
 
 class ViewLinkData(models.Model):
     """Dedicated model for VIEW column links from various tables"""
 
-    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="view_links")
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="view_links", null=True, blank=True)
 
     # Link information
-    href = models.URLField(max_length=800)  # The actual URL
+    href = models.URLField(max_length=800, null=True, blank=True)  # The actual URL
     title = models.CharField(max_length=200, blank=True)  # Link title/tooltip
     link_text = models.CharField(max_length=200, blank=True)  # Display text
 
     # Source information
     source_table = models.CharField(
-        max_length=50
+        max_length=50, null=True, blank=True
     )  # 'orders', 'comments', 'hearing_details', etc.
     source_row_sr = models.CharField(
         max_length=20, blank=True
@@ -353,7 +325,7 @@ class ViewLinkData(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"View link {self.href[:50]} for {self.case.case_number}"
+        return f"View link {self.href[:50] if self.href else 'N/A'} for {self.case.case_number if self.case else 'N/A'}"
 
     class Meta:
         db_table = "view_link_data"

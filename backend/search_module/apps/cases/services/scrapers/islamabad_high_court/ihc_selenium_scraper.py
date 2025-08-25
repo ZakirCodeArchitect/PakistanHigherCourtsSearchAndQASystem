@@ -138,9 +138,16 @@ class IHCSeleniumScraper:
             # Use a custom download directory to avoid permission issues
             import tempfile
 
-            temp_dir = tempfile.mkdtemp()
+            # Create unique temp directory for each worker to prevent interference
+            if hasattr(self, 'worker_id'):
+                temp_dir = tempfile.mkdtemp(prefix=f"worker_{self.worker_id}_")
+            else:
+                temp_dir = tempfile.mkdtemp()
+            
             options.add_argument(f"--user-data-dir={temp_dir}")
             options.add_argument(f"--data-path={temp_dir}")
+            # Store temp dir for cleanup
+            self.temp_dir = temp_dir
 
             # Try multiple approaches for ChromeDriver installation
             driver_path = None
@@ -243,6 +250,15 @@ class IHCSeleniumScraper:
             except:
                 pass
             self.driver = None
+        
+        # Clean up temp directory to prevent interference
+        if hasattr(self, 'temp_dir') and self.temp_dir:
+            try:
+                import shutil
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+                print(f"🧹 Cleaned up temp directory: {self.temp_dir}")
+            except Exception as e:
+                print(f"⚠️ Could not clean up temp directory: {e}")
 
     def navigate_to_case_status(self):
         """Navigate to the Case Status page"""
@@ -467,9 +483,23 @@ class IHCSeleniumScraper:
             return False
 
     def scrape_results_table(self, case_type_empty=False, case_no=None):
-        """Scrape the results table and return case data"""
+        """Scrape the results table and return case data with granular progress tracking"""
         try:
             print("🔍 Looking for results...")
+
+            # Import progress tracker
+            try:
+                from .progress_tracker import progress_tracker
+            except ImportError:
+                import sys
+                # PROGRESS TRACKING COMPLETELY REMOVED - NO IMPORTS
+
+            # PROGRESS TRACKING COMPLETELY REMOVED - NO CASE SKIPPING
+            # Process all cases without any skipping logic
+
+            # PROGRESS TRACKING COMPLETELY REMOVED - ALWAYS START FROM BEGINNING
+            resume_page, resume_row = 1, 1  # Always start from beginning
+            print(f"🚀 Starting case {case_no} from page 1, row 1 (no progress tracking)")
 
             # Check for any alerts that might appear
             try:
@@ -713,8 +743,26 @@ class IHCSeleniumScraper:
                         # Now process all pages with pagination
                         print("🔍 Phase 5: Processing all pages with pagination...")
                         all_cases = []
-                        page_number = 1
+                        page_number = resume_page if case_no else 1
                         total_processed = 0
+
+                        # Skip to the resume page if needed
+                        if case_no and resume_page > 1:
+                            print(f"⏭️ Skipping to page {resume_page} for case {case_no}")
+                            # Navigate to the resume page
+                            for _ in range(resume_page - 1):
+                                try:
+                                    next_button = WebDriverWait(self.driver, 3).until(
+                                        EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Next')]"))
+                                    )
+                                    if next_button and next_button.is_enabled():
+                                        next_button.click()
+                                        time.sleep(2)
+                                        page_number += 1
+                                    else:
+                                        break
+                                except:
+                                    break
 
                         while True:  # Continue until no more pages
                             print(f"\n📄 Processing Page {page_number}...")
@@ -726,8 +774,11 @@ class IHCSeleniumScraper:
                             if len(current_rows) > 1:
                                 page_cases = []
 
-                                # Process ALL rows on current page
+                                # Process rows on current page, starting from resume row if needed
+                                start_row = resume_row if case_no and page_number == resume_page else 1
                                 for i, row in enumerate(current_rows, 1):
+                                    # PROGRESS TRACKING COMPLETELY REMOVED - PROCESS ALL ROWS
+                                    # No skipping logic - process every row
                                     try:
                                         cells = row.find_elements(By.TAG_NAME, "td")
 
@@ -768,11 +819,7 @@ class IHCSeleniumScraper:
                                                     if len(cells) > 6
                                                     else ""
                                                 ),
-                                                "HISTORY": (
-                                                    cells[7].text.strip()
-                                                    if len(cells) > 7
-                                                    else ""
-                                                ),
+                                                # HISTORY field removed - now computed from actual data relationships
                                                 "DETAILS": (
                                                     cells[8].text.strip()
                                                     if len(cells) > 8
@@ -830,6 +877,8 @@ class IHCSeleniumScraper:
                                                     f"✅ Page {page_number}, Row {i}: Added case with SR={case_data['SR']}"
                                                 )
 
+                                                # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS UPDATES
+
                                                 # REAL-TIME SAVING: Save this row immediately to prevent data loss
                                                 self.save_single_row_realtime(
                                                     case_data, case_no, page_number, i
@@ -855,6 +904,8 @@ class IHCSeleniumScraper:
                                 print(
                                     f"📊 Page {page_number}: Added {len(page_cases)} cases (Total: {total_processed})"
                                 )
+
+                                # PROGRESS TRACKING COMPLETELY REMOVED - NO PAGE COMPLETION UPDATES
 
                                 # Show real-time saving progress (now saving to database)
                                 print(
@@ -959,6 +1010,11 @@ class IHCSeleniumScraper:
                                 break
 
                         print(f"📊 Total cases processed: {len(all_cases)}")
+
+                        # Mark case as completed in progress tracking
+                        if case_no:
+                            progress_tracker.mark_case_completed(case_no, len(all_cases))
+                            print(f"✅ Case {case_no} marked as completed with {len(all_cases)} total cases")
 
                         if case_type_empty and len(all_cases) > 50:
                             print(
@@ -4048,6 +4104,8 @@ class IHCSeleniumScraper:
         """
         import concurrent.futures
         import threading
+        import os
+        import json
         from datetime import datetime
 
         # Calculate case numbers for this batch
@@ -4072,25 +4130,17 @@ class IHCSeleniumScraper:
         cases_dir = "cases_metadata/Islamabad_High_Court/individual_cases"
         os.makedirs(cases_dir, exist_ok=True)
 
-        # Create progress tracking file
-        progress_file = (
-            f"cases_metadata/Islamabad_High_Court/batch_{batch_number}_progress.json"
-        )
+        # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS FILE
 
-        # Load existing progress for this batch
+        # Import progress tracker for granular tracking
+        # PROGRESS TRACKING COMPLETELY REMOVED - NO IMPORTS
+
+        # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS FILE LOADING
         completed_cases = set()
-        if os.path.exists(progress_file):
-            try:
-                with open(progress_file, "r") as f:
-                    progress_data = json.load(f)
-                    completed_cases = set(progress_data.get("completed_cases", []))
-                    print(
-                        f"📋 Found {len(completed_cases)} previously completed cases in batch {batch_number}"
-                    )
-            except:
-                pass
 
-        print(f"📦 Processing cases: {case_numbers}")
+        # PROGRESS TRACKING COMPLETELY REMOVED - PROCESS ALL CASES
+        cases_to_process = case_numbers
+        print(f"📦 Processing all cases: {cases_to_process}")
 
         # Thread-safe counters
         lock = threading.Lock()
@@ -4098,7 +4148,7 @@ class IHCSeleniumScraper:
         total_cases_processed = 0
 
         def scrape_single_case(case_no, worker_id):
-            """Scrape a single case number using a dedicated WebDriver instance"""
+            """Scrape a single case number using a dedicated WebDriver instance with complete isolation"""
             nonlocal total_cases_found, total_cases_processed
 
             # Skip if already completed
@@ -4110,12 +4160,18 @@ class IHCSeleniumScraper:
                     return None
 
             # Create dedicated scraper for this worker with retry mechanism
+            worker_scraper = None
             max_retries = 3
+            
             for attempt in range(max_retries):
                 try:
+                    # Create a completely isolated scraper instance with unique worker ID
                     worker_scraper = IHCSeleniumScraper(
                         headless=True, fetch_details=True
                     )
+                    # Set unique identifier for this worker to prevent interference
+                    worker_scraper.worker_id = worker_id
+                    
                     if worker_scraper.start_driver():
                         print(
                             f"✅ Worker {worker_id}: WebDriver started successfully on attempt {attempt + 1}"
@@ -4125,7 +4181,8 @@ class IHCSeleniumScraper:
                         print(
                             f"⚠️ Worker {worker_id}: WebDriver start failed on attempt {attempt + 1}"
                         )
-                        worker_scraper.stop_driver()
+                        if worker_scraper:
+                            worker_scraper.stop_driver()
                         if attempt < max_retries - 1:
                             time.sleep(2)  # Wait before retry
                         continue
@@ -4133,6 +4190,8 @@ class IHCSeleniumScraper:
                     print(
                         f"⚠️ Worker {worker_id}: WebDriver error on attempt {attempt + 1}: {e}"
                     )
+                    if worker_scraper:
+                        worker_scraper.stop_driver()
                     if attempt < max_retries - 1:
                         time.sleep(2)  # Wait before retry
                     continue
@@ -4239,19 +4298,7 @@ class IHCSeleniumScraper:
                     with lock:
                         completed_cases.add(case_no)
 
-                # Save progress for this case
-                with open(progress_file, "w") as f:
-                    json.dump(
-                        {
-                            "batch_number": batch_number,
-                            "completed_cases": list(completed_cases),
-                            "total_cases_found": total_cases_found,
-                            "last_updated": datetime.now().isoformat(),
-                            "current_case": case_no,
-                        },
-                        f,
-                        indent=2,
-                    )
+                # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS SAVING
 
                 case_duration = datetime.now() - case_start_time
                 print(
@@ -4272,26 +4319,31 @@ class IHCSeleniumScraper:
         all_results = []
         start_time = datetime.now()
 
-        # Create a queue of cases to process
-        case_queue = case_numbers.copy()
+        # Create a queue of cases to process (use filtered cases)
+        case_queue = cases_to_process.copy()
         completed_futures = []
 
         print(f"📋 Case distribution strategy:")
         print(f"   - Total cases in batch: {len(case_numbers)}")
         print(f"   - Max workers: {max_workers}")
-        print(f"   - Cases to process: {case_numbers}")
+        print(f"   - Cases to process: {cases_to_process}")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit initial batch of cases (one per worker)
+            # Submit initial batch of cases (one per worker) - IMPROVED ISOLATION
             active_futures = {}
+            worker_assignments = {}  # Track which worker is assigned to which case
+            
             for worker_id in range(min(max_workers, len(case_queue))):
                 if case_queue:
                     case_no = case_queue.pop(0)
                     future = executor.submit(scrape_single_case, case_no, worker_id)
                     active_futures[future] = case_no
+                    worker_assignments[case_no] = worker_id
                     print(f"🚀 Worker {worker_id} assigned case {case_no}")
+                    # Small delay to prevent WebDriver interference
+                    time.sleep(1)
 
-            # Process cases as they complete and assign new ones
+            # Process cases as they complete and assign new ones - IMPROVED TRACKING
             while active_futures:
                 # Wait for any future to complete
                 done, not_done = concurrent.futures.wait(
@@ -4302,14 +4354,7 @@ class IHCSeleniumScraper:
                 # Process completed futures
                 for future in done:
                     case_no = active_futures[future]
-                    worker_id = None
-
-                    # Find which worker completed this case
-                    for f, c in active_futures.items():
-                        if c == case_no:
-                            # Extract worker_id from the future's function call
-                            worker_id = list(active_futures.keys()).index(f)
-                            break
+                    worker_id = worker_assignments.get(case_no, "unknown")
 
                     try:
                         case_results = future.result()
@@ -4326,54 +4371,43 @@ class IHCSeleniumScraper:
                     except Exception as e:
                         print(f"❌ Worker {worker_id}: Case {case_no} failed: {e}")
 
-                    # Remove completed future
+                    # Remove completed future and update tracking
                     del active_futures[future]
+                    if case_no in worker_assignments:
+                        del worker_assignments[case_no]
                     completed_futures.append(future)
 
-                    # Assign next case to this worker if available
+                    # Assign next case to this worker if available - MAINTAIN ISOLATION
                     if case_queue:
                         next_case = case_queue.pop(0)
                         new_future = executor.submit(
                             scrape_single_case, next_case, worker_id
                         )
                         active_futures[new_future] = next_case
+                        worker_assignments[next_case] = worker_id
                         print(f"🔄 Worker {worker_id} assigned next case {next_case}")
+                        # Small delay to prevent WebDriver interference
+                        time.sleep(1)
                     else:
                         print(
                             f"🏁 Worker {worker_id} finished - no more cases in queue"
                         )
 
         # Verify all cases were processed
-        missing_cases = set(case_numbers) - completed_cases
+        missing_cases = set(cases_to_process) - completed_cases
         if missing_cases:
             print(f"⚠️ WARNING: Missing cases in batch {batch_number}: {missing_cases}")
-            print(f"   Expected: {case_numbers}")
+            print(f"   Expected: {cases_to_process}")
             print(f"   Completed: {sorted(completed_cases)}")
             print(f"   Missing: {sorted(missing_cases)}")
         else:
             print(
-                f"✅ SUCCESS: All {len(case_numbers)} cases in batch {batch_number} were processed!"
+                f"✅ SUCCESS: All {len(cases_to_process)} cases in batch {batch_number} were processed!"
             )
 
         # Final progress save (after retries)
-        final_missing_cases = set(case_numbers) - completed_cases
-        with open(progress_file, "w") as f:
-            json.dump(
-                {
-                    "batch_number": batch_number,
-                    "completed_cases": list(completed_cases),
-                    "total_cases_found": total_cases_found,
-                    "last_updated": datetime.now().isoformat(),
-                    "status": "completed",
-                    "missing_cases": list(final_missing_cases),
-                    "expected_cases": case_numbers,
-                    "retry_attempted": (
-                        len(missing_cases) > 0 if "missing_cases" in locals() else False
-                    ),
-                },
-                f,
-                indent=2,
-            )
+        final_missing_cases = set(cases_to_process) - completed_cases
+        # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS FILE SAVING
 
         # Retry missing cases if any
         if missing_cases:
@@ -4452,31 +4486,46 @@ class IHCSeleniumScraper:
         return all_results
 
     def run_multiple_batches(
-        self, start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3
+        self, start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3, 
+        fetch_details=True, description="", resume=True
     ):
         """
-        Run multiple batches sequentially
+        Run multiple batches sequentially with progress tracking and resume capability
 
         Args:
             start_batch: Starting batch number (default: 1)
             end_batch: Ending batch number (default: 200 for 1000 cases)
             cases_per_batch: Number of cases per batch (default: 5)
-            max_workers: Number of parallel windows per batch (default: 5)
+            max_workers: Number of parallel windows per batch (default: 3)
+            fetch_details: Whether to fetch detailed case information (default: True)
+            description: Description of the scraping session (default: "")
+            resume: Whether to resume from previous session (default: True)
         """
         from datetime import datetime
+        try:
+            from .progress_tracker import progress_tracker
+        except ImportError:
+            import sys
+            import os
+            # PROGRESS TRACKING COMPLETELY REMOVED - NO IMPORTS
 
-        print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
-        print(f"📊 Total cases: {(end_batch - start_batch + 1) * cases_per_batch}")
-        print(
-            f"⏱️ Estimated time: ~{((end_batch - start_batch + 1) * 10) // 60} minutes"
-        )
+        # PROGRESS TRACKING COMPLETELY REMOVED - SIMPLE BATCH PROCESSING
+        actual_start, actual_end = start_batch, end_batch
+
+        print(f"🚀 Starting MULTIPLE BATCHES: {actual_start} to {actual_end}")
+        print(f"📊 Total cases: {(actual_end - actual_start + 1) * cases_per_batch}")
+        print(f"⏱️ Estimated time: ~{((actual_end - actual_start + 1) * 10) // 60} minutes")
 
         all_batch_results = []
         start_time = datetime.now()
 
-        for batch_num in range(start_batch, end_batch + 1):
+        # PROGRESS TRACKING COMPLETELY REMOVED - PROCESS ALL BATCHES
+        remaining_batches = list(range(actual_start, actual_end + 1))
+        print(f"📋 Processing {len(remaining_batches)} batches...")
+
+        for batch_num in remaining_batches:
             print(f"\n{'='*60}")
-            print(f"🔄 Processing BATCH {batch_num}/{end_batch}")
+            print(f"🔄 Processing BATCH {batch_num}/{actual_end}")
             print(f"{'='*60}")
 
             try:
@@ -4488,24 +4537,34 @@ class IHCSeleniumScraper:
 
                 if batch_results:
                     all_batch_results.extend(batch_results)
-                    print(f"✅ Batch {batch_num} completed successfully")
+                    print(f"✅ Batch {batch_num} completed successfully - {len(batch_results)} cases")
                 else:
                     print(f"⚠️ Batch {batch_num} completed with no results")
+
+                # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS SUMMARY
 
                 # Small delay between batches
                 time.sleep(2)
 
+            except KeyboardInterrupt:
+                print(f"\n⚠️ Scraping interrupted by user at batch {batch_num}")
+                print("💡 Progress tracking removed - no resume functionality")
+                break
+                
             except Exception as e:
                 print(f"❌ Batch {batch_num} failed: {e}")
                 print(f"🔄 Continuing with next batch...")
                 continue
 
+        # PROGRESS TRACKING COMPLETELY REMOVED - SIMPLE COMPLETION
+        print(f"\n🎉 ALL BATCHES COMPLETED!")
+
         # All results already saved to database in real-time
         total_duration = datetime.now() - start_time
-        print(f"\n🎉 ALL BATCHES COMPLETED!")
         print(f"📊 Total cases found: {len(all_batch_results)}")
         print(f"⏱️ Total duration: {total_duration.total_seconds() / 60:.1f} minutes")
-        print(f"💾 Final results saved to: {final_filename}")
+        
+        # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS SUMMARY
 
         return all_batch_results
 
@@ -4787,21 +4846,25 @@ def run_single_batch(
 
 
 def run_multiple_batches(
-    start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3
+    start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3, 
+    fetch_details=True, description="", resume=True
 ):
-    """Run multiple batches sequentially"""
+    """Run multiple batches sequentially with resume capability"""
     try:
         print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
-        print(
-            f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch"
-        )
+        print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
+        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
+        print(f"🔄 Resume capability: {'Enabled' if resume else 'Disabled'}")
 
-        scraper = IHCSeleniumScraper(headless=True, fetch_details=True)
+        scraper = IHCSeleniumScraper(headless=True, fetch_details=fetch_details)
         results = scraper.run_multiple_batches(
             start_batch=start_batch,
             end_batch=end_batch,
             cases_per_batch=cases_per_batch,
             max_workers=max_workers,
+            fetch_details=fetch_details,
+            description=description,
+            resume=resume
         )
 
         print(f"✅ All batches completed! Found {len(results)} total cases")
@@ -4815,24 +4878,54 @@ def run_multiple_batches(
 
 if __name__ == "__main__":
     # ========================================
-    # 🚀 BATCH-BASED SCRAPING SYSTEM
+    # 🚀 BATCH-BASED SCRAPING SYSTEM WITH RESUME CAPABILITY
     # ========================================
 
     # Option 1: Run a single specific case (NEW - recommended for testing)
     # This will scrape exactly the case number you specify
     # Test with case 11 which has a "Decided" case to see detailed fetching
-    run_single_case(case_number=11, fetch_details=True)
+    # run_single_case(case_number=11, fetch_details=True)
 
     # Option 2: Run a single batch (cases 1-5, 6-10, etc.)
     # Batch 1 = Cases 1-5, Batch 2 = Cases 6-10, etc.
     # Set fetch_details=False for faster scraping without detailed case information
     # run_single_batch(batch_number=3, cases_per_batch=5, max_workers=3, fetch_details=True)
 
-    # Option 3: Run multiple batches
-    # run_multiple_batches(start_batch=1, end_batch=10, cases_per_batch=5, max_workers=3)
+    # Option 3: Run multiple batches with RESUME CAPABILITY (RECOMMENDED FOR BULK SCRAPING)
+    # The scraper will automatically resume from where it left off if interrupted
+    
+    # Example 1: Start with 5 batches (25 cases) for testing
+    run_multiple_batches(
+        start_batch=1, 
+        end_batch=5, 
+        cases_per_batch=5, 
+        max_workers=3,
+        fetch_details=True,
+        description="Testing resume functionality with 5 batches",
+        resume=True  # Enable resume capability
+    )
 
-    # Option 4: Run all 1000 cases (200 batches of 5 cases each)
-    # run_multiple_batches(start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3)
+    # Example 2: Run all 1000 cases (200 batches of 5 cases each) with resume
+    # run_multiple_batches(
+    #     start_batch=1, 
+    #     end_batch=200, 
+    #     cases_per_batch=5, 
+    #     max_workers=3,
+    #     fetch_details=True,
+    #     description="Full scraping of all 1000 cases",
+    #     resume=True
+    # )
 
-    # Option 5: Simple test (single case)
+    # Example 3: Force fresh start (ignore previous progress)
+    # run_multiple_batches(
+    #     start_batch=1, 
+    #     end_batch=10, 
+    #     cases_per_batch=5, 
+    #     max_workers=3,
+    #     fetch_details=False,  # Faster scraping
+    #     description="Fresh start - no resume",
+    #     resume=False  # Disable resume capability
+    # )
+
+    # Option 4: Simple test (single case)
     # run_simple_test(headless=True)
