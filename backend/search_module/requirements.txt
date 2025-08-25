@@ -45,6 +45,13 @@ selenium>=4.0.0
 webdriver-manager>=4.0.0
 
 # ========================================
+# 📄 PDF PROCESSING DEPENDENCIES
+# ========================================
+PyMuPDF>=1.23.0  # PDF text extraction
+pytesseract>=0.3.10  # OCR fallback (optional)
+Pillow>=11.3.0  # Image processing for OCR
+
+# ========================================
 # 🔧 DEVELOPMENT DEPENDENCIES
 # ========================================
 python-decouple>=3.8
