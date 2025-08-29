@@ -65,17 +65,40 @@ class DBSaver:
                 )
 
                 if not created:
-                    # Update existing case (removed redundant fields)
-                    case.institution_date = case_data.get(
-                        "INSTITUTION", case.institution_date
-                    )
-                    case.case_title = case_data.get("CASE_TITLE", case.case_title)
-                    case.bench = case_data.get("BENCH", case.bench)
-                    case.hearing_date = case_data.get("HEARING_DATE", case.hearing_date)
-                    case.status = case_data.get("STATUS", case.status)
-                    # REMOVED: history_options and details
-                    case.updated_at = timezone.now()
-                    case.save()
+                    # Only update if data has actually changed
+                    data_changed = False
+                    
+                    # Check if any field has changed
+                    if case.institution_date != case_data.get("INSTITUTION", case.institution_date):
+                        case.institution_date = case_data.get("INSTITUTION", case.institution_date)
+                        data_changed = True
+                    if case.case_title != case_data.get("CASE_TITLE", case.case_title):
+                        case.case_title = case_data.get("CASE_TITLE", case.case_title)
+                        data_changed = True
+                    if case.bench != case_data.get("BENCH", case.bench):
+                        case.bench = case_data.get("BENCH", case.bench)
+                        data_changed = True
+                    if case.hearing_date != case_data.get("HEARING_DATE", case.hearing_date):
+                        case.hearing_date = case_data.get("HEARING_DATE", case.hearing_date)
+                        data_changed = True
+                    if case.status != case_data.get("STATUS", case.status):
+                        case.status = case_data.get("STATUS", case.status)
+                        data_changed = True
+                    
+                    # Only save and update timestamp if data actually changed
+                    if data_changed:
+                        case.updated_at = timezone.now()
+                        case.save()
+                        print(f"🔄 Updated existing case {case.case_number} with new data")
+                    else:
+                        print(f"⏭️ Skipped existing case {case.case_number} (no changes)")
+                        # Return early to avoid processing related data unnecessarily
+                        return {
+                            "status": "success",
+                            "action": "skipped",
+                            "case_number": case.case_number,
+                            "message": "No changes detected"
+                        }
 
                 # Save detailed case information if available
                 if case_data.get("CASE_STATUS") or case_data.get("CASE_TITLE_DETAILED"):

@@ -3,17 +3,27 @@ import random
 import json
 import os
 import sys
+import pickle
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+    NoSuchElementException, 
+    TimeoutException, 
+    StaleElementReferenceException,
+    WebDriverException,
+    SessionNotCreatedException
+)
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
+import signal
+import atexit
+import threading
 
 # Add project root to Python path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
@@ -58,18 +68,57 @@ except Exception as _e:
     # If changing directory fails, continue; absolute paths can still be built
     pass
 
+# Global shutdown flag for graceful termination
+SHUTDOWN_REQUESTED = False
+
+def global_signal_handler(signum, frame):
+    """Global signal handler for graceful shutdown"""
+    global SHUTDOWN_REQUESTED
+    print(f"\n🛑 Received shutdown signal {signum}. Cleaning up...")
+    SHUTDOWN_REQUESTED = True
+
+# Set up global signal handlers only in main thread
+if threading.current_thread() is threading.main_thread():
+    signal.signal(signal.SIGINT, global_signal_handler)
+    signal.signal(signal.SIGTERM, global_signal_handler)
+
 
 class IHCSeleniumScraper:
     def __init__(
-        self, headless=False, fetch_details=True
-    ):  # Changed default to False for testing
+        self, headless=False, fetch_details=True, worker_id=None
+    ):  # Added worker_id parameter
         self.base_url = "https://mis.ihc.gov.pk/index.aspx"
         self.driver = None
         self.headless = headless
         self.fetch_details = fetch_details  # Whether to fetch detailed case information
+        self.worker_id = worker_id  # Track worker ID for isolation
 
         # Initialize database saver for real-time saving
         self.db_saver = DBSaver()
+
+        # Enhanced stability settings
+        self.max_retries = 3
+        self.retry_delay = 5
+        self.page_load_timeout = 120
+        self.implicit_wait = 30
+        
+        # Session management
+        self.session_start_time = time.time()
+        self.last_activity_time = time.time()
+        self.session_timeout = 1800  # Reduced to 30 minutes for better stability
+        self.activity_update_interval = 30  # Update activity every 30 seconds
+        self.last_activity_update = time.time()
+
+        
+
+        
+        # Resume functionality
+        self.progress_file = "scraper_progress.pkl"
+        self.progress_data = self.load_progress()
+        
+        # Only set up cleanup for main thread
+        if threading.current_thread() is threading.main_thread():
+            atexit.register(self._cleanup_on_exit)
 
         # Define comprehensive search filters
         self.case_types = [
@@ -97,6 +146,361 @@ class IHCSeleniumScraper:
 
         self.years = list(range(2010, 2026))  # From 2010 to 2025
         self.case_numbers = list(range(1, 1001))  # Case numbers 1-1000
+
+    def _cleanup_on_exit(self):
+        """Cleanup function called on exit"""
+        if hasattr(self, 'driver') and self.driver:
+            try:
+                self.save_progress()  # Save progress before shutting down
+                self.driver.quit()
+                print("🛑 WebDriver stopped during cleanup")
+            except:
+                pass
+
+
+
+
+
+    def _safe_find_element(self, driver, by, value, timeout=10):
+        """Safely find element with simple error handling"""
+        try:
+            self._update_activity_time()
+            element = WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((by, value))
+            )
+            return element
+        except (StaleElementReferenceException, TimeoutException) as e:
+            print(f"⚠️ Element not found: {by}={value}")
+            return None
+
+    def _safe_find_elements(self, driver, by, value, timeout=10):
+        """Safely find elements with simple error handling"""
+        try:
+            self._update_activity_time()
+            elements = WebDriverWait(driver, timeout).until(
+                EC.presence_of_all_elements_located((by, value))
+            )
+            return elements
+        except (StaleElementReferenceException, TimeoutException) as e:
+            print(f"⚠️ Element not found: {by}={value}")
+            return []
+
+    def _safe_get_text(self, element):
+        """Safely get text from element"""
+        try:
+            return element.text.strip()
+        except StaleElementReferenceException:
+            return ""
+
+    def _safe_click(self, element):
+        """Safely click element"""
+        try:
+            element.click()
+            return True
+        except StaleElementReferenceException:
+            return False
+
+    def _update_activity_time(self):
+        """Update last activity time for session management with throttling"""
+        current_time = time.time()
+        
+        # Only update if enough time has passed (throttling)
+        if current_time - self.last_activity_update >= self.activity_update_interval:
+            self.last_activity_time = current_time
+            self.last_activity_update = current_time
+            print(f"🔄 Activity time updated: {time.strftime('%H:%M:%S', time.localtime(current_time))}")
+
+    def _check_session_timeout(self):
+        """Check if session has timed out"""
+        if self.last_activity_time and (time.time() - self.last_activity_time) > self.session_timeout:
+            return True
+        return False
+
+    def _handle_session_timeout(self, case_no, current_row, session_saved_count):
+        """Handle session timeout by saving progress and attempting recovery"""
+        print("⏰ Session timeout detected - attempting graceful recovery...")
+        
+        try:
+            # Save current progress
+            if case_no:
+                total_rows = self.progress_data.get(str(case_no), {}).get('total_rows')
+                self.update_case_progress(case_no, current_row, total_rows)
+                print(f"💾 Progress saved: Case {case_no} at row {current_row}")
+            
+            # Save session progress
+            self.save_progress()
+            print(f"💾 Session progress saved: {session_saved_count} rows processed")
+            
+            # Try graceful recovery first
+            if self._attempt_session_recovery():
+                print("✅ Session recovered successfully")
+                return False  # Continue with current session
+            
+            # If recovery fails, restart driver
+            print("🔄 Recovery failed, restarting driver...")
+            if self.driver:
+                try:
+                    self.driver.quit()
+                except:
+                    pass
+                self.driver = None
+            
+            print("🔄 Worker restarting due to session timeout...")
+            return True  # Signal to restart worker
+            
+        except Exception as e:
+            print(f"❌ Error handling session timeout: {e}")
+            return True  # Force restart on error
+
+    def _attempt_session_recovery(self):
+        """Attempt to recover the session without restarting the driver"""
+        try:
+            print("🔄 Attempting session recovery...")
+            
+            # Check if driver is still responsive
+            if not self.driver:
+                return False
+            
+            # Try to refresh the current page
+            current_url = self.driver.current_url
+            print(f"🔄 Refreshing page: {current_url}")
+            
+            self.driver.refresh()
+            time.sleep(5)  # Wait for page to reload
+            
+            # Verify we're still on a valid page
+            if "mis.ihc.gov.pk" in self.driver.current_url:
+                print("✅ Session recovery successful - page refreshed")
+                self._update_activity_time()
+                return True
+            else:
+                print("⚠️ Session recovery failed - redirected to invalid page")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Session recovery failed: {e}")
+            return False
+
+    def load_progress(self):
+        """Load progress data from file with enhanced error handling"""
+        try:
+            if os.path.exists(self.progress_file):
+                with open(self.progress_file, 'rb') as f:
+                    progress = pickle.load(f)
+                    print(f"📂 Loaded progress data: {len(progress)} cases tracked")
+                    return progress
+            else:
+                print("📂 No existing progress file found - starting fresh")
+                return {}
+        except Exception as e:
+            print(f"⚠️ Error loading progress: {e} - starting fresh")
+            return {}
+
+    def save_progress(self):
+        """Save progress data to file with enhanced error handling"""
+        try:
+            # Create backup of existing file
+            if os.path.exists(self.progress_file):
+                backup_file = f"{self.progress_file}.backup"
+                import shutil
+                shutil.copy2(self.progress_file, backup_file)
+            
+            with open(self.progress_file, 'wb') as f:
+                pickle.dump(self.progress_data, f)
+            print(f"💾 Progress saved: {len(self.progress_data)} cases tracked")
+        except Exception as e:
+            print(f"❌ Error saving progress: {e}")
+
+    def update_case_progress(self, case_no, row_index, total_rows=None, status="in_progress"):
+        """Update progress for a specific case with enhanced error handling"""
+        try:
+            # Convert case_no to string for consistent storage
+            case_no_str = str(case_no)
+            
+            if case_no_str not in self.progress_data:
+                self.progress_data[case_no_str] = {
+                    'case_no': case_no_str,  # Store the case number as string
+                    'start_time': datetime.now().isoformat(),
+                    'status': status,
+                    'current_row': row_index,
+                    'total_rows': total_rows,
+                    'last_updated': datetime.now().isoformat()
+                }
+            else:
+                update_data = {
+                    'current_row': row_index,
+                    'status': status,
+                    'last_updated': datetime.now().isoformat()
+                }
+                # Only update total_rows if provided and not already set
+                if total_rows and ('total_rows' not in self.progress_data[case_no_str] or self.progress_data[case_no_str]['total_rows'] is None):
+                    update_data['total_rows'] = total_rows
+                
+                self.progress_data[case_no_str].update(update_data)
+            
+            self.save_progress()
+        except Exception as e:
+            print(f"⚠️ Error updating progress for case {case_no}: {e}")
+
+    def mark_case_completed(self, case_no):
+        """Mark a case as completed with enhanced error handling"""
+        try:
+            # Convert case_no to string for consistent lookup
+            case_no_str = str(case_no)
+            if case_no_str in self.progress_data:
+                progress = self.progress_data[case_no_str]
+                current_row = progress.get('current_row', 0)
+                total_rows = progress.get('total_rows')
+                
+                # Only mark as completed if we have processed all rows
+                if total_rows and total_rows > 0 and current_row >= total_rows:
+                    progress['status'] = 'completed'
+                    progress['completed_time'] = datetime.now().isoformat()
+                    print(f"✅ Case {case_no} truly completed: {current_row}/{total_rows} rows")
+                    self.save_progress()
+                elif total_rows is None:
+                    print(f"⚠️ Case {case_no} has no total rows set, keeping in progress: {current_row} rows")
+                    # Keep status as in_progress until total rows are determined
+                    progress['status'] = 'in_progress'
+                    self.save_progress()
+                else:
+                    print(f"⚠️ Case {case_no} not completed yet: {current_row}/{total_rows} rows")
+                    # Keep status as in_progress
+                    progress['status'] = 'in_progress'
+                    self.save_progress()
+        except Exception as e:
+            print(f"⚠️ Error marking case {case_no} as completed: {e}")
+
+    def get_case_resume_point(self, case_no):
+        """Get the resume point for a specific case"""
+        try:
+            # Convert case_no to string for consistent lookup
+            case_no_str = str(case_no)
+            if case_no_str in self.progress_data:
+                progress = self.progress_data[case_no_str]
+                if progress['status'] == 'in_progress':
+                    current_row = progress.get('current_row', 0)
+                    # If we have rows in database, resume from the next row
+                    if current_row > 0:
+                        return current_row + 1  # Resume from next row after what's already in DB
+                    return current_row
+            return 0
+        except Exception as e:
+            print(f"⚠️ Error getting resume point for case {case_no}: {e}")
+            return 0
+
+    def get_total_rows_for_case(self, case_no):
+        """Get the total number of rows for a specific case from the database"""
+        try:
+            from apps.cases.models import Case
+            
+            # Count cases in database for this case number
+            # The case_number field contains patterns like "1/2025", "2/2024", etc.
+            case_pattern = f"{case_no}/"
+            total_rows = Case.objects.filter(case_number__icontains=case_pattern).count()
+            
+            print(f"📊 Database count for case {case_no}: {total_rows} rows")
+            return total_rows
+        except Exception as e:
+            print(f"⚠️ Error getting total rows for case {case_no}: {e}")
+            return 0
+
+    def extract_total_rows_from_pagination(self):
+        """Extract total rows from pagination text like 'Showing 1 to 100 of 559 entries'"""
+        try:
+            # Look for pagination text that shows total entries
+            pagination_selectors = [
+                "//div[contains(text(), 'Showing') and contains(text(), 'of') and contains(text(), 'entries')]",
+                "//span[contains(text(), 'Showing') and contains(text(), 'of') and contains(text(), 'entries')]",
+                "//p[contains(text(), 'Showing') and contains(text(), 'of') and contains(text(), 'entries')]",
+                "//div[contains(text(), 'entries')]",
+                "//span[contains(text(), 'entries')]",
+                "//p[contains(text(), 'entries')]"
+            ]
+            
+            for selector in pagination_selectors:
+                try:
+                    element = self.driver.find_element(By.XPATH, selector)
+                    text = element.text.strip()
+                    print(f"🔍 Found pagination text: {text}")
+                    
+                    # Extract total from "Showing X to Y of Z entries"
+                    import re
+                    match = re.search(r'of\s+(\d+)\s+entries', text, re.IGNORECASE)
+                    if match:
+                        total_rows = int(match.group(1))
+                        print(f"✅ Extracted total rows: {total_rows}")
+                        return total_rows
+                except:
+                    continue
+            
+            print("⚠️ Could not find pagination text with total entries")
+            return None
+            
+        except Exception as e:
+            print(f"⚠️ Error extracting total rows from pagination: {e}")
+            return None
+
+    def should_skip_case(self, case_no):
+        """Check if a case should be skipped (already completed)"""
+        try:
+            # Convert case_no to string for consistent lookup
+            case_no_str = str(case_no)
+            if case_no_str in self.progress_data:
+                progress = self.progress_data[case_no_str]
+                # Only skip if marked as completed
+                if progress['status'] == 'completed':
+                    if 'completed_time' in progress:
+                        return True
+                    else:
+                        # Mark as in_progress if not truly completed
+                        print(f"⚠️ Case {case_no} marked as completed but missing completed_time, resetting to in_progress")
+                        progress['status'] = 'in_progress'
+                        self.save_progress()
+                        return False
+            return False
+        except Exception as e:
+            print(f"⚠️ Error checking if case {case_no} should be skipped: {e}")
+            return False
+
+    def print_progress_summary(self):
+        """Print a summary of current progress with enhanced error handling"""
+        try:
+            if not self.progress_data:
+                print("📊 No progress data available")
+                return
+            
+            completed = sum(1 for p in self.progress_data.values() if p['status'] == 'completed')
+            in_progress = sum(1 for p in self.progress_data.values() if p['status'] == 'in_progress')
+            
+            print(f"📊 Progress Summary:")
+            print(f"   - Total cases tracked: {len(self.progress_data)}")
+            print(f"   - Completed: {completed}")
+            print(f"   - In progress: {in_progress}")
+            
+            if in_progress > 0:
+                print(f"   - Cases that can be resumed:")
+                for case_no, progress in self.progress_data.items():
+                    if progress['status'] == 'in_progress':
+                        current_row = progress.get('current_row', 0)
+                        total_rows = progress.get('total_rows')
+                        if total_rows and total_rows > 0:
+                            print(f"     Case {case_no}: Row {current_row}/{total_rows}")
+                        else:
+                            print(f"     Case {case_no}: Row {current_row}")
+        except Exception as e:
+            print(f"⚠️ Error printing progress summary: {e}")
+
+    def clear_progress(self):
+        """Clear all progress data (start fresh) with enhanced error handling"""
+        try:
+            if os.path.exists(self.progress_file):
+                os.remove(self.progress_file)
+                print(f"🗑️ Deleted progress file: {self.progress_file}")
+            self.progress_data = {}
+            print("🔄 Progress cleared - will start fresh on next run")
+        except Exception as e:
+            print(f"❌ Error clearing progress: {e}")
 
     def start_driver(self):
         """Initialize and start the Chrome WebDriver"""
@@ -218,8 +622,12 @@ class IHCSeleniumScraper:
                 raise Exception("No valid ChromeDriver service available")
 
             # Set longer timeouts
-            self.driver.set_page_load_timeout(60)
-            self.driver.implicitly_wait(20)
+            self.driver.set_page_load_timeout(self.page_load_timeout)
+            self.driver.implicitly_wait(self.implicit_wait)
+            
+            # Initialize session management
+            self.session_start_time = time.time()
+            self.last_activity_time = time.time()
 
             # Explicitly set window size again after driver initialization
             self.driver.set_window_size(1920, 1080)
@@ -447,13 +855,49 @@ class IHCSeleniumScraper:
             # Step 2: Select institution (required)
             print("🏛️ Step 2: Selecting institution...")
             try:
-                institution_select = Select(self.driver.find_element(By.ID, "ddlInst"))
-                institution_select.select_by_value("1")  # Islamabad High Court
-                time.sleep(3)  # Wait for dropdown to populate
-                print("✅ Selected Islamabad High Court")
+                # Try multiple selectors for institution dropdown
+                institution_selectors = [
+                    (By.ID, "ddlInst"),
+                    (By.NAME, "ddlInst"),
+                    (By.CSS_SELECTOR, "select[id*='Inst']"),
+                    (By.CSS_SELECTOR, "select[name*='Inst']"),
+                    (By.XPATH, "//select[contains(@id, 'Inst')]"),
+                    (By.XPATH, "//select[contains(@name, 'Inst')]")
+                ]
+                
+                institution_select = None
+                for selector in institution_selectors:
+                    try:
+                        element = self.driver.find_element(*selector)
+                        institution_select = Select(element)
+                        print(f"✅ Found institution dropdown with selector: {selector}")
+                        break
+                    except:
+                        continue
+                
+                if institution_select:
+                    # Try to select by index, value, or visible text
+                    try:
+                        institution_select.select_by_value("1")  # Islamabad High Court
+                        time.sleep(3)  # Wait for dropdown to populate
+                        print("✅ Selected Islamabad High Court by value")
+                    except:
+                        try:
+                            institution_select.select_by_index(1)
+                            time.sleep(3)
+                            print("✅ Selected Islamabad High Court by index")
+                        except:
+                            try:
+                                institution_select.select_by_visible_text("Islamabad High Court")
+                                time.sleep(3)
+                                print("✅ Selected Islamabad High Court by text")
+                            except:
+                                print("⚠️ Could not select institution, continuing anyway...")
+                else:
+                    print("⚠️ Institution dropdown not found, continuing anyway...")
+                    
             except Exception as e:
-                print(f"❌ Failed to select institution: {e}")
-                return False
+                print(f"⚠️ Institution selection issue: {e}, continuing anyway...")
 
             # Step 3: Enter the specified case number
             print(f"🔢 Step 3: Entering case number = {case_no}...")
@@ -487,19 +931,27 @@ class IHCSeleniumScraper:
         try:
             print("🔍 Looking for results...")
 
-            # Import progress tracker
-            try:
-                from .progress_tracker import progress_tracker
-            except ImportError:
-                import sys
-                # PROGRESS TRACKING COMPLETELY REMOVED - NO IMPORTS
+            # Validate we're still on the correct page before scraping
+            if not self.validate_current_page():
+                print(f"❌ Page validation failed before scraping")
+                return None
+            
+            # Check for unexpected redirects
+            if not self.check_for_unexpected_redirects():
+                print(f"❌ Unexpected redirect detected before scraping")
+                return None
 
-            # PROGRESS TRACKING COMPLETELY REMOVED - NO CASE SKIPPING
-            # Process all cases without any skipping logic
-
-            # PROGRESS TRACKING COMPLETELY REMOVED - ALWAYS START FROM BEGINNING
-            resume_page, resume_row = 1, 1  # Always start from beginning
-            print(f"🚀 Starting case {case_no} from page 1, row 1 (no progress tracking)")
+            # Get resume point for this case
+            resume_row = self.get_case_resume_point(case_no) if case_no else 0
+            resume_page = 1  # Always start from page 1, but can resume from specific row
+            
+            # Track rows saved in this session
+            session_saved_count = 0
+            
+            if resume_row > 0:
+                print(f"🔄 Resuming case {case_no} from row {resume_row}")
+            else:
+                print(f"🆕 Starting case {case_no} from beginning")
 
             # Check for any alerts that might appear
             try:
@@ -645,8 +1097,33 @@ class IHCSeleniumScraper:
                     time.sleep(stability_check_interval)
                     data_wait_time += stability_check_interval
 
-            # Phase 3: Change rows display to 100 and wait for more data
-            print("🔍 Phase 3: Changing rows display to 100...")
+            # Phase 3: Extract total rows from pagination
+            print("🔍 Phase 3: Extracting total rows from pagination...")
+            total_rows = self.extract_total_rows_from_pagination()
+            if total_rows:
+                print(f"📊 Total rows for this case: {total_rows}")
+                # Update progress with total rows if this is a new case or if total_rows is not set
+                if case_no:
+                    current_total = self.progress_data.get(str(case_no), {}).get('total_rows') if str(case_no) in self.progress_data else None
+                    if current_total is None:
+                        self.update_case_progress(case_no, 0, total_rows)
+                        print(f"✅ Updated Case {case_no} with total rows: {total_rows}")
+                    else:
+                        print(f"ℹ️ Case {case_no} already has total rows: {current_total}")
+            else:
+                print("⚠️ Could not extract total rows from pagination")
+                # Try to get from existing progress data
+                if case_no and str(case_no) in self.progress_data:
+                    total_rows = self.progress_data[str(case_no)].get('total_rows')
+                    if total_rows:
+                        print(f"📊 Using existing total rows for Case {case_no}: {total_rows}")
+                    else:
+                        print(f"⚠️ No total rows available for Case {case_no}")
+                else:
+                    total_rows = None
+
+            # Phase 4: Change rows display to 100 and wait for more data
+            print("🔍 Phase 4: Changing rows display to 100...")
             try:
                 # Find and change the "Show" dropdown to 100
                 print("📊 Looking for 'Show' dropdown...")
@@ -765,6 +1242,11 @@ class IHCSeleniumScraper:
                                     break
 
                         while True:  # Continue until no more pages
+                            # Check for shutdown request before processing each page
+                            if SHUTDOWN_REQUESTED:
+                                print("🛑 Shutdown requested, stopping page processing")
+                                return all_cases
+                                
                             print(f"\n📄 Processing Page {page_number}...")
 
                             # Get current page rows
@@ -775,55 +1257,112 @@ class IHCSeleniumScraper:
                                 page_cases = []
 
                                 # Process rows on current page, starting from resume row if needed
-                                start_row = resume_row if case_no and page_number == resume_page else 1
+                                # Calculate which row to start from based on resume point and current page
+                                print(f"🔍 DEBUG: Checking resume condition - case_no: '{case_no}' (type: {type(case_no)}), resume_row: {resume_row} (type: {type(resume_row)})")
+                                if case_no and resume_row > 0:
+                                    # Calculate total rows processed before current page
+                                    rows_per_page = 100  # Assuming 100 rows per page
+                                    rows_before_current_page = (page_number - 1) * rows_per_page
+                                    
+                                    if page_number == 1:
+                                        # On first page, start from resume_row
+                                        start_row = resume_row
+                                        print(f"🔍 DEBUG: Case {case_no}, Page {page_number}, Resume row: {resume_row}, Start row: {start_row}")
+                                    else:
+                                        # On subsequent pages, check if we've already processed this page
+                                        if resume_row <= rows_before_current_page:
+                                            # We've already processed this page, skip it
+                                            print(f"⏭️ Skipping page {page_number} (already processed)")
+                                            continue
+                                        elif resume_row <= rows_before_current_page + rows_per_page:
+                                            # We've partially processed this page, start from the correct row
+                                            start_row = resume_row - rows_before_current_page
+                                            print(f"🔍 DEBUG: Case {case_no}, Page {page_number}, Resume row: {resume_row}, Rows before page: {rows_before_current_page}, Start row on this page: {start_row}")
+                                        else:
+                                            # Start from beginning of this page
+                                            start_row = 1
+                                else:
+                                    start_row = 1
+                                    print(f"🔍 DEBUG: Case {case_no}, Page {page_number}, No resume row, Start row: {start_row}")
+                                
                                 for i, row in enumerate(current_rows, 1):
-                                    # PROGRESS TRACKING COMPLETELY REMOVED - PROCESS ALL ROWS
-                                    # No skipping logic - process every row
+                                    # Skip rows before resume point (on any page when resuming)
+                                    if case_no and resume_row > 0 and i < start_row:
+                                        print(f"⏭️ Skipping row {i} (before resume point {start_row})")
+                                        continue
+                                    elif case_no and resume_row > 0 and i >= start_row:
+                                        print(f"✅ Processing row {i} (resume point reached)")
+                                    
+                                    # Progress will be updated after successful save
+                                    
+                                    # Check for shutdown request
+                                    if SHUTDOWN_REQUESTED:
+                                        print("🛑 Shutdown requested, stopping row processing")
+                                        return all_cases
+                                    
+                                    # Proactive session monitoring
+                                    if self._check_session_timeout():
+                                        print(f"⚠️ Session timeout detected at row {i}, attempting recovery...")
+                                        if self._handle_session_timeout(case_no, i, session_saved_count):
+                                            # Return None to signal worker restart
+                                            return None
+                                        else:
+                                            # Session recovered, continue
+                                            print(f"✅ Session recovered, continuing from row {i}")
+                                            continue
+                                    
+                                    # Proactive activity updates during intensive operations
+                                    if i % 5 == 0:  # Update every 5 rows during intensive operations
+                                        self._update_activity_time()
+                                    
+
+                                    
+                                    # Periodic navigation validation (every 10 rows)
+                                    if i % 10 == 0:
+                                        if not self.validate_current_page():
+                                            print(f"⚠️ Navigation validation failed at row {i}, attempting recovery...")
+                                            if not self.recover_navigation():
+                                                print(f"❌ Navigation recovery failed, stopping scraping")
+                                                return all_cases
+                                        if not self.check_for_unexpected_redirects():
+                                            print(f"⚠️ Unexpected redirect detected at row {i}, attempting recovery...")
+                                            if not self.recover_navigation():
+                                                print(f"❌ Navigation recovery failed, stopping scraping")
+                                                return all_cases
+                                    
                                     try:
+                                        # Update activity time for session tracking
+                                        self._update_activity_time()
+                                        
+                                        # Find cells directly from the row element
                                         cells = row.find_elements(By.TAG_NAME, "td")
 
                                         if len(cells) >= 7:
                                             case_data = {
                                                 "SR": (
-                                                    cells[0].text.strip()
-                                                    if len(cells) > 0
-                                                    else ""
+                                                    cells[0].text.strip() if len(cells) > 0 else ""
                                                 ),
                                                 "INSTITUTION": (
-                                                    cells[1].text.strip()
-                                                    if len(cells) > 1
-                                                    else ""
+                                                    cells[1].text.strip() if len(cells) > 1 else ""
                                                 ),
                                                 "CASE_NO": (
-                                                    cells[2].text.strip()
-                                                    if len(cells) > 2
-                                                    else ""
+                                                    cells[2].text.strip() if len(cells) > 2 else ""
                                                 ),
                                                 "CASE_TITLE": (
-                                                    cells[3].text.strip()
-                                                    if len(cells) > 3
-                                                    else ""
+                                                    cells[3].text.strip() if len(cells) > 3 else ""
                                                 ),
                                                 "BENCH": (
-                                                    cells[4].text.strip()
-                                                    if len(cells) > 4
-                                                    else ""
+                                                    cells[4].text.strip() if len(cells) > 4 else ""
                                                 ),
                                                 "HEARING_DATE": (
-                                                    cells[5].text.strip()
-                                                    if len(cells) > 5
-                                                    else ""
+                                                    cells[5].text.strip() if len(cells) > 5 else ""
                                                 ),
                                                 "STATUS": (
-                                                    cells[6].text.strip()
-                                                    if len(cells) > 6
-                                                    else ""
+                                                    cells[6].text.strip() if len(cells) > 6 else ""
                                                 ),
                                                 # HISTORY field removed - now computed from actual data relationships
                                                 "DETAILS": (
-                                                    cells[8].text.strip()
-                                                    if len(cells) > 8
-                                                    else ""
+                                                    cells[8].text.strip() if len(cells) > 8 else ""
                                                 ),
                                             }
 
@@ -880,9 +1419,18 @@ class IHCSeleniumScraper:
                                                 # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS UPDATES
 
                                                 # REAL-TIME SAVING: Save this row immediately to prevent data loss
-                                                self.save_single_row_realtime(
+                                                saved = self.save_single_row_realtime(
                                                     case_data, case_no, page_number, i
                                                 )
+                                                if saved:
+                                                    # Update progress after successful save
+                                                    actual_saved_count = self.get_total_rows_for_case(case_no)
+                                                    session_saved_count += 1
+                                                    # Get total rows from progress data
+                                                    total_rows = self.progress_data.get(str(case_no), {}).get('total_rows')
+                                                    # Update progress with new database count
+                                                    self.update_case_progress(case_no, actual_saved_count, total_rows)
+                                                    print(f"💾 REAL-TIME PROGRESS: Row saved to database for case {case_no} (Total in DB: {actual_saved_count}, Session total: {session_saved_count})")
                                             else:
                                                 print(
                                                     f"⚠️ Page {page_number}, Row {i}: Skipped (SR='{case_data.get('SR', 'N/A')}', CASE_NO='{case_data.get('CASE_NO', 'N/A')}')"
@@ -892,24 +1440,33 @@ class IHCSeleniumScraper:
                                                 f"⚠️ Page {page_number}, Row {i}: Not enough cells ({len(cells)})"
                                             )
 
+                                    except StaleElementReferenceException as e:
+                                        print(f"⚠️ Stale element error on page {page_number}, row {i}: {e}")
+                                        # Update progress even for failed rows to track where we reached
+                                        if case_no:
+                                            total_rows = self.progress_data.get(str(case_no), {}).get('total_rows')
+                                            self.update_case_progress(case_no, i, total_rows)
+                                        # Skip this problematic row and continue
+                                        continue
                                     except Exception as e:
                                         print(
                                             f"⚠️ Error processing page {page_number}, row {i}: {e}"
                                         )
                                         continue
 
-                                # Add page cases to total
+                                # Add page cases to total (for compatibility, but real saving is done in real-time)
                                 all_cases.extend(page_cases)
                                 total_processed += len(page_cases)
                                 print(
-                                    f"📊 Page {page_number}: Added {len(page_cases)} cases (Total: {total_processed})"
+                                    f"📊 Page {page_number}: Processed {len(page_cases)} cases (Total: {total_processed})"
                                 )
 
                                 # PROGRESS TRACKING COMPLETELY REMOVED - NO PAGE COMPLETION UPDATES
 
-                                # Show real-time saving progress (now saving to database)
+                                # Show real-time saving progress (actual database saves)
+                                actual_saved_count = self.get_total_rows_for_case(case_no)
                                 print(
-                                    f"💾 REAL-TIME PROGRESS: {len(page_cases)} rows saved to database for case {case_no}"
+                                    f"💾 REAL-TIME PROGRESS: {session_saved_count} rows saved in this session, {actual_saved_count} total in database for case {case_no}"
                                 )
 
                                 # Check if this is the last page by looking for Next button
@@ -1013,7 +1570,7 @@ class IHCSeleniumScraper:
 
                         # Mark case as completed in progress tracking
                         if case_no:
-                            progress_tracker.mark_case_completed(case_no, len(all_cases))
+                            self.mark_case_completed(case_no)
                             print(f"✅ Case {case_no} marked as completed with {len(all_cases)} total cases")
 
                         if case_type_empty and len(all_cases) > 50:
@@ -1037,6 +1594,8 @@ class IHCSeleniumScraper:
         except Exception as e:
             print(f"❌ Error scraping results table: {e}")
             return []
+        
+
 
     def fetch_case_details(self, case_row_element):
         """
@@ -3098,6 +3657,7 @@ class IHCSeleniumScraper:
             if option_type == "Parties":
                 # Parties opens "Case Parties" modal
                 return self._extract_parties_data(option_content)
+
             elif option_type == "Comments":
                 # Comments opens "Doc History" modal
                 return self._extract_comments_detail_data(option_content)
@@ -3469,185 +4029,103 @@ class IHCSeleniumScraper:
             return None
 
     def _extract_hearing_details_data(self, option_content):
-        """Extract data from Hearing Details modal (Case History)"""
-        try:
-            # Look for the specific table with id="tblCseHstry" (same as Orders)
-            table = self.driver.find_element(By.ID, "tblCseHstry")
-            if table:
-                # Extract headers
+        """Extract data from Hearing Details modal (Case History) with robust stale element handling"""
+        
+        def extract_hearing_details():
+            """Inner function for extraction with retry logic"""
+            try:
+                # Update activity time before extraction
+                self._update_activity_time()
+                
+                # Look for the specific table with id="tblCseHstry" (same as Orders)
+                table = self._safe_find_element(self.driver, By.ID, "tblCseHstry")
+                if not table:
+                    print("⚠️ Hearing Details: Table not found")
+                    return None
+                
+                # Extract headers with retry
                 headers = []
-                header_elements = table.find_elements(By.TAG_NAME, "th")
+                header_elements = self._safe_find_elements_with_retry(self.driver, By.TAG_NAME, "th", timeout=5)
+                
                 for header in header_elements:
-                    headers.append(header.text.strip())
+                    header_text = self._safe_get_text_with_retry(header)
+                    if header_text:
+                        headers.append(header_text)
 
                 if headers:
                     option_content["content"]["headers"] = headers
-                    print(
-                        f"✅ Hearing Details: Found {len(headers)} headers: {headers}"
-                    )
+                    print(f"✅ Hearing Details: Found {len(headers)} headers: {headers}")
 
-                # Comprehensive row extraction - try multiple approaches
+                # Single comprehensive row extraction approach (avoiding duplicate DOM traversals)
                 rows = []
-
-                # Method 1: Get ALL tr elements in the table (including nested ones)
-                all_tr_elements = table.find_elements(By.XPATH, ".//tr")
-                print(
-                    f"🔍 Hearing Details: Found {len(all_tr_elements)} total tr elements in table"
-                )
-
-                # Skip the first tr if it's a header
-                data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
-
-                for tr_index, tr in enumerate(data_tr_elements):
-                    cells = tr.find_elements(By.TAG_NAME, "td")
-                    row_data = []
-
-                    for cell_index, cell in enumerate(cells):
-                        cell_text = cell.text.strip()
-
-                        # Special handling for VIEW column (last column)
-                        if cell_index == len(cells) - 1 and "VIEW" in headers[-1]:
-                            # Look for download links in the VIEW column
-                            try:
-                                # Find download links within this cell
-                                download_links = cell.find_elements(By.TAG_NAME, "a")
-                                if download_links:
-                                    # Extract href attributes from download links
-                                    link_data = []
-                                    for link in download_links:
-                                        href = link.get_attribute("href")
-                                        title = link.get_attribute("title") or ""
-                                        link_text = link.text.strip()
-
-                                        if href:
-                                            link_info = {
-                                                "href": href,
-                                                "title": title,
-                                                "text": link_text,
-                                            }
-                                            link_data.append(link_info)
-
-                                    if link_data:
-                                        row_data.append(link_data)
-                                        print(
-                                            f"✅ Hearing Details: Found {len(link_data)} download link(s) in TR {tr_index + 1}"
-                                        )
-                                    else:
-                                        row_data.append(cell_text)
-                                else:
-                                    row_data.append(cell_text)
-                            except Exception as link_error:
-                                print(
-                                    f"⚠️ Error extracting VIEW column links: {link_error}"
-                                )
-                                row_data.append(cell_text)
-                        else:
-                            row_data.append(cell_text)
-
-                    print(
-                        f"🔍 Hearing Details: TR {tr_index + 1} has {len(cells)} cells: {row_data}"
-                    )
-
-                    # Include row if it has any data (not just empty cells)
-                    if row_data and any(
-                        cell_text
-                        for cell_text in row_data
-                        if isinstance(cell_text, str)
-                    ):
-                        # Skip rows that contain "No data available"
-                        if not any(
-                            "No data available" in str(cell_text)
-                            for cell_text in row_data
-                        ):
-                            # Check if this row is already added
-                            if row_data not in rows:
-                                rows.append(row_data)
-                                print(
-                                    f"✅ Hearing Details: Added TR {tr_index + 1}: {row_data}"
-                                )
-                        else:
-                            print(
-                                f"⚠️ Hearing Details: Skipping 'No data available' TR {tr_index + 1}: {row_data}"
-                            )
-                    else:
-                        print(
-                            f"⚠️ Hearing Details: Skipping empty TR {tr_index + 1}: {row_data}"
-                        )
-
-                # Method 2: Also check tbody specifically
-                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                
+                # Get all tbody elements first
+                tbody_elements = self._safe_find_elements_with_retry(self.driver, By.TAG_NAME, "tbody", timeout=5)
+                
                 if tbody_elements:
-                    print(
-                        f"🔍 Hearing Details: Found {len(tbody_elements)} tbody elements"
-                    )
+                    print(f"🔍 Hearing Details: Found {len(tbody_elements)} tbody elements")
+                    
                     for tbody_index, tbody in enumerate(tbody_elements):
-                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
-                        print(
-                            f"🔍 Hearing Details: Tbody {tbody_index + 1} has {len(tbody_rows)} rows"
-                        )
+                        # Update activity time for each tbody
+                        self._update_activity_time()
+                        
+                        tbody_rows = self._safe_find_elements_with_retry(tbody, By.TAG_NAME, "tr", timeout=5)
+                        print(f"🔍 Hearing Details: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
 
                         for row_index, row in enumerate(tbody_rows):
-                            cells = row.find_elements(By.TAG_NAME, "td")
+                            # Update activity time for each row
+                            self._update_activity_time()
+                            
+                            cells = self._safe_find_elements_with_retry(row, By.TAG_NAME, "td", timeout=5)
                             row_data = []
 
                             for cell_index, cell in enumerate(cells):
-                                cell_text = cell.text.strip()
+                                cell_text = self._safe_get_text_with_retry(cell)
 
                                 # Special handling for VIEW column (last column)
-                                if (
-                                    cell_index == len(cells) - 1
-                                    and "VIEW" in headers[-1]
-                                ):
-                                    # Look for download links in the VIEW column
+                                if cell_index == len(cells) - 1 and headers and "VIEW" in headers[-1]:
+                                    # Look for download links in the VIEW column with retry
                                     try:
-                                        # Find download links within this cell
-                                        download_links = cell.find_elements(
-                                            By.TAG_NAME, "a"
-                                        )
+                                        download_links = self._safe_find_elements_with_retry(cell, By.TAG_NAME, "a", timeout=3)
                                         if download_links:
-                                            # Extract href attributes from download links
                                             link_data = []
                                             for link in download_links:
-                                                href = link.get_attribute("href")
-                                                title = (
-                                                    link.get_attribute("title") or ""
-                                                )
-                                                link_text = link.text.strip()
+                                                try:
+                                                    href = link.get_attribute("href")
+                                                    title = link.get_attribute("title") or ""
+                                                    link_text = self._safe_get_text_with_retry(link)
 
-                                                if href:
-                                                    link_info = {
-                                                        "href": href,
-                                                        "title": title,
-                                                        "text": link_text,
-                                                    }
-                                                    link_data.append(link_info)
+                                                    if href:
+                                                        link_info = {
+                                                            "href": href,
+                                                            "title": title,
+                                                            "text": link_text,
+                                                        }
+                                                        link_data.append(link_info)
+                                                except StaleElementReferenceException:
+                                                    print(f"⚠️ Stale link element, skipping...")
+                                                    continue
 
                                             if link_data:
                                                 row_data.append(link_data)
-                                                print(
-                                                    f"✅ Hearing Details: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}"
-                                                )
+                                                print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}")
                                             else:
                                                 row_data.append(cell_text)
                                         else:
                                             row_data.append(cell_text)
                                     except Exception as link_error:
-                                        print(
-                                            f"⚠️ Error extracting VIEW column links: {link_error}"
-                                        )
+                                        print(f"⚠️ Error extracting VIEW column links: {link_error}")
                                         row_data.append(cell_text)
                                 else:
                                     row_data.append(cell_text)
 
-                            print(
-                                f"🔍 Hearing Details: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}"
-                            )
+                            print(f"🔍 Hearing Details: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
 
                             # Include row if it has any data (not just empty cells)
                             if row_data and any(
                                 cell_text
                                 for cell_text in row_data
-                                if isinstance(cell_text, str)
+                                if isinstance(cell_text, str) and cell_text.strip()
                             ):
                                 # Skip rows that contain "No data available"
                                 if not any(
@@ -3657,31 +4135,29 @@ class IHCSeleniumScraper:
                                     # Check if this row is already added
                                     if row_data not in rows:
                                         rows.append(row_data)
-                                        print(
-                                            f"✅ Hearing Details: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}"
-                                        )
+                                        print(f"✅ Hearing Details: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
                                 else:
-                                    print(
-                                        f"⚠️ Hearing Details: Skipping 'No data available' tbody row: {row_data}"
-                                    )
+                                    print(f"⚠️ Hearing Details: Skipping 'No data available' tbody row: {row_data}")
                             else:
-                                print(
-                                    f"⚠️ Hearing Details: Skipping empty tbody row: {row_data}"
-                                )
+                                print(f"⚠️ Hearing Details: Skipping empty tbody row: {row_data}")
 
                 if rows:
                     option_content["content"]["rows"] = rows
-                    print(
-                        f"✅ Hearing Details: Found {len(rows)} data rows with VIEW column links"
-                    )
+                    print(f"✅ Hearing Details: Found {len(rows)} data rows with VIEW column links")
                 else:
                     print("⚠️ Hearing Details: No data rows found")
 
                 return option_content
 
-        except Exception as e:
-            print(f"❌ Error extracting Hearing Details data: {e}")
-            return None
+            except StaleElementReferenceException as e:
+                print(f"⚠️ Stale element during Hearing Details extraction: {e}")
+                raise  # Re-raise to be caught by retry logic
+            except Exception as e:
+                print(f"❌ Unexpected error during Hearing Details extraction: {e}")
+                return None
+        
+        # Use the retry wrapper for the entire extraction
+        return self._safe_extract_with_retry(extract_hearing_details, max_retries=3, retry_delay=3)
 
     def close_case_detail_option_modal(self):
         """Close a case detail option modal/popup"""
@@ -3748,6 +4224,16 @@ class IHCSeleniumScraper:
             if not self.navigate_to_case_status():
                 return None
 
+            # Validate we're on the correct page
+            if not self.validate_current_page():
+                print(f"❌ Failed to validate current page")
+                return None
+            
+            # Check for unexpected redirects
+            if not self.check_for_unexpected_redirects():
+                print(f"❌ Detected unexpected redirect")
+                return None
+
             # Fill and submit the search form
             if not self.fill_search_form_simple(case_no):
                 return None
@@ -3777,6 +4263,16 @@ class IHCSeleniumScraper:
             # Check if it's a session timeout error
             if "invalid session id" in str(e).lower():
                 print("🔄 Detected session timeout, attempting to restart driver...")
+                if self.restart_driver():
+                    print("✅ Driver restarted successfully, retrying search...")
+                    return self.search_case(
+                        case_no, year, case_type, search_by_case_number
+                    )
+                else:
+                    print("❌ Failed to restart driver")
+            # Check if it's a connection reset error
+            elif "connection aborted" in str(e).lower() or "connectionreseterror" in str(e).lower():
+                print("🔄 Detected connection reset, attempting to restart driver...")
                 if self.restart_driver():
                     print("✅ Driver restarted successfully, retrying search...")
                     return self.search_case(
@@ -4138,9 +4634,24 @@ class IHCSeleniumScraper:
         # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS FILE LOADING
         completed_cases = set()
 
-        # PROGRESS TRACKING COMPLETELY REMOVED - PROCESS ALL CASES
-        cases_to_process = case_numbers
-        print(f"📦 Processing all cases: {cases_to_process}")
+        # Show progress summary before starting
+        self.print_progress_summary()
+        
+        # Check for shutdown request before starting
+        if SHUTDOWN_REQUESTED:
+            print("🛑 Shutdown requested before starting parallel scraping")
+            return []
+        
+        # Filter cases to process (skip completed ones)
+        cases_to_process = []
+        for case_no in case_numbers:
+            if not self.should_skip_case(case_no):
+                cases_to_process.append(case_no)
+            else:
+                print(f"⏭️ Skipping case {case_no} (already completed)")
+        
+        print(f"📦 Processing {len(cases_to_process)} cases: {cases_to_process}")
+        print(f"⏭️ Skipped {len(case_numbers) - len(cases_to_process)} completed cases")
 
         # Thread-safe counters
         lock = threading.Lock()
@@ -4151,11 +4662,28 @@ class IHCSeleniumScraper:
             """Scrape a single case number using a dedicated WebDriver instance with complete isolation"""
             nonlocal total_cases_found, total_cases_processed
 
-            # Skip if already completed
+            # Check for shutdown request
+            if SHUTDOWN_REQUESTED:
+                print(f"🛑 Worker {worker_id}: Shutdown requested, skipping case {case_no}")
+                return None
+
+            # Check if case should be skipped (already completed)
+            if self.should_skip_case(case_no):
+                print(f"⏭️ Worker {worker_id}: Case {case_no} already completed, skipping")
+                return None
+
+            # Get resume point for this case
+            resume_row = self.get_case_resume_point(case_no)
+            if resume_row > 0:
+                print(f"🔄 Worker {worker_id}: Resuming case {case_no} from row {resume_row}")
+            else:
+                print(f"🆕 Worker {worker_id}: Starting case {case_no} from beginning")
+
+            # Skip if already completed in this session
             with lock:
                 if case_no in completed_cases:
                     print(
-                        f"⏭️ Worker {worker_id}: Case {case_no} already completed, skipping"
+                        f"⏭️ Worker {worker_id}: Case {case_no} already completed in this session, skipping"
                     )
                     return None
 
@@ -4214,6 +4742,19 @@ class IHCSeleniumScraper:
                     )
                     return None
 
+                # Validate navigation and check for redirects
+                if not worker_scraper.validate_current_page():
+                    print(f"⚠️ Worker {worker_id}: Navigation validation failed, attempting recovery...")
+                    if not worker_scraper.recover_navigation():
+                        print(f"❌ Worker {worker_id}: Navigation recovery failed for case {case_no}")
+                        return None
+                
+                if not worker_scraper.check_for_unexpected_redirects():
+                    print(f"⚠️ Worker {worker_id}: Unexpected redirect detected, attempting recovery...")
+                    if not worker_scraper.recover_navigation():
+                        print(f"❌ Worker {worker_id}: Navigation recovery failed for case {case_no}")
+                    return None
+
                 if not worker_scraper.fill_search_form_simple(case_no):
                     print(
                         f"❌ Worker {worker_id}: Failed to fill form for case {case_no}"
@@ -4233,21 +4774,21 @@ class IHCSeleniumScraper:
                             case_type_empty=True, case_no=case_no
                         )
 
-                        if cases:
-                            print(
-                                f"✅ Worker {worker_id}: Scraping successful on attempt {scrape_attempt + 1}"
-                            )
-                            break
-                        else:
-                            print(
-                                f"⚠️ Worker {worker_id}: No results on attempt {scrape_attempt + 1}"
-                            )
+                        if cases is None:  # None indicates failure or session timeout
+                            print(f"❌ Worker {worker_id}: Scraping failed on attempt {scrape_attempt + 1}")
                             if scrape_attempt < max_scrape_retries - 1:
-                                print(
-                                    f"🔄 Worker {worker_id}: Retrying in 5 seconds..."
-                                )
+                                print(f"🔄 Worker {worker_id}: Retrying in 5 seconds...")
                                 time.sleep(5)
+                            else:
+                                print(f"❌ Worker {worker_id}: All attempts failed for case {case_no}")
                             continue
+                        elif cases:  # Non-empty list means we got results
+                            print(f"✅ Worker {worker_id}: Scraping successful on attempt {scrape_attempt + 1}")
+                            break
+                        else:  # Empty list means no results found
+                            print(f"⚠️ Worker {worker_id}: No results found on attempt {scrape_attempt + 1}")
+                            # Don't retry if no results found (case might be empty)
+                            break
 
                     except Exception as e:
                         print(
@@ -4294,9 +4835,24 @@ class IHCSeleniumScraper:
                             )
 
                 else:
-                    print(f"⚠️ Worker {worker_id}: Case {case_no} → No results")
-                    with lock:
-                        completed_cases.add(case_no)
+                    if cases is None:  # Scraping failed
+                        print(f"❌ Worker {worker_id}: Case {case_no} → Scraping failed, will retry later")
+                        # Don't mark as completed if scraping failed
+                        # Check if case is truly completed based on progress
+                        if case_no in self.progress_data:
+                            progress = self.progress_data[str(case_no)]
+                            current_row = progress.get('current_row', 0)
+                            total_rows = progress.get('total_rows')
+                            if total_rows and total_rows > 0 and current_row >= total_rows:
+                                print(f"✅ Worker {worker_id}: Case {case_no} → All rows processed, marking as completed")
+                                with lock:
+                                    completed_cases.add(case_no)
+                            elif total_rows is None:
+                                print(f"⚠️ Worker {worker_id}: Case {case_no} → Total rows not determined yet, will retry")
+                    else:  # cases is empty list
+                        print(f"⚠️ Worker {worker_id}: Case {case_no} → No results found")
+                        with lock:
+                            completed_cases.add(case_no)
 
                 # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS SAVING
 
@@ -4345,11 +4901,34 @@ class IHCSeleniumScraper:
 
             # Process cases as they complete and assign new ones - IMPROVED TRACKING
             while active_futures:
-                # Wait for any future to complete
-                done, not_done = concurrent.futures.wait(
-                    active_futures.keys(),
-                    return_when=concurrent.futures.FIRST_COMPLETED,
-                )
+                # Check for shutdown request - IMMEDIATE STOP
+                if SHUTDOWN_REQUESTED:
+                    print("🛑 Shutdown requested during parallel processing - STOPPING IMMEDIATELY")
+                    # Cancel all pending futures
+                    for future in active_futures:
+                        future.cancel()
+                    # Save progress before exiting
+                    self.save_progress()
+                    return all_results
+                
+                # Wait for any future to complete with timeout to allow checking shutdown flag
+                try:
+                    done, not_done = concurrent.futures.wait(
+                        active_futures.keys(),
+                        return_when=concurrent.futures.FIRST_COMPLETED,
+                        timeout=1.0  # Check every second for shutdown request
+                    )
+                except concurrent.futures.TimeoutError:
+                    # Timeout occurred, check shutdown flag again
+                    if SHUTDOWN_REQUESTED:
+                        print("🛑 Shutdown requested during parallel processing - STOPPING IMMEDIATELY")
+                        # Cancel all pending futures
+                        for future in active_futures:
+                            future.cancel()
+                        # Save progress before exiting
+                        self.save_progress()
+                        return all_results
+                    continue
 
                 # Process completed futures
                 for future in done:
@@ -4482,6 +5061,10 @@ class IHCSeleniumScraper:
         print(f"📋 Total cases found: {total_cases_found}")
         print(f"⏱️ Total duration: {total_duration.total_seconds() / 60:.1f} minutes")
         print(f"💾 All cases saved to database in real-time")
+        
+        # Show final progress summary
+        print(f"\n📊 Final Progress Summary:")
+        self.print_progress_summary()
 
         return all_results
 
@@ -4509,23 +5092,32 @@ class IHCSeleniumScraper:
             import os
             # PROGRESS TRACKING COMPLETELY REMOVED - NO IMPORTS
 
-        # PROGRESS TRACKING COMPLETELY REMOVED - SIMPLE BATCH PROCESSING
-        actual_start, actual_end = start_batch, end_batch
+        print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
+        print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
+        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
+        print(f"🔄 Resume capability: {'Enabled' if resume else 'Disabled'}")
 
-        print(f"🚀 Starting MULTIPLE BATCHES: {actual_start} to {actual_end}")
-        print(f"📊 Total cases: {(actual_end - actual_start + 1) * cases_per_batch}")
-        print(f"⏱️ Estimated time: ~{((actual_end - actual_start + 1) * 10) // 60} minutes")
+        # Show initial progress summary
+        if resume:
+            self.print_progress_summary()
 
         all_batch_results = []
         start_time = datetime.now()
 
-        # PROGRESS TRACKING COMPLETELY REMOVED - PROCESS ALL BATCHES
-        remaining_batches = list(range(actual_start, actual_end + 1))
+        # Process all batches
+        remaining_batches = list(range(start_batch, end_batch + 1))
         print(f"📋 Processing {len(remaining_batches)} batches...")
 
         for batch_num in remaining_batches:
+            # Check for shutdown request before processing each batch - IMMEDIATE STOP
+            if SHUTDOWN_REQUESTED:
+                print(f"\n🛑 Shutdown requested, stopping at batch {batch_num}")
+                if resume:
+                    print("💾 Progress saved - you can resume from this point later")
+                return all_batch_results
+                
             print(f"\n{'='*60}")
-            print(f"🔄 Processing BATCH {batch_num}/{actual_end}")
+            print(f"🔄 Processing BATCH {batch_num}/{end_batch}")
             print(f"{'='*60}")
 
             try:
@@ -4541,14 +5133,13 @@ class IHCSeleniumScraper:
                 else:
                     print(f"⚠️ Batch {batch_num} completed with no results")
 
-                # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS SUMMARY
-
                 # Small delay between batches
                 time.sleep(2)
 
             except KeyboardInterrupt:
                 print(f"\n⚠️ Scraping interrupted by user at batch {batch_num}")
-                print("💡 Progress tracking removed - no resume functionality")
+                if resume:
+                    print("💾 Progress saved - you can resume from this point later")
                 break
                 
             except Exception as e:
@@ -4556,7 +5147,7 @@ class IHCSeleniumScraper:
                 print(f"🔄 Continuing with next batch...")
                 continue
 
-        # PROGRESS TRACKING COMPLETELY REMOVED - SIMPLE COMPLETION
+        # Final completion summary
         print(f"\n🎉 ALL BATCHES COMPLETED!")
 
         # All results already saved to database in real-time
@@ -4564,368 +5155,452 @@ class IHCSeleniumScraper:
         print(f"📊 Total cases found: {len(all_batch_results)}")
         print(f"⏱️ Total duration: {total_duration.total_seconds() / 60:.1f} minutes")
         
-        # PROGRESS TRACKING COMPLETELY REMOVED - NO PROGRESS SUMMARY
+        # Show final progress summary
+        if resume:
+            print(f"\n📊 Final Progress Summary:")
+            self.print_progress_summary()
 
         return all_batch_results
 
-
-def run_test_mode(headless=False):
-    """Run a test to verify the case type vs no case type discovery"""
-    print("🧪 Starting Test Mode to verify case type discovery...")
-
-    scraper = IHCSeleniumScraper(headless=headless)
-    if not scraper.start_driver():
-        return
-
-    print("✅ WebDriver started successfully")
-
-    try:
-        # Test the discovery
-        cases_with_type, cases_without_type = scraper.test_case_type_vs_no_case_type(
-            case_no=1, year=2025
-        )
-
-        if cases_with_type and cases_without_type:
-            print(f"\n🎯 Test completed successfully!")
-            print(f"📊 Results confirm the discovery:")
-            print(f"   - With case type: {len(cases_with_type)} cases")
-            print(f"   - Without case type: {len(cases_without_type)} cases")
-            print(
-                f"   - Improvement: {len(cases_without_type)/len(cases_with_type):.1f}x more results"
-            )
-        else:
-            print(f"\n⚠️ Test completed but results were inconclusive")
-
-        # Test bulk data loading
-        print(f"\n🧪 Testing bulk data loading...")
-        bulk_cases = scraper.test_bulk_data_loading(case_no=1, year=2025)
-
-        if bulk_cases and len(bulk_cases) > 50:
-            print(f"🎯 Bulk data test successful! Found {len(bulk_cases)} cases")
-            print(f"✅ Longer wait times are working correctly for 500+ results")
-        else:
-            print(f"⚠️ Bulk data test may need adjustment")
-
-    except KeyboardInterrupt:
-        print("\n⚠️ Test interrupted by user")
-    except Exception as e:
-        print(f"\n❌ Error during test: {e}")
-    finally:
-        scraper.stop_driver()
-
-
-def run_comprehensive_scraper(headless=False):
-    """Run the comprehensive scraper with all filter combinations"""
-    print("🚀 Starting Comprehensive IHC Selenium Scraper")
-    print("🔍 This will systematically apply all possible filter combinations")
-    print("📋 Case Types:", len(IHCSeleniumScraper().case_types))
-    print("📅 Years:", len(IHCSeleniumScraper().years))
-    print("🔢 Case Numbers:", len(IHCSeleniumScraper().case_numbers))
-
-    scraper = IHCSeleniumScraper(headless=headless)
-    if not scraper.start_driver():
-        return
-
-    print("✅ WebDriver started successfully")
-
-    try:
-        # Run comprehensive search
-        all_cases = scraper.comprehensive_search()
-
-        if all_cases:
-            print(f"\n✅ SUCCESS! Collected {len(all_cases)} total cases")
-            print(f"💾 All cases saved to database in real-time")
-
-        else:
-            print("\n❌ NO DATA COLLECTED!")
-
-    except KeyboardInterrupt:
-        print("\n⚠️ Scraping interrupted by user")
-    except Exception as e:
-        print(f"\n❌ Error during comprehensive search: {e}")
-    finally:
-        scraper.stop_driver()
-
-
-def run_selenium_scraper(
-    start_case_no, end_case_no, year, case_type, headless=False
-):  # Changed default to False
-    """Run the scraper for a range of case numbers"""
-    print(
-        f"🚀 Starting IHC Selenium Scraper for cases {start_case_no}-{end_case_no} from year {year}"
-    )
-    print(f"🔍 Case Type: {case_type}")
-    print(f"👻 Headless Mode: {headless}")
-
-    scraper = IHCSeleniumScraper(headless=headless)
-    if not scraper.start_driver():
-        return
-
-    print("✅ WebDriver started successfully")
-
-    cases = []
-    try:
-        for case_no in range(start_case_no, end_case_no + 1):
-            print(f"\n🔍 Processing case {case_no}/{year}...")
-            all_cases_data = scraper.search_case(case_no, year, case_type)
-
-            if all_cases_data:
-                print(f"✅ Found {len(all_cases_data)} cases for case number {case_no}")
-                # Add all cases to the results
-                cases.extend(all_cases_data)
-                print(f"📊 Total cases collected so far: {len(cases)}")
-            else:
-                print(f"❌ NO REAL DATA found for case {case_no}/{year}")
-
-            # Close the case status tab and switch back to main window before next iteration
-            try:
-                if len(scraper.driver.window_handles) > 1:
-                    scraper.driver.close()  # Close the case status tab
-                    scraper.driver.switch_to.window(
-                        scraper.driver.window_handles[0]
-                    )  # Switch back to main window
-                else:
-                    # If no new window was opened, switch back to default content (in case we're in an iframe)
-                    scraper.driver.switch_to.default_content()
-            except:
-                pass
-
-            # Random delay between requests to appear more human-like
-            time.sleep(random.uniform(3, 5))
-
-    except KeyboardInterrupt:
-        print("\n⚠️ Scraping interrupted by user")
-    finally:
-        scraper.stop_driver()
-
-    if not cases:
-        print("\n❌ NO DATA COLLECTED!")
-        print("   The website might be down or the search returned no results.")
-    else:
-        print(f"\n✅ SUCCESS! Collected {len(cases)} cases")
-
-        # Save data to JSON file
-        output_file = "ihc_cases_2023.json"
+    def validate_current_page(self):
+        """Validate that we're on the correct page and recover if not"""
         try:
-            # Load existing data if file exists
-            existing_data = []
-            if os.path.exists(output_file):
-                with open(output_file, "r", encoding="utf-8") as f:
-                    existing_data = json.load(f)
-                print(
-                    f"📁 Loaded {len(existing_data)} existing cases from {output_file}"
-                )
+            current_url = self.driver.current_url
+            page_title = self.driver.title
+            
+            print(f"🔍 Validating current page: {page_title}")
+            print(f"📍 Current URL: {current_url}")
+            
+            # Check if we're on the expected IHC case status page
+            expected_indicators = [
+                "Case Status",
+                "Islamabad High Court", 
+                "IHC",
+                "case status",
+                "txtCaseno",  # Case number input field
+                "btnSearch",  # Search button
+                "frmcsesrch"  # Case status form URL
+            ]
+            
+            page_source = self.driver.page_source.lower()
+            is_valid_page = any(indicator.lower() in page_source for indicator in expected_indicators)
+            
+            if not is_valid_page:
+                # Check if we're actually on the case status page despite validation failure
+                if "frmcsesrch" in current_url.lower():
+                    print(f"✅ On case status page (URL check), validation passed")
+                    return True
+                
+                print(f"⚠️ WARNING: Worker appears to be on wrong page!")
+                print(f"   Title: {page_title}")
+                print(f"   URL: {current_url}")
+                print(f"   Attempting navigation recovery...")
+                
+                # Try to recover by navigating back to case status
+                return self.recover_navigation()
+            
+            print(f"✅ Page validation passed - on correct IHC case status page")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error validating current page: {e}")
+            return self.recover_navigation()
 
-            # Add new cases to existing data
-            all_cases = existing_data + cases
-            print(f"📊 Total cases to save: {len(all_cases)}")
-
-            # Save to JSON file
-            with open(output_file, "w", encoding="utf-8") as f:
-                json.dump(all_cases, f, indent=2, ensure_ascii=False)
-
-            print(f"💾 Successfully saved {len(cases)} new cases to {output_file}")
-            print(f"📁 Total cases in file: {len(all_cases)}")
+    def recover_navigation(self):
+        """Recover from navigation issues by returning to case status page"""
+        try:
+            print(f"🔄 Attempting navigation recovery...")
+            
+            # Simple recovery: just refresh the page
+            try:
+                print(f"🔄 Attempting page refresh...")
+                self.driver.refresh()
+                time.sleep(5)
+                
+                if self.validate_current_page():
+                    print(f"✅ Successfully recovered via page refresh")
+                    return True
+            except Exception as e:
+                print(f"⚠️ Page refresh failed: {e}")
+            
+            print(f"❌ Navigation recovery failed")
+            return False
 
         except Exception as e:
-            print(f"❌ Error saving data to {output_file}: {e}")
+            print(f"❌ Error in navigation recovery: {e}")
+            return False
 
-    return cases
+    def check_for_unexpected_redirects(self):
+        """Check for unexpected redirects and handle them"""
+        try:
+            current_url = self.driver.current_url
+            page_title = self.driver.title
+            
+            # Check for common redirect scenarios (more specific to avoid false positives)
+            redirect_indicators = [
+                "login",
+                "404",
+                "not found",
+                "access denied",
+                "session expired",
+                "timeout",
+                "maintenance",
+                "error page",
+                "page not found",
+                "server error"
+            ]
+            
+            page_source_lower = self.driver.page_source.lower()
+            title_lower = page_title.lower()
+            url_lower = current_url.lower()
+            
+            # Check if we've been redirected to an unexpected page
+            # But first, check if we're actually on the correct case status page
+            if "frmcsesrch" in url_lower or "case status" in page_source_lower:
+                # We're on the case status page, don't treat as redirect
+                return True
+            
+            for indicator in redirect_indicators:
+                if (indicator in title_lower or 
+                    indicator in url_lower or 
+                    indicator in page_source_lower):
+                    
+                    print(f"⚠️ DETECTED UNEXPECTED REDIRECT: {indicator}")
+                    print(f"   Title: {page_title}")
+                    print(f"   URL: {current_url}")
+                    
+                    # Attempt recovery
+                    if self.recover_navigation():
+                        return True
+                    else:
+                        print(f"❌ Failed to recover from redirect to {indicator}")
+                        return False
+            
+            return True
 
+        except Exception as e:
+            print(f"❌ Error checking for redirects: {e}")
+            return False
 
-def run_simple_test(headless=False):
-    """Run the scraper in simple test mode - just case number = 1"""
-    try:
-        print("🧪 Starting IHC Selenium Scraper in SIMPLE TEST MODE")
-        print(
-            "📋 Simple approach: Reset form → Set case number = 1 → Search → Wait for data → Fetch"
-        )
+    def schedule_case_retry(self, case_no, delay_minutes=30):
+        """
+        Schedule a case for automatic retry after a specified delay
+        
+        Args:
+            case_no: The case number to retry
+            delay_minutes: Minutes to wait before retry (default: 30)
+        """
+        import threading
+        import time
+        
+        def retry_case():
+            print(f"⏰ Scheduled retry for case {case_no} in {delay_minutes} minutes...")
+            time.sleep(delay_minutes * 60)  # Convert minutes to seconds
+            print(f"🔄 Executing scheduled retry for case {case_no}")
+            
+            # Create a new scraper instance for the retry
+            retry_scraper = IHCSeleniumScraper(headless=True, fetch_details=True)
+            if retry_scraper.start_driver():
+                try:
+                    if (retry_scraper.navigate_to_case_status() and 
+                        retry_scraper.fill_search_form_simple(case_no)):
+                        cases = retry_scraper.scrape_results_table(
+                            case_type_empty=True, case_no=case_no
+                        )
+                        if cases:
+                            print(f"✅ Scheduled retry successful for case {case_no}: {len(cases)} results")
+                            # Save results to database
+                            for case_data in cases:
+                                retry_scraper.db_saver.save_case(case_data)
+                        else:
+                            print(f"⚠️ Scheduled retry for case {case_no}: No results found")
+                    else:
+                        print(f"❌ Scheduled retry for case {case_no}: Navigation failed")
+                except Exception as e:
+                    print(f"❌ Scheduled retry for case {case_no} failed: {e}")
+                finally:
+                    retry_scraper.stop_driver()
+            else:
+                print(f"❌ Scheduled retry for case {case_no}: Failed to start driver")
+        
+        # Start retry thread
+        retry_thread = threading.Thread(target=retry_case, daemon=True)
+        retry_thread.start()
+        print(f"📅 Case {case_no} scheduled for retry in {delay_minutes} minutes")
 
-        scraper = IHCSeleniumScraper(headless=headless)
+    def validate_case_completion(self, case_no):
+        """
+        Validate if a case is truly completed based on progress data
+        
+        Args:
+            case_no: The case number to validate
+            
+        Returns:
+            bool: True if case is completed, False if incomplete
+        """
+        if case_no not in self.progress_data:
+            print(f"⚠️ Case {case_no}: No progress data available")
+            return False
+        
+        progress = self.progress_data[str(case_no)]
+        current_row = progress.get('current_row', 0)
+        total_rows = progress.get('total_rows')
+        
+        if total_rows is None:
+            print(f"⚠️ Case {case_no}: Total rows not determined yet")
+            return False
+        
+        if total_rows > 0 and current_row < total_rows:
+            print(f"⚠️ Case {case_no}: Incomplete ({current_row}/{total_rows} rows)")
+            return False
+        
+        print(f"✅ Case {case_no}: Completed ({current_row}/{total_rows} rows)")
+        return True
 
-        if not scraper.start_driver():
-            print("❌ Failed to start WebDriver")
+    def get_incomplete_cases(self):
+        """
+        Get list of cases that are incomplete and need retry
+        
+        Returns:
+            list: List of case numbers that are incomplete
+        """
+        incomplete_cases = []
+        
+        for case_no, progress in self.progress_data.items():
+            current_row = progress.get('current_row', 0)
+            total_rows = progress.get('total_rows')
+            
+            if total_rows and total_rows > 0 and current_row < total_rows:
+                incomplete_cases.append(int(case_no))
+        
+        return incomplete_cases
+
+    def auto_retry_incomplete_cases(self, max_retries=3, delay_minutes=30):
+        """
+        Automatically retry all incomplete cases
+        
+        Args:
+            max_retries: Maximum number of retry attempts per case
+            delay_minutes: Minutes to wait between retries
+        """
+        incomplete_cases = self.get_incomplete_cases()
+        
+        if not incomplete_cases:
+            print("✅ No incomplete cases found")
             return
+        
+        print(f"🔄 Found {len(incomplete_cases)} incomplete cases: {incomplete_cases}")
+        
+        for case_no in incomplete_cases:
+            print(f"📅 Scheduling retry for case {case_no}")
+            self.schedule_case_retry(case_no, delay_minutes)
 
-        # Step 1: Navigate to case status page
-        print("\n🔍 Step 1: Navigating to case status page...")
-        if not scraper.navigate_to_case_status():
-            print("❌ Failed to navigate to case status")
-            scraper.stop_driver()
+    def schedule_case_retry(self, case_no, delay_minutes=30):
+        """
+        Schedule a case for automatic retry after a specified delay
+        
+        Args:
+            case_no: The case number to retry
+            delay_minutes: Minutes to wait before retry (default: 30)
+        """
+        import threading
+        import time
+        
+        def retry_case():
+            print(f"⏰ Scheduled retry for case {case_no} in {delay_minutes} minutes...")
+            time.sleep(delay_minutes * 60)  # Convert minutes to seconds
+            print(f"🔄 Executing scheduled retry for case {case_no}")
+            
+            # Create a new scraper instance for the retry
+            retry_scraper = IHCSeleniumScraper(headless=True, fetch_details=True)
+            if retry_scraper.start_driver():
+                try:
+                    if (retry_scraper.navigate_to_case_status() and 
+                        retry_scraper.fill_search_form_simple(case_no)):
+                        cases = retry_scraper.scrape_results_table(
+                            case_type_empty=True, case_no=case_no
+                        )
+                        if cases:
+                            print(f"✅ Scheduled retry successful for case {case_no}: {len(cases)} results")
+                            # Save results to database
+                            for case_data in cases:
+                                retry_scraper.db_saver.save_case(case_data)
+                        else:
+                            print(f"⚠️ Scheduled retry for case {case_no}: No results found")
+                    else:
+                        print(f"❌ Scheduled retry for case {case_no}: Navigation failed")
+                except Exception as e:
+                    print(f"❌ Scheduled retry for case {case_no} failed: {e}")
+                finally:
+                    retry_scraper.stop_driver()
+            else:
+                print(f"❌ Scheduled retry for case {case_no}: Failed to start driver")
+        
+        # Start retry thread
+        retry_thread = threading.Thread(target=retry_case, daemon=True)
+        retry_thread.start()
+        print(f"📅 Case {case_no} scheduled for retry in {delay_minutes} minutes")
+
+    def validate_case_completion(self, case_no):
+        """
+        Validate if a case is truly completed based on progress data
+        
+        Args:
+            case_no: The case number to validate
+            
+        Returns:
+            bool: True if case is completed, False if incomplete
+        """
+        if case_no not in self.progress_data:
+            print(f"⚠️ Case {case_no}: No progress data available")
+            return False
+        
+        progress = self.progress_data[str(case_no)]
+        current_row = progress.get('current_row', 0)
+        total_rows = progress.get('total_rows')
+        
+        if total_rows is None:
+            print(f"⚠️ Case {case_no}: Total rows not determined yet")
+            return False
+        
+        if total_rows > 0 and current_row < total_rows:
+            print(f"⚠️ Case {case_no}: Incomplete ({current_row}/{total_rows} rows)")
+            return False
+        
+        print(f"✅ Case {case_no}: Completed ({current_row}/{total_rows} rows)")
+        return True
+
+    def get_incomplete_cases(self):
+        """
+        Get list of cases that are incomplete and need retry
+        
+        Returns:
+            list: List of case numbers that are incomplete
+        """
+        incomplete_cases = []
+        
+        for case_no, progress in self.progress_data.items():
+            current_row = progress.get('current_row', 0)
+            total_rows = progress.get('total_rows')
+            
+            if total_rows and total_rows > 0 and current_row < total_rows:
+                incomplete_cases.append(int(case_no))
+        
+        return incomplete_cases
+
+    def auto_retry_incomplete_cases(self, max_retries=3, delay_minutes=30):
+        """
+        Automatically retry all incomplete cases
+        
+        Args:
+            max_retries: Maximum number of retry attempts per case
+            delay_minutes: Minutes to wait between retries
+        """
+        incomplete_cases = self.get_incomplete_cases()
+        
+        if not incomplete_cases:
+            print("✅ No incomplete cases found")
             return
+        
+        print(f"🔄 Found {len(incomplete_cases)} incomplete cases: {incomplete_cases}")
+        
+        for case_no in incomplete_cases:
+            print(f"📅 Scheduling retry for case {case_no}")
+            self.schedule_case_retry(case_no, delay_minutes)
 
-        # Step 2: Fill form with simple approach
-        print("\n📝 Step 2: Filling search form (simple mode)...")
-        if not scraper.fill_search_form_simple():
-            print("❌ Failed to fill search form")
-            scraper.stop_driver()
-            return
+    def _safe_extract_with_retry(self, extraction_func, max_retries=3, retry_delay=2):
+        """Safely execute extraction function with retry logic for stale elements"""
+        for attempt in range(max_retries):
+            try:
+                # Update activity time before each attempt
+                self._update_activity_time()
+                
+                result = extraction_func()
+                if result is not None:
+                    return result
+                    
+            except StaleElementReferenceException as e:
+                print(f"⚠️ Stale element on attempt {attempt + 1}/{max_retries}: {e}")
+                if attempt < max_retries - 1:
+                    print(f"⏳ Waiting {retry_delay}s before retry...")
+                    time.sleep(retry_delay)
+                    # Try to refresh the modal content
+                    self._refresh_modal_content()
+                else:
+                    print(f"❌ Max retries reached for extraction")
+                    return None
+            except Exception as e:
+                print(f"❌ Unexpected error during extraction: {e}")
+                return None
+        
+        return None
 
-        # Step 3: Wait for data to load completely
-        print("\n⏳ Step 3: Waiting for complete data to load...")
-        cases = scraper.scrape_results_table(case_type_empty=True, case_no=1)
+    def _refresh_modal_content(self):
+        """Refresh modal content to handle stale elements"""
+        try:
+            # Try to close and reopen the modal
+            print("🔄 Attempting to refresh modal content...")
+            
+            # Close current modal
+            self.close_case_detail_option_modal()
+            time.sleep(1)
+            
+            # Try to reopen the modal (this would need to be called from the parent method)
+            print("✅ Modal content refreshed")
+            
+        except Exception as e:
+            print(f"⚠️ Error refreshing modal content: {e}")
 
-        # Step 4: Process results
-        if cases:
-            print(f"\n✅ SUCCESS! Found {len(cases)} cases")
-            print("📊 First 3 cases:")
-            for i, case in enumerate(cases[:3]):
-                print(
-                    f"  {i+1}. {case.get('CASE_NO', 'N/A')} - {case.get('CASE_TITLE', 'N/A')[:50]}..."
+    def _safe_find_elements_with_retry(self, driver, by, value, timeout=10, max_retries=3):
+        """Safely find elements with retry logic for stale elements"""
+        for attempt in range(max_retries):
+            try:
+                self._update_activity_time()
+                elements = WebDriverWait(driver, timeout).until(
+                    EC.presence_of_all_elements_located((by, value))
                 )
+                return elements
+            except StaleElementReferenceException as e:
+                print(f"⚠️ Stale element when finding {by}={value}, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(2)
+                    continue
+                else:
+                    print(f"❌ Max retries reached for finding {by}={value}")
+                    return []
+            except TimeoutException as e:
+                print(f"⚠️ Timeout finding {by}={value}")
+                return []
+        
+        return []
 
-            # Save results
-            scraper.save_cases_to_file(
-                cases, "cases_metadata/Islamabad_High_Court/ihc_caseno_1.json"
-            )
-            print(f"💾 Saved {len(cases)} cases to ihc_caseno_1.json")
-        else:
-            print("❌ No cases found")
+    def _safe_get_text_with_retry(self, element, max_retries=3):
+        """Safely get text from element with retry logic"""
+        for attempt in range(max_retries):
+            try:
+                return element.text.strip()
+            except StaleElementReferenceException as e:
+                print(f"⚠️ Stale element when getting text, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                else:
+                    return ""
+        
+        return ""
 
-        scraper.stop_driver()
-
-    except Exception as e:
-        print(f"❌ Simple test error: {e}")
-        if "scraper" in locals():
-            scraper.stop_driver()
-
-
-def run_single_case(case_number, fetch_details=True):
-    """Run scraper for a single specific case number"""
-    try:
-        print(f"🚀 Starting SINGLE CASE {case_number}")
-        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
-
-        # Calculate the correct batch number for this case
-        # Assuming 5 cases per batch: case 1-5 = batch 1, case 6-10 = batch 2, etc.
-        batch_number = ((case_number - 1) // 5) + 1
-        print(f"📊 Using batch {batch_number} for case {case_number}")
-
-        scraper = IHCSeleniumScraper(headless=True, fetch_details=fetch_details)
-        results = scraper.parallel_scrape_cases(
-            batch_number=batch_number,  # Use correct batch number
-            cases_per_batch=1,  # Only 1 case
-            max_workers=1,  # Single worker
-            custom_case_numbers=[case_number],  # Override with specific case
-        )
-
-        print(f"✅ Case {case_number} completed! Found {len(results)} total cases")
-        print(f"💾 All cases saved to database in real-time")
-        return results
-
-    except Exception as e:
-        print(f"❌ Case {case_number} error: {e}")
-        return None
-
-
-def run_single_batch(
-    batch_number=1, cases_per_batch=5, max_workers=3, fetch_details=True
-):
-    """Run a single batch of cases"""
-    try:
-        print(f"🚀 Starting SINGLE BATCH {batch_number}")
-        print(
-            f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch"
-        )
-        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
-
-        scraper = IHCSeleniumScraper(headless=True, fetch_details=fetch_details)
-        results = scraper.parallel_scrape_cases(
-            batch_number=batch_number,
-            cases_per_batch=cases_per_batch,
-            max_workers=max_workers,
-        )
-
-        print(f"✅ Batch {batch_number} completed! Found {len(results)} total cases")
-        print(f"💾 All cases saved to database in real-time")
-        return results
-
-    except Exception as e:
-        print(f"❌ Batch {batch_number} error: {e}")
-        return None
-
-
-def run_multiple_batches(
-    start_batch=1, end_batch=200, cases_per_batch=5, max_workers=3, 
-    fetch_details=True, description="", resume=True
-):
-    """Run multiple batches sequentially with resume capability"""
-    try:
-        print(f"🚀 Starting MULTIPLE BATCHES: {start_batch} to {end_batch}")
-        print(f"📊 Configuration: {max_workers} workers, {cases_per_batch} cases per batch")
-        print(f"🔍 Detailed fetching: {'Enabled' if fetch_details else 'Disabled'}")
-        print(f"🔄 Resume capability: {'Enabled' if resume else 'Disabled'}")
-
-        scraper = IHCSeleniumScraper(headless=True, fetch_details=fetch_details)
-        results = scraper.run_multiple_batches(
-            start_batch=start_batch,
-            end_batch=end_batch,
-            cases_per_batch=cases_per_batch,
-            max_workers=max_workers,
-            fetch_details=fetch_details,
-            description=description,
-            resume=resume
-        )
-
-        print(f"✅ All batches completed! Found {len(results)} total cases")
-        print(f"💾 All cases saved to database in real-time")
-        return results
-
-    except Exception as e:
-        print(f"❌ Multiple batches error: {e}")
-        return None
-
-
-if __name__ == "__main__":
-    # ========================================
-    # 🚀 BATCH-BASED SCRAPING SYSTEM WITH RESUME CAPABILITY
-    # ========================================
-
-    # Option 1: Run a single specific case (NEW - recommended for testing)
-    # This will scrape exactly the case number you specify
-    # Test with case 11 which has a "Decided" case to see detailed fetching
-    # run_single_case(case_number=11, fetch_details=True)
-
-    # Option 2: Run a single batch (cases 1-5, 6-10, etc.)
-    # Batch 1 = Cases 1-5, Batch 2 = Cases 6-10, etc.
-    # Set fetch_details=False for faster scraping without detailed case information
-    # run_single_batch(batch_number=3, cases_per_batch=5, max_workers=3, fetch_details=True)
-
-    # Option 3: Run multiple batches with RESUME CAPABILITY (RECOMMENDED FOR BULK SCRAPING)
-    # The scraper will automatically resume from where it left off if interrupted
-    
-    # Example 1: Start with 5 batches (25 cases) for testing
-    run_multiple_batches(
-        start_batch=1, 
-        end_batch=5, 
-        cases_per_batch=5, 
-        max_workers=3,
-        fetch_details=True,
-        description="Testing resume functionality with 5 batches",
-        resume=True  # Enable resume capability
-    )
-
-    # Example 2: Run all 1000 cases (200 batches of 5 cases each) with resume
-    # run_multiple_batches(
-    #     start_batch=1, 
-    #     end_batch=200, 
-    #     cases_per_batch=5, 
-    #     max_workers=3,
-    #     fetch_details=True,
-    #     description="Full scraping of all 1000 cases",
-    #     resume=True
-    # )
-
-    # Example 3: Force fresh start (ignore previous progress)
-    # run_multiple_batches(
-    #     start_batch=1, 
-    #     end_batch=10, 
-    #     cases_per_batch=5, 
-    #     max_workers=3,
-    #     fetch_details=False,  # Faster scraping
-    #     description="Fresh start - no resume",
-    #     resume=False  # Disable resume capability
-    # )
-
-    # Option 4: Simple test (single case)
-    # run_simple_test(headless=True)
+    def _safe_click_with_retry(self, element, max_retries=3):
+        """Safely click element with retry logic"""
+        for attempt in range(max_retries):
+            try:
+                element.click()
+                return True
+            except StaleElementReferenceException as e:
+                print(f"⚠️ Stale element when clicking, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                else:
+                    return False
+        
+        return False
