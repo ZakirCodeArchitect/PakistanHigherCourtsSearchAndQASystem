@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple script to run the IHC scraper from project root
+Simple script to run the IHC scraper without complex database dependencies
 """
 
 import sys
@@ -9,11 +9,8 @@ import os
 # Add current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import and run the scraper
-from apps.cases.services.scrapers.islamabad_high_court.ihc_selenium_scraper import IHCSeleniumScraper
-
 def main():
-    print("🚀 IHC Scraper - User Interface")
+    print("🚀 IHC Scraper - Simple Version")
     print("=" * 50)
     
     # Ask user for number of workers
@@ -62,6 +59,9 @@ def main():
     print(f"\n🚀 Starting IHC Scraper...")
     
     try:
+        # Import the scraper class directly
+        from apps.cases.services.scrapers.islamabad_high_court.ihc_selenium_scraper import IHCSeleniumScraper
+        
         # Create scraper instance
         scraper = IHCSeleniumScraper()
         
@@ -91,6 +91,8 @@ def main():
         print(f"\n⚠️ Scraper interrupted by user")
     except Exception as e:
         print(f"\n❌ Scraper error: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         print(f"\n🏁 Scraper finished")
 
