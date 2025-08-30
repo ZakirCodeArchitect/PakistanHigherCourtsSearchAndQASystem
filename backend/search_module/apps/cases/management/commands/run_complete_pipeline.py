@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 
 from apps.cases.services.pdf_processor import PDFLinkExtractor, PDFProcessor
 from apps.cases.services.unified_case_service import UnifiedCaseService
+from apps.cases.services.data_cleaner import DataCleaner
 from apps.cases.models import (
     Case, Document, CaseDocument, DocumentText, UnifiedCaseView,
     OrdersData, CommentsData, CaseCmsData, PartiesDetailData
@@ -40,6 +41,11 @@ class CompletePipelineCommand(BaseCommand):
             help='Skip text cleaning step'
         )
         parser.add_argument(
+            '--skip-metadata-clean',
+            action='store_true',
+            help='Skip metadata cleaning step'
+        )
+        parser.add_argument(
             '--skip-unified',
             action='store_true',
             help='Skip unified views creation step'
@@ -55,6 +61,7 @@ class CompletePipelineCommand(BaseCommand):
         self.skip_download = options['skip_download']
         self.skip_extract = options['skip_extract']
         self.skip_clean = options['skip_clean']
+        self.skip_metadata_clean = options['skip_metadata_clean']
         self.skip_unified = options['skip_unified']
         self.validate_only = options['validate_only']
 
@@ -66,6 +73,7 @@ class CompletePipelineCommand(BaseCommand):
             'documents_downloaded': 0,
             'documents_processed': 0,
             'documents_cleaned': 0,
+            'metadata_cleaned': 0,
             'text_records_created': 0,
             'unified_views_created': 0,
             'errors': []
@@ -96,7 +104,11 @@ class CompletePipelineCommand(BaseCommand):
             if not self.skip_clean:
                 self._clean_text()
 
-            # Step 4: Create unified views
+            # Step 4: Clean metadata
+            if not self.skip_metadata_clean:
+                self._clean_metadata()
+
+            # Step 5: Create unified views
             if not self.skip_unified:
                 self._create_unified_views()
 
@@ -300,9 +312,43 @@ class CompletePipelineCommand(BaseCommand):
             )
         )
 
+    def _clean_metadata(self):
+        """Step 4: Clean structured metadata"""
+        self.stdout.write('\n🧹 Step 4: Cleaning structured metadata...')
+        
+        cleaner = DataCleaner()
+        
+        # Clean all structured data
+        stats = cleaner.clean_all_data(force=self.force)
+        
+        self.pipeline_stats['metadata_cleaned'] = (
+            stats['cases_cleaned'] + 
+            stats['orders_cleaned'] + 
+            stats['comments_cleaned'] + 
+            stats['case_details_cleaned'] + 
+            stats['parties_cleaned']
+        )
+        
+        # Print detailed results
+        self.stdout.write(f'Cleaned {stats["cases_cleaned"]} cases')
+        self.stdout.write(f'Cleaned {stats["orders_cleaned"]} orders')
+        self.stdout.write(f'Cleaned {stats["comments_cleaned"]} comments')
+        self.stdout.write(f'Cleaned {stats["case_details_cleaned"]} case details')
+        self.stdout.write(f'Cleaned {stats["parties_cleaned"]} parties')
+        
+        if stats['errors']:
+            for error in stats['errors']:
+                self.stdout.write(f'  ⚠️ {error}')
+        
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'✅ Metadata cleaning completed: {self.pipeline_stats["metadata_cleaned"]} records cleaned'
+            )
+        )
+
     def _create_unified_views(self):
-        """Step 4: Create unified views for all cases"""
-        self.stdout.write('\n🔗 Step 4: Creating unified case views...')
+        """Step 5: Create unified views for all cases"""
+        self.stdout.write('\n🔗 Step 5: Creating unified case views...')
         
         service = UnifiedCaseService()
         
@@ -347,6 +393,7 @@ class CompletePipelineCommand(BaseCommand):
         self.stdout.write(f'  • Documents downloaded: {self.pipeline_stats["documents_downloaded"]}')
         self.stdout.write(f'  • Documents processed: {self.pipeline_stats["documents_processed"]}')
         self.stdout.write(f'  • Documents cleaned: {self.pipeline_stats["documents_cleaned"]}')
+        self.stdout.write(f'  • Metadata cleaned: {self.pipeline_stats["metadata_cleaned"]}')
         self.stdout.write(f'  • Text records created: {self.pipeline_stats["text_records_created"]}')
         self.stdout.write(f'  • Unified views created: {self.pipeline_stats["unified_views_created"]}')
         
