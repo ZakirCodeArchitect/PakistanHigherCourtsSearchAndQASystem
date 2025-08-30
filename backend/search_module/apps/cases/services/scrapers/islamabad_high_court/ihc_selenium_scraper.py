@@ -1313,7 +1313,7 @@ class IHCSeleniumScraper:
                                     
                                     # Proactive activity updates during intensive operations
                                     if i % 5 == 0:  # Update every 5 rows during intensive operations
-                                        self._update_activity_time()
+                                            self._update_activity_time()
                                     
 
                                     
@@ -4029,103 +4029,83 @@ class IHCSeleniumScraper:
             return None
 
     def _extract_hearing_details_data(self, option_content):
-        """Extract data from Hearing Details modal (Case History) with robust stale element handling"""
-        
-        def extract_hearing_details():
-            """Inner function for extraction with retry logic"""
-            try:
-                # Update activity time before extraction
-                self._update_activity_time()
-                
-                # Look for the specific table with id="tblCseHstry" (same as Orders)
-                table = self._safe_find_element(self.driver, By.ID, "tblCseHstry")
-                if not table:
-                    print("⚠️ Hearing Details: Table not found")
-                    return None
-                
-                # Extract headers with retry
+        """Extract data from Hearing Details modal (Case History)"""
+        try:
+            # Look for the specific table with id="tblCseHstry" (same as Orders)
+            table = self.driver.find_element(By.ID, "tblCseHstry")
+            if not table:
+                print("⚠️ Hearing Details: Table not found")
+                return None
+
+                # Extract headers
                 headers = []
-                header_elements = self._safe_find_elements_with_retry(self.driver, By.TAG_NAME, "th", timeout=5)
-                
+            header_elements = self.driver.find_elements(By.TAG_NAME, "th")
+            
                 for header in header_elements:
-                    header_text = self._safe_get_text_with_retry(header)
-                    if header_text:
-                        headers.append(header_text)
+                header_text = header.text.strip()
+                if header_text:
+                    headers.append(header_text)
 
                 if headers:
                     option_content["content"]["headers"] = headers
-                    print(f"✅ Hearing Details: Found {len(headers)} headers: {headers}")
+                print(f"✅ Hearing Details: Found {len(headers)} headers: {headers}")
 
-                # Single comprehensive row extraction approach (avoiding duplicate DOM traversals)
+            # Extract rows from the specific table
                 rows = []
-                
-                # Get all tbody elements first
-                tbody_elements = self._safe_find_elements_with_retry(self.driver, By.TAG_NAME, "tbody", timeout=5)
-                
-                if tbody_elements:
-                    print(f"🔍 Hearing Details: Found {len(tbody_elements)} tbody elements")
-                    
-                    for tbody_index, tbody in enumerate(tbody_elements):
-                        # Update activity time for each tbody
-                        self._update_activity_time()
-                        
-                        tbody_rows = self._safe_find_elements_with_retry(tbody, By.TAG_NAME, "tr", timeout=5)
-                        print(f"🔍 Hearing Details: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
+
+            # Get tbody from the specific table
+            tbody = table.find_element(By.TAG_NAME, "tbody")
+            if tbody:
+                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
+                print(f"🔍 Hearing Details: Found {len(tbody_rows)} rows in tbody")
 
                         for row_index, row in enumerate(tbody_rows):
-                            # Update activity time for each row
-                            self._update_activity_time()
-                            
-                            cells = self._safe_find_elements_with_retry(row, By.TAG_NAME, "td", timeout=5)
+                            cells = row.find_elements(By.TAG_NAME, "td")
                             row_data = []
 
                             for cell_index, cell in enumerate(cells):
-                                cell_text = self._safe_get_text_with_retry(cell)
+                                cell_text = cell.text.strip()
 
                                 # Special handling for VIEW column (last column)
-                                if cell_index == len(cells) - 1 and headers and "VIEW" in headers[-1]:
-                                    # Look for download links in the VIEW column with retry
+                        if cell_index == len(cells) - 1 and headers and "VIEW" in headers[-1]:
+                                    # Look for download links in the VIEW column
                                     try:
-                                        download_links = self._safe_find_elements_with_retry(cell, By.TAG_NAME, "a", timeout=3)
+                                download_links = cell.find_elements(By.TAG_NAME, "a")
                                         if download_links:
                                             link_data = []
                                             for link in download_links:
-                                                try:
-                                                    href = link.get_attribute("href")
-                                                    title = link.get_attribute("title") or ""
-                                                    link_text = self._safe_get_text_with_retry(link)
+                                                href = link.get_attribute("href")
+                                        title = link.get_attribute("title") or ""
+                                                link_text = link.text.strip()
 
-                                                    if href:
-                                                        link_info = {
-                                                            "href": href,
-                                                            "title": title,
-                                                            "text": link_text,
-                                                        }
-                                                        link_data.append(link_info)
-                                                except StaleElementReferenceException:
-                                                    print(f"⚠️ Stale link element, skipping...")
-                                                    continue
+                                                if href:
+                                                    link_info = {
+                                                        "href": href,
+                                                        "title": title,
+                                                        "text": link_text,
+                                                    }
+                                                    link_data.append(link_info)
 
                                             if link_data:
                                                 row_data.append(link_data)
-                                                print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}")
+                                        print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in row {row_index + 1}")
                                             else:
                                                 row_data.append(cell_text)
                                         else:
                                             row_data.append(cell_text)
                                     except Exception as link_error:
-                                        print(f"⚠️ Error extracting VIEW column links: {link_error}")
+                                print(f"⚠️ Error extracting VIEW column links: {link_error}")
                                         row_data.append(cell_text)
                                 else:
                                     row_data.append(cell_text)
 
-                            print(f"🔍 Hearing Details: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                    print(f"🔍 Hearing Details: Row {row_index + 1} has {len(cells)} cells: {row_data}")
 
                             # Include row if it has any data (not just empty cells)
                             if row_data and any(
                                 cell_text
                                 for cell_text in row_data
-                                if isinstance(cell_text, str) and cell_text.strip()
+                        if isinstance(cell_text, str) and cell_text.strip()
                             ):
                                 # Skip rows that contain "No data available"
                                 if not any(
@@ -4135,29 +4115,23 @@ class IHCSeleniumScraper:
                                     # Check if this row is already added
                                     if row_data not in rows:
                                         rows.append(row_data)
-                                        print(f"✅ Hearing Details: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                print(f"✅ Hearing Details: Added row {row_index + 1}: {row_data}")
                                 else:
-                                    print(f"⚠️ Hearing Details: Skipping 'No data available' tbody row: {row_data}")
+                            print(f"⚠️ Hearing Details: Skipping 'No data available' row: {row_data}")
                             else:
-                                print(f"⚠️ Hearing Details: Skipping empty tbody row: {row_data}")
+                        print(f"⚠️ Hearing Details: Skipping empty row: {row_data}")
 
                 if rows:
                     option_content["content"]["rows"] = rows
-                    print(f"✅ Hearing Details: Found {len(rows)} data rows with VIEW column links")
+                print(f"✅ Hearing Details: Found {len(rows)} data rows")
                 else:
                     print("⚠️ Hearing Details: No data rows found")
 
                 return option_content
 
-            except StaleElementReferenceException as e:
-                print(f"⚠️ Stale element during Hearing Details extraction: {e}")
-                raise  # Re-raise to be caught by retry logic
-            except Exception as e:
-                print(f"❌ Unexpected error during Hearing Details extraction: {e}")
-                return None
-        
-        # Use the retry wrapper for the entire extraction
-        return self._safe_extract_with_retry(extract_hearing_details, max_retries=3, retry_delay=3)
+        except Exception as e:
+            print(f"❌ Error extracting Hearing Details data: {e}")
+            return None
 
     def close_case_detail_option_modal(self):
         """Close a case detail option modal/popup"""
