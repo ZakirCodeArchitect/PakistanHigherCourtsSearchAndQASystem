@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-08-31T00:49:38.625250",
+  "total_cases": 355,
+  "data_quality_scores": {
+    "completeness": {
+      "orders_coverage": 16.619718309859156,
+      "comments_coverage": 0.5633802816901409,
+      "details_coverage": 30.422535211267604,
+      "parties_coverage": 23.098591549295776
+    },
+    "detailed_scores": {
+      "case_titles": {
+        "avg_score": 0.9991549295774648,
+        "min_score": 0.7,
+        "max_score": 1.0,
+        "scores_above_0.8": 354,
+        "total_samples": 355
+      },
+      "order_texts": {
+        "avg_score": 0.8742209631728046,
+        "min_score": 0.4000000000000001,
+        "max_score": 1.0,
+        "scores_above_0.8": 262,
+        "total_samples": 353
+      }
+    }
+  },
+  "cleaning_effectiveness": {
+    "avg_case_title_score": 0.9991549295774648,
+    "avg_order_text_score": 0.8742209631728046,
+    "separator_standardization": 100.0,
+    "legal_term_expansion": 0.0
+  },
+  "pipeline_performance": {
+    "documents_downloaded": 100.0,
+    "documents_with_text": 100.0,
+    "unified_views_complete": 100.0
+  },
+  "issues_found": [
+    "Low orders_coverage: 16.6%",
+    "Low comments_coverage: 0.6%",
+    "Low details_coverage: 30.4%",
+    "Low parties_coverage: 23.1%"
+  ],
+  "recommendations": [
+    "Address the identified issues before proceeding"
+  ]
+}
