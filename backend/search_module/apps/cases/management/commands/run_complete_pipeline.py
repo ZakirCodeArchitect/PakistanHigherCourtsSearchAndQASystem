@@ -120,9 +120,21 @@ class CompletePipelineCommand(BaseCommand):
         self.pipeline_stats['cases_with_pdfs'] = Case.objects.filter(
             case_documents__isnull=False
         ).distinct().count()
+        # Count cases with ANY type of metadata (comprehensive)
         self.pipeline_stats['cases_with_metadata'] = Case.objects.filter(
             orders_data__isnull=False
-        ).distinct().count()
+        ).distinct() | Case.objects.filter(
+            comments_data__isnull=False
+        ).distinct() | Case.objects.filter(
+            case_cms_data__isnull=False
+        ).distinct() | Case.objects.filter(
+            parties_detail_data__isnull=False
+        ).distinct() | Case.objects.filter(
+            case_detail__isnull=False
+        ).distinct() | Case.objects.filter(
+            judgement_data__isnull=False
+        ).distinct()
+        self.pipeline_stats['cases_with_metadata'] = self.pipeline_stats['cases_with_metadata'].distinct().count()
 
         # Count documents
         self.pipeline_stats['documents_downloaded'] = Document.objects.filter(
