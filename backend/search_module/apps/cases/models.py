@@ -96,40 +96,40 @@ class CaseDetail(models.Model):
     )
 
     # Detailed case information from scraper
-    case_status = models.CharField(max_length=50, blank=True)  # CASE_STATUS
+    case_status = models.CharField(max_length=50, blank=True, null=True)  # CASE_STATUS
     hearing_date_detailed = models.CharField(
-        max_length=200, blank=True
+        max_length=200, blank=True, null=True
     )  # HEARING_DATE_DETAILED
-    case_stage = models.CharField(max_length=100, blank=True)  # CASE_STAGE
-    tentative_date = models.CharField(max_length=50, blank=True)  # TENTATIVE_DATE
-    short_order = models.CharField(max_length=200, blank=True)  # SHORT_ORDER
-    before_bench = models.CharField(max_length=400, blank=True)  # BEFORE_BENCH
+    case_stage = models.CharField(max_length=100, blank=True, null=True)  # CASE_STAGE
+    tentative_date = models.CharField(max_length=50, blank=True, null=True)  # TENTATIVE_DATE
+    short_order = models.CharField(max_length=200, blank=True, null=True)  # SHORT_ORDER
+    before_bench = models.CharField(max_length=400, blank=True, null=True)  # BEFORE_BENCH
     case_title_detailed = models.CharField(
-        max_length=800, blank=True
+        max_length=800, blank=True, null=True
     )  # CASE_TITLE_DETAILED
     advocates_petitioner = models.CharField(
-        max_length=300, blank=True
+        max_length=300, blank=True, null=True
     )  # ADVOCATES_PETITIONER
     advocates_respondent = models.CharField(
-        max_length=300, blank=True
+        max_length=300, blank=True, null=True
     )  # ADVOCATES_RESPONDENT
-    case_description = models.TextField(blank=True)  # CASE_DESCRIPTION
+    case_description = models.TextField(blank=True, null=True)  # CASE_DESCRIPTION
     disposed_of_status = models.CharField(
-        max_length=150, blank=True
+        max_length=150, blank=True, null=True
     )  # DISPOSED_OF_STATUS
     case_disposal_date = models.CharField(
-        max_length=20, blank=True
+        max_length=20, blank=True, null=True
     )  # CASE_DISPOSAL_DATE
-    disposal_bench = models.CharField(max_length=400, blank=True)  # DISPOSAL_BENCH
-    consigned_date = models.CharField(max_length=20, blank=True)  # CONSIGNED_DATE
+    disposal_bench = models.CharField(max_length=400, blank=True, null=True)  # DISPOSAL_BENCH
+    consigned_date = models.CharField(max_length=20, blank=True, null=True)  # CONSIGNED_DATE
     
     # FIR information (for criminal cases)
-    fir_number = models.CharField(max_length=50, blank=True)  # FIR_NUMBER
-    fir_date = models.CharField(max_length=20, blank=True)  # FIR_DATE
-    police_station = models.CharField(max_length=200, blank=True)  # POLICE_STATION
-    under_section = models.CharField(max_length=200, blank=True)  # UNDER_SECTION
-    incident = models.TextField(blank=True)  # INCIDENT
-    name_of_accused = models.CharField(max_length=200, blank=True)  # NAME_OF_ACCUSED
+    fir_number = models.CharField(max_length=50, blank=True, null=True)  # FIR_NUMBER
+    fir_date = models.CharField(max_length=20, blank=True, null=True)  # FIR_DATE
+    police_station = models.CharField(max_length=200, blank=True, null=True)  # POLICE_STATION
+    under_section = models.CharField(max_length=200, blank=True, null=True)  # UNDER_SECTION
+    incident = models.TextField(blank=True, null=True)  # INCIDENT
+    name_of_accused = models.CharField(max_length=200, blank=True, null=True)  # NAME_OF_ACCUSED
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -172,12 +172,12 @@ class OrdersData(models.Model):
 
     # Orders table data from scraper
     sr_number = models.CharField(max_length=20)  # row[0]
-    hearing_date = models.CharField(max_length=50, blank=True)  # row[1]
-    bench = models.CharField(max_length=400, blank=True)  # row[2]
-    list_type = models.CharField(max_length=100, blank=True)  # row[3]
-    case_stage = models.CharField(max_length=100, blank=True)  # row[4]
-    short_order = models.CharField(max_length=200, blank=True)  # row[5]
-    disposal_date = models.CharField(max_length=50, blank=True)  # row[6]
+    hearing_date = models.CharField(max_length=50, blank=True, null=True)  # row[1]
+    bench = models.CharField(max_length=400, blank=True, null=True)  # row[2]
+    list_type = models.CharField(max_length=100, blank=True, null=True)  # row[3]
+    case_stage = models.CharField(max_length=100, blank=True, null=True)  # row[4]
+    short_order = models.CharField(max_length=200, blank=True, null=True)  # row[5]
+    disposal_date = models.CharField(max_length=50, blank=True, null=True)  # row[6]
     view_link = models.JSONField(
         default=list, blank=True
     )  # row[7] (array of link objects)
@@ -246,12 +246,12 @@ class CaseCmsData(models.Model):
 
     # Case CMs table data from scraper
     sr_number = models.CharField(max_length=20)  # row[0]
-    cm = models.CharField(max_length=300, blank=True)  # row[1]
-    institution = models.CharField(max_length=50, blank=True)  # row[2]
-    disposal_date = models.CharField(max_length=50, blank=True)  # row[3]
-    order_passed = models.CharField(max_length=300, blank=True)  # row[4]
-    description = models.CharField(max_length=300, blank=True)  # row[5]
-    status = models.CharField(max_length=50, blank=True)  # row[6]
+    cm = models.CharField(max_length=300, blank=True, null=True)  # row[1]
+    institution = models.CharField(max_length=50, blank=True, null=True)  # row[2]
+    disposal_date = models.CharField(max_length=50, blank=True, null=True)  # row[3]
+    order_passed = models.CharField(max_length=300, blank=True, null=True)  # row[4]
+    description = models.CharField(max_length=300, blank=True, null=True)  # row[5]
+    status = models.CharField(max_length=50, blank=True, null=True)  # row[6]
 
     # Source identification
     source_type = models.CharField(max_length=20, default='main', choices=[

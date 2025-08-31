@@ -350,6 +350,34 @@ class VocabularyExtractor:
         advocates = self._extract_advocates_and_parties(text)
         extracted_terms.extend(advocates)
         
+        # Extract case types
+        case_types = self._extract_case_types(text, case)
+        extracted_terms.extend(case_types)
+        
+        # Extract years
+        years = self._extract_years(text, case)
+        extracted_terms.extend(years)
+        
+        # Extract status
+        statuses = self._extract_status(text, case)
+        extracted_terms.extend(statuses)
+        
+        # Extract bench types
+        bench_types = self._extract_bench_types(text)
+        extracted_terms.extend(bench_types)
+        
+        # Extract appeals
+        appeals = self._extract_appeals(text)
+        extracted_terms.extend(appeals)
+        
+        # Extract petitioners
+        petitioners = self._extract_petitioners(text, case)
+        extracted_terms.extend(petitioners)
+        
+        # Extract legal issues
+        legal_issues = self._extract_legal_issues(text)
+        extracted_terms.extend(legal_issues)
+        
         return extracted_terms
     
     def _extract_sections_and_statutes(self, text: str) -> List[ExtractedTerm]:
@@ -625,6 +653,258 @@ class VocabularyExtractor:
         
         return min(confidence, 1.0)
     
+    def _extract_case_types(self, text: str, case: Case) -> List[ExtractedTerm]:
+        """Extract case types from case data and text"""
+        terms = []
+        
+        # Extract from case title and description
+        case_type_patterns = [
+            r'(?:case\s+type|type\s+of\s+case):\s*([^,\n]+)',
+            r'(?:writ\s+petition|civil\s+petition|criminal\s+petition|constitutional\s+petition)',
+            r'(?:appeal|review|revision|reference)',
+            r'(?:suo\s+moto|suo\s+motu)',
+            r'(?:constitutional\s+petition|writ\s+petition)',
+        ]
+        
+        for pattern in case_type_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                case_type = match.group(1) if match.groups() else match.group(0)
+                case_type = self._normalize_case_type(case_type)
+                
+                if case_type:
+                    terms.append(ExtractedTerm(
+                        type='case_type',
+                        canonical=case_type,
+                        surface=match.group(0),
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        confidence=self._calculate_case_type_confidence(match.group(0)),
+                        source_rule='case_type_pattern'
+                    ))
+        
+        return terms
+    
+    def _extract_years(self, text: str, case: Case) -> List[ExtractedTerm]:
+        """Extract years from case data and text"""
+        terms = []
+        
+        # Extract from case institution date
+        if case.institution_date:
+            # Handle both string and datetime objects
+            if hasattr(case.institution_date, 'year'):
+                year = str(case.institution_date.year)
+            else:
+                # Try to extract year from string format
+                year_match = re.search(r'\b(19|20)\d{2}\b', str(case.institution_date))
+                if year_match:
+                    year = year_match.group(0)
+                else:
+                    year = None
+            
+            if year and 1900 <= int(year) <= 2025:
+                terms.append(ExtractedTerm(
+                    type='year',
+                    canonical=year,
+                    surface=year,
+                    start_char=0,
+                    end_char=len(year),
+                    confidence=0.95,
+                    source_rule='case_institution_date'
+                ))
+        
+        # Extract years from text (4-digit years)
+        year_pattern = r'\b(19|20)\d{2}\b'
+        for match in re.finditer(year_pattern, text):
+            year = match.group(0)
+            # Only add if it's a reasonable year (1900-2025)
+            if 1900 <= int(year) <= 2025:
+                terms.append(ExtractedTerm(
+                    type='year',
+                    canonical=year,
+                    surface=match.group(0),
+                    start_char=match.start(),
+                    end_char=match.end(),
+                    confidence=0.9,
+                    source_rule='year_pattern'
+                ))
+        
+        return terms
+    
+    def _extract_status(self, text: str, case: Case) -> List[ExtractedTerm]:
+        """Extract case status from case data and text"""
+        terms = []
+        
+        # Extract from case status field
+        if case.status:
+            status = case.status.strip()
+            if status:
+                terms.append(ExtractedTerm(
+                    type='status',
+                    canonical=status,
+                    surface=status,
+                    start_char=0,
+                    end_char=len(status),
+                    confidence=0.95,
+                    source_rule='case_status_field'
+                ))
+        
+        # Extract status from text
+        status_patterns = [
+            r'(?:case\s+status|status):\s*([^,\n]+)',
+            r'\b(pending|decided|disposed|dismissed|allowed|rejected|withdrawn)\b',
+        ]
+        
+        for pattern in status_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                status = match.group(1) if match.groups() else match.group(0)
+                status = self._normalize_status(status)
+                
+                if status:
+                    terms.append(ExtractedTerm(
+                        type='status',
+                        canonical=status,
+                        surface=match.group(0),
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        confidence=self._calculate_status_confidence(match.group(0)),
+                        source_rule='status_pattern'
+                    ))
+        
+        return terms
+    
+    def _extract_bench_types(self, text: str) -> List[ExtractedTerm]:
+        """Extract bench types from text"""
+        terms = []
+        
+        bench_patterns = [
+            r'(?:the\s+)?(?:honorable|honourable)\s+(?:chief\s+)?justice',
+            r'(?:acting\s+)?(?:chief\s+)?justice',
+            r'(?:senior\s+)?(?:puisne\s+)?judge',
+            r'(?:division\s+)?bench',
+            r'(?:full\s+)?bench',
+            r'(?:constitutional\s+)?bench',
+        ]
+        
+        for pattern in bench_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                bench_type = self._normalize_bench_type(match.group(0))
+                
+                if bench_type:
+                    terms.append(ExtractedTerm(
+                        type='bench_type',
+                        canonical=bench_type,
+                        surface=match.group(0),
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        confidence=self._calculate_bench_type_confidence(match.group(0)),
+                        source_rule='bench_type_pattern'
+                    ))
+        
+        return terms
+    
+    def _extract_appeals(self, text: str) -> List[ExtractedTerm]:
+        """Extract appeal types from text"""
+        terms = []
+        
+        appeal_patterns = [
+            r'\b(appeal|review|revision|reference|petition|application)\b',
+            r'(?:civil\s+|criminal\s+|constitutional\s+)?(?:appeal|review|revision)',
+            r'(?:special\s+)?(?:leave\s+)?(?:to\s+)?(?:appeal|review)',
+        ]
+        
+        for pattern in appeal_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                appeal = self._normalize_appeal(match.group(0))
+                
+                if appeal:
+                    terms.append(ExtractedTerm(
+                        type='appeal',
+                        canonical=appeal,
+                        surface=match.group(0),
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        confidence=self._calculate_appeal_confidence(match.group(0)),
+                        source_rule='appeal_pattern'
+                    ))
+        
+        return terms
+    
+    def _extract_petitioners(self, text: str, case: Case) -> List[ExtractedTerm]:
+        """Extract petitioners from case data and text"""
+        terms = []
+        
+        # Extract from case title (petitioner is usually first)
+        if case.case_title:
+            # Look for petitioner in case title (before "vs" or "v.")
+            title = case.case_title
+            vs_pattern = r'\s+(?:vs?\.?|versus)\s+'
+            vs_match = re.search(vs_pattern, title, re.IGNORECASE)
+            
+            if vs_match:
+                petitioner = title[:vs_match.start()].strip()
+                if petitioner:
+                    terms.append(ExtractedTerm(
+                        type='petitioner',
+                        canonical=petitioner,
+                        surface=petitioner,
+                        start_char=0,
+                        end_char=len(petitioner),
+                        confidence=0.9,
+                        source_rule='case_title_petitioner'
+                    ))
+        
+        # Extract from text patterns
+        petitioner_patterns = [
+            r'(?:petitioner|applicant):\s*([^,\n]+)',
+            r'(?:petitioner|applicant)\s+([^,\n]+?)(?:\s+vs?\.?|$)',
+        ]
+        
+        for pattern in petitioner_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                petitioner = match.group(1).strip()
+                if petitioner:
+                    terms.append(ExtractedTerm(
+                        type='petitioner',
+                        canonical=petitioner,
+                        surface=match.group(0),
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        confidence=self._calculate_petitioner_confidence(match.group(0)),
+                        source_rule='petitioner_pattern'
+                    ))
+        
+        return terms
+    
+    def _extract_legal_issues(self, text: str) -> List[ExtractedTerm]:
+        """Extract legal issues from text"""
+        terms = []
+        
+        # Legal issue patterns
+        issue_patterns = [
+            r'(?:legal\s+)?(?:issue|question):\s*([^,\n]+)',
+            r'(?:constitutional\s+)?(?:question|issue)\s+of\s+([^,\n]+)',
+            r'\b(constitutional|criminal|civil|administrative|tax|banking|family|property|contract|tort)\b',
+            r'(?:matter\s+of|regarding|concerning)\s+([^,\n]+)',
+        ]
+        
+        for pattern in issue_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                issue = match.group(1) if match.groups() else match.group(0)
+                issue = self._normalize_legal_issue(issue)
+                
+                if issue:
+                    terms.append(ExtractedTerm(
+                        type='legal_issue',
+                        canonical=issue,
+                        surface=match.group(0),
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        confidence=self._calculate_legal_issue_confidence(match.group(0)),
+                        source_rule='legal_issue_pattern'
+                    ))
+        
+        return terms
+    
     def _calculate_court_confidence(self, match_text: str) -> float:
         """Calculate confidence for court extraction"""
         confidence = 0.85  # Base confidence
@@ -676,6 +956,166 @@ class VocabularyExtractor:
             confidence += 0.05
         
         return min(confidence, 1.0)
+    
+    def _calculate_case_type_confidence(self, match_text: str) -> float:
+        """Calculate confidence for case type extraction"""
+        confidence = 0.85  # Base confidence
+        
+        # Boost confidence for specific case types
+        case_types = ['writ petition', 'civil petition', 'criminal petition', 'constitutional petition', 'appeal', 'review']
+        if any(ct in match_text.lower() for ct in case_types):
+            confidence += 0.1
+        
+        return min(confidence, 1.0)
+    
+    def _calculate_status_confidence(self, match_text: str) -> float:
+        """Calculate confidence for status extraction"""
+        confidence = 0.85  # Base confidence
+        
+        # Boost confidence for specific statuses
+        statuses = ['pending', 'decided', 'disposed', 'dismissed', 'allowed', 'rejected', 'withdrawn']
+        if any(status in match_text.lower() for status in statuses):
+            confidence += 0.1
+        
+        return min(confidence, 1.0)
+    
+    def _calculate_bench_type_confidence(self, match_text: str) -> float:
+        """Calculate confidence for bench type extraction"""
+        confidence = 0.8  # Base confidence
+        
+        # Boost confidence for specific bench types
+        bench_types = ['chief justice', 'justice', 'judge', 'bench']
+        if any(bt in match_text.lower() for bt in bench_types):
+            confidence += 0.15
+        
+        return min(confidence, 1.0)
+    
+    def _calculate_appeal_confidence(self, match_text: str) -> float:
+        """Calculate confidence for appeal extraction"""
+        confidence = 0.85  # Base confidence
+        
+        # Boost confidence for specific appeal types
+        appeal_types = ['appeal', 'review', 'revision', 'reference', 'petition', 'application']
+        if any(at in match_text.lower() for at in appeal_types):
+            confidence += 0.1
+        
+        return min(confidence, 1.0)
+    
+    def _calculate_petitioner_confidence(self, match_text: str) -> float:
+        """Calculate confidence for petitioner extraction"""
+        confidence = 0.8  # Base confidence
+        
+        # Boost confidence for structured format
+        if re.search(r'(petitioner|applicant):', match_text, re.IGNORECASE):
+            confidence += 0.15
+        
+        return min(confidence, 1.0)
+    
+    def _calculate_legal_issue_confidence(self, match_text: str) -> float:
+        """Calculate confidence for legal issue extraction"""
+        confidence = 0.8  # Base confidence
+        
+        # Boost confidence for specific legal areas
+        legal_areas = ['constitutional', 'criminal', 'civil', 'administrative', 'tax', 'banking', 'family', 'property']
+        if any(area in match_text.lower() for area in legal_areas):
+            confidence += 0.15
+        
+        return min(confidence, 1.0)
+    
+    # Normalization methods for new facet types
+    def _normalize_case_type(self, case_type: str) -> str:
+        """Normalize case type"""
+        case_type = case_type.strip().lower()
+        
+        # Map variations to standard forms
+        case_type_mapping = {
+            'writ petition': 'Writ Petition',
+            'civil petition': 'Civil Petition',
+            'criminal petition': 'Criminal Petition',
+            'constitutional petition': 'Constitutional Petition',
+            'appeal': 'Appeal',
+            'review': 'Review',
+            'revision': 'Revision',
+            'reference': 'Reference',
+            'suo moto': 'Suo Moto',
+            'suo motu': 'Suo Moto',
+        }
+        
+        return case_type_mapping.get(case_type, case_type.title())
+    
+    def _normalize_status(self, status: str) -> str:
+        """Normalize case status"""
+        status = status.strip().lower()
+        
+        # Map variations to standard forms
+        status_mapping = {
+            'pending': 'Pending',
+            'decided': 'Decided',
+            'disposed': 'Disposed',
+            'dismissed': 'Dismissed',
+            'allowed': 'Allowed',
+            'rejected': 'Rejected',
+            'withdrawn': 'Withdrawn',
+        }
+        
+        return status_mapping.get(status, status.title())
+    
+    def _normalize_bench_type(self, bench_type: str) -> str:
+        """Normalize bench type"""
+        bench_type = bench_type.strip().lower()
+        
+        # Map variations to standard forms
+        bench_mapping = {
+            'chief justice': 'Chief Justice',
+            'acting chief justice': 'Acting Chief Justice',
+            'justice': 'Justice',
+            'senior judge': 'Senior Judge',
+            'puisne judge': 'Puisne Judge',
+            'division bench': 'Division Bench',
+            'full bench': 'Full Bench',
+            'constitutional bench': 'Constitutional Bench',
+        }
+        
+        return bench_mapping.get(bench_type, bench_type.title())
+    
+    def _normalize_appeal(self, appeal: str) -> str:
+        """Normalize appeal type"""
+        appeal = appeal.strip().lower()
+        
+        # Map variations to standard forms
+        appeal_mapping = {
+            'appeal': 'Appeal',
+            'review': 'Review',
+            'revision': 'Revision',
+            'reference': 'Reference',
+            'petition': 'Petition',
+            'application': 'Application',
+            'civil appeal': 'Civil Appeal',
+            'criminal appeal': 'Criminal Appeal',
+            'constitutional appeal': 'Constitutional Appeal',
+        }
+        
+        return appeal_mapping.get(appeal, appeal.title())
+    
+    def _normalize_legal_issue(self, issue: str) -> str:
+        """Normalize legal issue"""
+        issue = issue.strip().lower()
+        
+        # Map variations to standard forms
+        issue_mapping = {
+            'constitutional': 'Constitutional',
+            'criminal': 'Criminal',
+            'civil': 'Civil',
+            'administrative': 'Administrative',
+            'tax': 'Tax',
+            'banking': 'Banking',
+            'family': 'Family',
+            'property': 'Property',
+            'contract': 'Contract',
+            'tort': 'Tort',
+        }
+        
+        return issue_mapping.get(issue, issue.title())
     
     @transaction.atomic
     def _store_terms_and_occurrences(self, extracted_terms: List[ExtractedTerm], 
