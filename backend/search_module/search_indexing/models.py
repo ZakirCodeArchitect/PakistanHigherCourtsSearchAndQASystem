@@ -185,6 +185,67 @@ class FacetIndex(models.Model):
         db_table = "facet_indexes"
 
 
+class FacetTerm(models.Model):
+    """Normalized facet terms for optimized storage and querying"""
+    
+    # Facet information
+    facet_type = models.CharField(max_length=50, db_index=True)
+    canonical_term = models.CharField(max_length=500, db_index=True)
+    
+    # Statistics
+    occurrence_count = models.IntegerField(default=0)
+    case_count = models.IntegerField(default=0)
+    
+    # Boost configuration
+    boost_factor = models.FloatField(default=1.0)
+    
+    # Status
+    is_active = models.BooleanField(default=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.facet_type}: {self.canonical_term} ({self.case_count} cases)"
+    
+    class Meta:
+        db_table = "facet_terms"
+        unique_together = ['facet_type', 'canonical_term']
+        indexes = [
+            models.Index(fields=['facet_type', 'occurrence_count']),
+            models.Index(fields=['facet_type', 'case_count']),
+            models.Index(fields=['canonical_term']),
+        ]
+
+
+class FacetMapping(models.Model):
+    """Mapping between facet terms and cases for fast lookups"""
+    
+    # Relationships
+    facet_term = models.ForeignKey(FacetTerm, on_delete=models.CASCADE, related_name='mappings')
+    
+    # Case reference
+    case_id = models.IntegerField(db_index=True)
+    
+    # Additional metadata
+    occurrence_count = models.IntegerField(default=1)  # How many times this term appears in this case
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.facet_term.canonical_term} -> Case {self.case_id}"
+    
+    class Meta:
+        db_table = "facet_mappings"
+        unique_together = ['facet_term', 'case_id']
+        indexes = [
+            models.Index(fields=['case_id']),
+            models.Index(fields=['facet_term', 'case_id']),
+        ]
+
+
 class IndexingLog(models.Model):
     """Log of indexing operations for observability"""
     
