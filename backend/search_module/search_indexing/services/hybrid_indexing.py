@@ -13,6 +13,7 @@ from django.db import transaction
 
 from ..models import IndexingConfig, IndexingLog, SearchMetadata
 from .vector_indexing import VectorIndexingService
+from .pinecone_indexing import PineconeIndexingService
 from .keyword_indexing import KeywordIndexingService
 
 logger = logging.getLogger(__name__)
@@ -21,8 +22,12 @@ logger = logging.getLogger(__name__)
 class HybridIndexingService:
     """Service for building and managing hybrid indexes"""
     
-    def __init__(self):
-        self.vector_service = VectorIndexingService()
+    def __init__(self, use_pinecone: bool = True):
+        self.use_pinecone = use_pinecone
+        if use_pinecone:
+            self.vector_service = PineconeIndexingService()
+        else:
+            self.vector_service = VectorIndexingService()
         self.keyword_service = KeywordIndexingService()
         self.config = self._load_config()
     
@@ -68,8 +73,12 @@ class HybridIndexingService:
             # Build vector index (unless keyword_only is specified)
             if not keyword_only:
                 try:
-                    logger.info("Building vector index...")
-                    vector_stats = self.vector_service.build_vector_index(force=force)
+                    if self.use_pinecone:
+                        logger.info("Building Pinecone vector index...")
+                        vector_stats = self.vector_service.build_pinecone_index(force=force)
+                    else:
+                        logger.info("Building FAISS vector index...")
+                        vector_stats = self.vector_service.build_vector_index(force=force)
                     
                     if vector_stats['index_built']:
                         stats['vector_indexed'] = True
