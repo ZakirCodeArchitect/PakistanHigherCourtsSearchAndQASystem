@@ -1,0 +1,119 @@
+{
+  "timestamp": "2025-09-01T00:20:41.282677",
+  "test_results": {
+    "passed": 61,
+    "failed": 0,
+    "errors": [],
+    "warnings": [],
+    "performance_metrics": {
+      "vector_search_1": {
+        "query": "court appeal",
+        "results": 10,
+        "time_ms": 41.24784469604492
+      },
+      "vector_search_2": {
+        "query": "judge Babar Sattar",
+        "results": 10,
+        "time_ms": 21.982908248901367
+      },
+      "vector_search_3": {
+        "query": "State vs petitioner",
+        "results": 10,
+        "time_ms": 17.16327667236328
+      },
+      "vector_search_4": {
+        "query": "cpc section 24",
+        "results": 10,
+        "time_ms": 28.385639190673828
+      },
+      "vector_search_5": {
+        "query": "2025 pending cases",
+        "results": 10,
+        "time_ms": 17.577648162841797
+      },
+      "keyword_search_1": {
+        "query": "court",
+        "results": 5,
+        "time_ms": 21.881818771362305
+      },
+      "keyword_search_2": {
+        "query": "judge",
+        "results": 10,
+        "time_ms": 11.72780990600586
+      },
+      "keyword_search_3": {
+        "query": "appeal",
+        "results": 10,
+        "time_ms": 4.480600357055664
+      },
+      "keyword_search_4": {
+        "query": "petitioner",
+        "results": 3,
+        "time_ms": 16.28875732421875
+      },
+      "keyword_search_5": {
+        "query": "respondent",
+        "results": 0,
+        "time_ms": 8.16202163696289
+      },
+      "hybrid_search_1": {
+        "query": "court appeal justice",
+        "results": 10,
+        "time_ms": 5240.579843521118
+      },
+      "hybrid_search_2": {
+        "query": "judge Babar Sattar case",
+        "results": 10,
+        "time_ms": 48.586368560791016
+      },
+      "hybrid_search_3": {
+        "query": "State petitioner respondent",
+        "results": 10,
+        "time_ms": 55.14836311340332
+      },
+      "hybrid_search_4": {
+        "query": "cpc section 24 civil",
+        "results": 10,
+        "time_ms": 49.280643463134766
+      },
+      "hybrid_search_5": {
+        "query": "2025 pending cases IHC",
+        "results": 10,
+        "time_ms": 55.554866790771484
+      },
+      "performance_top_k_5": {
+        "vector_time_ms": 5383.618116378784,
+        "hybrid_time_ms": 5263.001203536987,
+        "vector_results": 5,
+        "hybrid_results": 5
+      },
+      "performance_top_k_10": {
+        "vector_time_ms": 37.41335868835449,
+        "hybrid_time_ms": 48.506975173950195,
+        "vector_results": 10,
+        "hybrid_results": 10
+      },
+      "performance_top_k_20": {
+        "vector_time_ms": 39.19196128845215,
+        "hybrid_time_ms": 60.883283615112305,
+        "vector_results": 20,
+        "hybrid_results": 20
+      },
+      "performance_top_k_50": {
+        "vector_time_ms": 50.17256736755371,
+        "hybrid_time_ms": 130.2344799041748,
+        "vector_results": 50,
+        "hybrid_results": 50
+      },
+      "performance_top_k_100": {
+        "vector_time_ms": 83.96172523498535,
+        "hybrid_time_ms": 182.88350105285645,
+        "vector_results": 100,
+        "hybrid_results": 100
+      }
+    }
+  },
+  "total_tests": 61,
+  "success_rate": 100.0,
+  "assessment": "\ud83d\udfe2 EXCELLENT - System is working perfectly!"
+}

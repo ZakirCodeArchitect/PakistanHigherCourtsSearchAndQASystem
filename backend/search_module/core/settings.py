@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "apps.cases",  # Cases app for your scraper
+    "search_indexing",  # Search indexing app
 ]
 
 MIDDLEWARE = [
