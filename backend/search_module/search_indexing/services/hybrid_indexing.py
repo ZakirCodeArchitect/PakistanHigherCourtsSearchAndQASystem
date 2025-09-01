@@ -5,11 +5,12 @@ Combines vector and keyword indexing for comprehensive search
 
 import logging
 import time
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from datetime import datetime
 
 from django.utils import timezone
 from django.db import transaction
+from django.conf import settings
 
 from ..models import IndexingConfig, IndexingLog, SearchMetadata
 from .vector_indexing import VectorIndexingService
@@ -20,16 +21,27 @@ logger = logging.getLogger(__name__)
 
 
 class HybridIndexingService:
-    """Service for building and managing hybrid indexes"""
+    """Hybrid indexing service combining vector and keyword search"""
     
-    def __init__(self, use_pinecone: bool = True):
+    def __init__(self, use_pinecone: bool = False, config: Dict[str, Any] = None):
+        self.config = config or {}
         self.use_pinecone = use_pinecone
+        
+        # Initialize vector service
         if use_pinecone:
-            self.vector_service = PineconeIndexingService()
+            try:
+                self.vector_service = PineconeIndexingService()
+                logger.info("Initialized Pinecone vector service")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Pinecone, falling back to FAISS: {str(e)}")
+                self.vector_service = VectorIndexingService()
         else:
             self.vector_service = VectorIndexingService()
+        
+        # Initialize keyword service
         self.keyword_service = KeywordIndexingService()
-        self.config = self._load_config()
+        
+        logger.info("Hybrid indexing service initialized")
     
     def _load_config(self) -> Dict:
         """Load indexing configuration"""
@@ -150,9 +162,12 @@ class HybridIndexingService:
             return stats
     
     def hybrid_search(self, query: str, filters: Dict[str, any] = None, top_k: int = 10) -> List[Dict[str, any]]:
-        """Perform hybrid search combining vector and keyword results"""
+        """Perform hybrid search combining vector and keyword results with exact matching boost"""
         try:
             logger.info(f"Performing hybrid search for: {query}")
+            
+            # Check for exact case number match first (highest priority)
+            exact_case_match = self._find_exact_case_match(query)
             
             # Get vector search results
             vector_results = self.vector_service.search(query, top_k=top_k * 2)  # Get more for reranking
@@ -165,7 +180,8 @@ class HybridIndexingService:
                 vector_results, 
                 keyword_results, 
                 query, 
-                top_k
+                top_k,
+                exact_case_match
             )
             
             logger.info(f"Hybrid search returned {len(combined_results)} results")
@@ -175,8 +191,57 @@ class HybridIndexingService:
             logger.error(f"Error in hybrid search: {str(e)}")
             return []
     
+    def _find_exact_case_match(self, query: str) -> Optional[Dict]:
+        """Find exact case number match for highest priority ranking"""
+        try:
+            from apps.cases.models import Case
+            
+            # Clean the query for exact matching
+            clean_query = query.strip().upper()
+            
+            # Try exact case number match
+            exact_case = Case.objects.filter(case_number__iexact=clean_query).first()
+            if exact_case:
+                return {
+                    'case_id': exact_case.id,
+                    'case_number': exact_case.case_number,
+                    'case_title': exact_case.case_title,
+                    'court': exact_case.court.name if exact_case.court else '',
+                    'status': exact_case.status if hasattr(exact_case, 'status') else '',
+                    'exact_match': True,
+                    'exact_score': 1.0
+                }
+            
+            # Try partial case number match (e.g., "Application 2/2025" matches "OGRA Application 2/2025")
+            if ' ' in clean_query:
+                query_parts = clean_query.split()
+                if len(query_parts) >= 2:
+                    # Look for cases that contain all query parts
+                    potential_cases = Case.objects.filter(
+                        case_number__icontains=query_parts[0]
+                    )
+                    
+                    for case in potential_cases:
+                        case_parts = case.case_number.upper().split()
+                        if all(part in case_parts for part in query_parts):
+                            return {
+                                'case_id': case.id,
+                                'case_number': case.case_number,
+                                'case_title': case.case_title,
+                                'court': case.court.name if case.court else '',
+                                'status': case.status if hasattr(case, 'status') else '',
+                                'exact_match': True,
+                                'exact_score': 0.9  # Slightly lower than perfect match
+                            }
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error finding exact case match: {str(e)}")
+            return None
+    
     def _combine_and_rerank(self, vector_results: List[Dict], keyword_results: List[Dict], 
-                           query: str, top_k: int) -> List[Dict]:
+                           query: str, top_k: int, exact_case_match: Optional[Dict] = None) -> List[Dict]:
         """Combine and rerank vector and keyword search results"""
         try:
             # Create case ID to result mapping
@@ -230,6 +295,17 @@ class HybridIndexingService:
                     normalized_vector * vector_weight + 
                     normalized_keyword * keyword_weight
                 )
+            
+            # Add exact match boost if found
+            if exact_case_match:
+                case_id = exact_case_match['case_id']
+                if case_id in case_results:
+                    case_results[case_id]['exact_match'] = True
+                    case_results[case_id]['exact_score'] = exact_case_match['exact_score']
+                    case_results[case_id]['combined_score'] = (
+                        case_results[case_id]['combined_score'] * 1.5 + # Apply a boost factor
+                        case_results[case_id]['exact_score'] * 2.0 # Add a higher boost for exact matches
+                    )
             
             # Sort by combined score and return top results
             sorted_results = sorted(

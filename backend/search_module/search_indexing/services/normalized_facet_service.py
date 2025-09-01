@@ -109,14 +109,45 @@ class NormalizedFacetService:
         return stats
     
     def search_by_facet(self, facet_type: str, term: str, top_k: int = 10) -> List[Dict]:
-        """Search cases by facet using normalized tables"""
+        """Search cases by facet using normalized tables with improved accuracy"""
         try:
-            # Find the facet term
+            # Try exact match first for highest accuracy
             facet_term = FacetTerm.objects.filter(
                 facet_type=facet_type,
-                canonical_term__icontains=term,
+                canonical_term__iexact=term,
                 is_active=True
             ).first()
+            
+            # If no exact match, try partial match with better logic
+            if not facet_term:
+                # Split term into words for better matching
+                term_words = term.lower().split()
+                
+                # Find terms that contain all words (in any order)
+                potential_terms = FacetTerm.objects.filter(
+                    facet_type=facet_type,
+                    is_active=True
+                )
+                
+                best_match = None
+                best_score = 0
+                
+                for pt in potential_terms:
+                    pt_words = pt.canonical_term.lower().split()
+                    
+                    # Calculate word overlap score
+                    common_words = set(term_words) & set(pt_words)
+                    if len(common_words) > 0:
+                        # Score based on word overlap and term length similarity
+                        overlap_score = len(common_words) / max(len(term_words), len(pt_words))
+                        length_similarity = 1.0 - abs(len(term_words) - len(pt_words)) / max(len(term_words), len(pt_words))
+                        total_score = (overlap_score * 0.7) + (length_similarity * 0.3)
+                        
+                        if total_score > best_score and total_score > 0.3:  # Minimum threshold
+                            best_score = total_score
+                            best_match = pt
+                
+                facet_term = best_match
             
             if not facet_term:
                 return []

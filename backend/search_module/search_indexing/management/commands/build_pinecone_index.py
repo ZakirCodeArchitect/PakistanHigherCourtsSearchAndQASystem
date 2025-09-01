@@ -32,17 +32,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(
-            self.style.SUCCESS('🌲 Starting Pinecone Index Building...')
+            self.style.SUCCESS('[START] Starting Pinecone Index Building...')
         )
 
-        # Check for API key
+        # Check for API key - try command line first, then Django settings, then environment
         api_key = options['api_key']
         if not api_key:
-            api_key = os.getenv('PINECONE_API_KEY')
+            # Try Django settings first
+            api_key = getattr(settings, 'PINECONE_API_KEY', None)
             if not api_key:
-                raise CommandError(
-                    'Pinecone API key not found. Set PINECONE_API_KEY environment variable or use --api-key option.'
-                )
+                # Fallback to environment variable
+                api_key = os.getenv('PINECONE_API_KEY')
+                if not api_key:
+                    raise CommandError(
+                        'Pinecone API key not found. Set PINECONE_API_KEY in Django settings, environment variable, or use --api-key option.'
+                    )
+
+        self.stdout.write(f'[INFO] Using Pinecone API key: {api_key[:10]}...{api_key[-10:]}')
 
         # Initialize Pinecone service
         pinecone_service = PineconeIndexingService()
@@ -55,20 +61,20 @@ class Command(BaseCommand):
         force = options['force']
         if force:
             self.stdout.write(
-                self.style.WARNING('⚠️  Force rebuild requested - existing vectors will be cleared')
+                self.style.WARNING('[WARNING] Force rebuild requested - existing vectors will be cleared')
             )
 
-        self.stdout.write('🔄 Building Pinecone index...')
+        self.stdout.write('[BUILD] Building Pinecone index...')
         
         stats = pinecone_service.build_pinecone_index(force=force)
         
         if stats['index_built']:
             self.stdout.write(
-                self.style.SUCCESS('✅ Pinecone index built successfully!')
+                self.style.SUCCESS('[SUCCESS] Pinecone index built successfully!')
             )
             
             # Display statistics
-            self.stdout.write('\n📊 Indexing Statistics:')
+            self.stdout.write('\n[STATS] Indexing Statistics:')
             self.stdout.write(f'   Cases Processed: {stats["cases_processed"]}')
             self.stdout.write(f'   Chunks Created: {stats["chunks_created"]}')
             self.stdout.write(f'   Embeddings Created: {stats["embeddings_created"]}')
@@ -76,14 +82,14 @@ class Command(BaseCommand):
             self.stdout.write(f'   Processing Time: {stats.get("processing_time", 0):.2f} seconds')
             
             if stats['errors']:
-                self.stdout.write('\n⚠️  Warnings/Errors:')
+                self.stdout.write('\n[WARNING] Warnings/Errors:')
                 for error in stats['errors']:
                     self.stdout.write(f'   • {error}')
             
             # Get index stats
             index_stats = pinecone_service.get_index_stats()
             if index_stats:
-                self.stdout.write('\n🌲 Pinecone Index Stats:')
+                self.stdout.write('\n[PINECONE] Pinecone Index Stats:')
                 self.stdout.write(f'   Index Name: {index_stats["index_name"]}')
                 self.stdout.write(f'   Dimension: {index_stats["dimension"]}')
                 self.stdout.write(f'   Metric: {index_stats["metric"]}')
@@ -93,9 +99,8 @@ class Command(BaseCommand):
             
         else:
             self.stdout.write(
-                self.style.ERROR('❌ Failed to build Pinecone index')
+                self.style.ERROR('[ERROR] Failed to build Pinecone index')
             )
             if stats['errors']:
                 for error in stats['errors']:
                     self.stdout.write(f'   • {error}')
-            raise CommandError('Pinecone index building failed')

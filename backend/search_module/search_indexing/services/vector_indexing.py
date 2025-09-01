@@ -16,8 +16,11 @@ import time
 from sentence_transformers import SentenceTransformer
 from django.conf import settings
 from django.utils import timezone
+from django.core.cache import cache
+from django.db import transaction
 
 from ..models import VectorIndex, DocumentChunk, IndexingLog
+from apps.cases.models import UnifiedCaseView
 
 logger = logging.getLogger(__name__)
 
@@ -244,7 +247,6 @@ class VectorIndexingService:
                 return stats
             
             # Get real cases from database
-            from apps.cases.models import UnifiedCaseView
             
             if force:
                 # Process all cases

@@ -40,12 +40,16 @@ class PineconeIndexingService:
     def initialize_pinecone(self, api_key: str = None, environment: str = "gcp-starter"):
         """Initialize Pinecone connection"""
         try:
-            # Get API key from environment or settings
+            # Get API key from parameter first, then Django settings, then environment
             if not api_key:
-                api_key = os.getenv('PINECONE_API_KEY')
+                # Try Django settings first
+                api_key = getattr(settings, 'PINECONE_API_KEY', None)
                 if not api_key:
-                    logger.error("Pinecone API key not found. Set PINECONE_API_KEY environment variable.")
-                    return False
+                    # Fallback to environment variable
+                    api_key = os.getenv('PINECONE_API_KEY')
+                    if not api_key:
+                        logger.error("Pinecone API key not found. Set PINECONE_API_KEY in Django settings or environment variable.")
+                        return False
             
             # Initialize Pinecone (new API format)
             from pinecone import Pinecone
