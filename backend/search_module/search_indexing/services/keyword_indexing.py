@@ -6,7 +6,7 @@ Handles lexical indexing using PostgreSQL full-text search and vocabulary
 import re
 import hashlib
 import logging
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, Any
 from datetime import datetime
 import time
 
@@ -393,6 +393,77 @@ class KeywordIndexingService:
             logger.error(error_msg)
             stats['errors'].append(error_msg)
             return stats
+    
+    def _build_search_query(self, query: str, filters: Dict[str, Any] = None) -> Q:
+        """Build optimized database query"""
+        # Base search query
+        search_query = Q()
+        
+        # Add text search conditions
+        if query:
+            # Use multiple search strategies for better coverage
+            search_query |= Q(case_number_normalized__icontains=query)
+            search_query |= Q(case_title_normalized__icontains=query)
+            search_query |= Q(parties_normalized__icontains=query)
+            search_query |= Q(court_normalized__icontains=query)
+            search_query |= Q(status_normalized__icontains=query)
+        
+        # Add filters
+        if filters:
+            for key, value in filters.items():
+                if value:
+                    if key == 'court':
+                        search_query &= Q(court_normalized__icontains=value)
+                    elif key == 'status':
+                        search_query &= Q(status_normalized__icontains=value)
+                    elif key == 'year':
+                        search_query &= Q(institution_date__year=value)
+        
+        return search_query
+    
+    def _rank_results(self, results: List[Any], query: str, top_k: int) -> List[Dict[str, Any]]:
+        """Rank results based on relevance and boost factors"""
+        ranked_results = []
+        
+        for result in results:
+            score = 0.0
+            
+            # Boost exact matches
+            if query.lower() in result.case_number_normalized.lower():
+                score += 10.0
+            if query.lower() in result.case_title_normalized.lower():
+                score += 8.0
+            if query.lower() in result.parties_normalized.lower():
+                score += 6.0
+            if query.lower() in result.court_normalized.lower():
+                score += 5.0
+            
+            # Boost recent cases
+            if result.institution_date:
+                score += 1.0
+            
+            # Boost high-priority courts
+            if result.court_normalized:
+                if 'supreme' in result.court_normalized.lower():
+                    score += 2.0
+                elif 'high' in result.court_normalized.lower():
+                    score += 1.5
+            
+            ranked_results.append({
+                'case_id': result.case_id,
+                'case_number': result.case_number_normalized,
+                'case_title': result.case_title_normalized,
+                'court': result.court_normalized,
+                'status': result.status_normalized,
+                'parties': result.parties_normalized,
+                'institution_date': result.institution_date,
+                'disposal_date': result.disposal_date,
+                'rank': score
+            })
+        
+        # Sort by score and return top results
+        ranked_results.sort(key=lambda x: x['rank'], reverse=True)
+        return ranked_results[:top_k]
     
     def search(self, query: str, filters: Dict[str, any] = None, top_k: int = 10) -> List[Dict[str, any]]:
         """Search using keyword indexing"""
