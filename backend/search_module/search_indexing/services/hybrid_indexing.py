@@ -1,7 +1,7 @@
 """
 Hybrid Indexing Service
 Combines vector and keyword indexing for comprehensive search
-"""
+    """
 
 import logging
 import time
@@ -14,7 +14,12 @@ from django.conf import settings
 
 from ..models import IndexingConfig, IndexingLog, SearchMetadata
 from .vector_indexing import VectorIndexingService
-from .pinecone_indexing import PineconeIndexingService
+try:
+    from .pinecone_indexing import PineconeIndexingService
+    PINECONE_AVAILABLE = True
+except ImportError:
+    PineconeIndexingService = None
+    PINECONE_AVAILABLE = False
 from .keyword_indexing import KeywordIndexingService
 
 logger = logging.getLogger(__name__)
@@ -28,7 +33,7 @@ class HybridIndexingService:
         self.use_pinecone = use_pinecone
         
         # Initialize vector service
-        if use_pinecone:
+        if use_pinecone and PINECONE_AVAILABLE and PineconeIndexingService:
             try:
                 self.vector_service = PineconeIndexingService()
                 logger.info("Initialized Pinecone vector service")
@@ -36,6 +41,8 @@ class HybridIndexingService:
                 logger.warning(f"Failed to initialize Pinecone, falling back to FAISS: {str(e)}")
                 self.vector_service = VectorIndexingService()
         else:
+            if use_pinecone and not PINECONE_AVAILABLE:
+                logger.info("Pinecone not available, using FAISS vector service")
             self.vector_service = VectorIndexingService()
         
         # Initialize keyword service
@@ -85,7 +92,7 @@ class HybridIndexingService:
             # Build vector index (unless keyword_only is specified)
             if not keyword_only:
                 try:
-                    if self.use_pinecone:
+                    if self.use_pinecone and PINECONE_AVAILABLE and PineconeIndexingService:
                         logger.info("Building Pinecone vector index...")
                         vector_stats = self.vector_service.build_pinecone_index(force=force)
                     else:
@@ -162,18 +169,39 @@ class HybridIndexingService:
             return stats
     
     def hybrid_search(self, query: str, filters: Dict[str, any] = None, top_k: int = 10) -> List[Dict[str, any]]:
-        """Perform hybrid search combining vector and keyword results with exact matching boost"""
+        """Perform hybrid search combining vector and keyword results with exact matching boost - OPTIMIZED VERSION"""
         try:
             logger.info(f"Performing hybrid search for: {query}")
+            
+            # OPTIMIZATION: Reduce the multiplier for better performance
+            # Instead of fetching top_k * 2, use a smaller multiplier
+            fetch_multiplier = min(2, max(1, 20 // top_k))  # Adaptive multiplier
+            fetch_size = top_k * fetch_multiplier
             
             # Check for exact case number match first (highest priority)
             exact_case_match = self._find_exact_case_match(query)
             
+            # OPTIMIZATION: Fetch results in parallel or with reduced size
             # Get vector search results
-            vector_results = self.vector_service.search(query, top_k=top_k * 2)  # Get more for reranking
+            vector_results = self.vector_service.search(query, top_k=fetch_size)
             
             # Get keyword search results
-            keyword_results = self.keyword_service.search(query, filters=filters, top_k=top_k * 2)
+            keyword_results = self.keyword_service.search(query, filters=filters, top_k=fetch_size)
+            
+            # OPTIMIZATION: Early return if we have enough exact matches
+            if exact_case_match and len(vector_results) == 0 and len(keyword_results) == 0:
+                # If we have an exact match but no other results, return just the exact match
+                return [{
+                    'case_id': exact_case_match['case_id'],
+                    'case_number': exact_case_match['case_number'],
+                    'case_title': exact_case_match['case_title'],
+                    'court': exact_case_match['court'],
+                    'status': exact_case_match['status'],
+                    'vector_score': 0,
+                    'keyword_score': 0,
+                    'final_score': exact_case_match['exact_score'],
+                    'exact_match': True
+                }]
             
             # Combine and rerank results
             combined_results = self._combine_and_rerank(
@@ -192,47 +220,71 @@ class HybridIndexingService:
             return []
     
     def _find_exact_case_match(self, query: str) -> Optional[Dict]:
-        """Find exact case number match for highest priority ranking"""
+        """Find exact case number match for highest priority ranking - OPTIMIZED VERSION"""
         try:
             from apps.cases.models import Case
             
             # Clean the query for exact matching
             clean_query = query.strip().upper()
             
-            # Try exact case number match
-            exact_case = Case.objects.filter(case_number__iexact=clean_query).first()
-            if exact_case:
-                return {
-                    'case_id': exact_case.id,
-                    'case_number': exact_case.case_number,
-                    'case_title': exact_case.case_title,
-                    'court': exact_case.court.name if exact_case.court else '',
-                    'status': exact_case.status if hasattr(exact_case, 'status') else '',
-                    'exact_match': True,
-                    'exact_score': 1.0
-                }
+            # OPTIMIZATION: Use a single optimized query instead of multiple queries
+            # This reduces database round trips significantly
             
-            # Try partial case number match (e.g., "Application 2/2025" matches "OGRA Application 2/2025")
+            # Build a more efficient query using Q objects for OR conditions
+            from django.db.models import Q
+            
+            # Create a single query that handles both exact and partial matches
+            query_conditions = Q(case_number__iexact=clean_query)
+            
+            # Add partial match conditions only if query has spaces
             if ' ' in clean_query:
                 query_parts = clean_query.split()
                 if len(query_parts) >= 2:
-                    # Look for cases that contain all query parts
-                    potential_cases = Case.objects.filter(
-                        case_number__icontains=query_parts[0]
-                    )
-                    
-                    for case in potential_cases:
-                        case_parts = case.case_number.upper().split()
-                        if all(part in case_parts for part in query_parts):
-                            return {
-                                'case_id': case.id,
-                                'case_number': case.case_number,
-                                'case_title': case.case_title,
-                                'court': case.court.name if case.court else '',
-                                'status': case.status if hasattr(case, 'status') else '',
-                                'exact_match': True,
-                                'exact_score': 0.9  # Slightly lower than perfect match
-                            }
+                    # Use a more efficient approach: check if case number contains the first part
+                    # and then filter in Python for exact matches (faster than complex DB queries)
+                    query_conditions |= Q(case_number__icontains=query_parts[0])
+            
+            # Execute single optimized query with select_related to avoid N+1 queries
+            potential_matches = Case.objects.filter(query_conditions).select_related('court')[:5]
+            
+            if not potential_matches:
+                return None
+            
+            # Find the best match in Python (faster than complex DB queries)
+            best_match = None
+            best_score = 0
+            
+            for case in potential_matches:
+                case_number_upper = case.case_number.upper()
+                score = 0
+                
+                # Exact match gets highest score
+                if case_number_upper == clean_query:
+                    score = 1.0
+                # Partial match with all parts gets high score
+                elif ' ' in clean_query:
+                    query_parts = clean_query.split()
+                    case_parts = case_number_upper.split()
+                    if all(part in case_parts for part in query_parts):
+                        score = 0.9
+                    # Partial match with first part gets medium score
+                    elif query_parts[0] in case_parts:
+                        score = 0.7
+                
+                if score > best_score:
+                    best_score = score
+                    best_match = case
+            
+            if best_match and best_score > 0:
+                return {
+                    'case_id': best_match.id,
+                    'case_number': best_match.case_number,
+                    'case_title': best_match.case_title,
+                    'court': best_match.court.name if best_match.court else '',
+                    'status': getattr(best_match, 'status', ''),
+                    'exact_match': True,
+                    'exact_score': best_score
+                }
             
             return None
             
@@ -414,7 +466,9 @@ class HybridIndexingService:
             
             # Check facet indexes
             facet_indexes = FacetIndex.objects.filter(is_active=True)
+            built_facet_indexes = facet_indexes.filter(is_built=True)
             status['facet_indexes']['total'] = facet_indexes.count()
+            status['facet_indexes']['built'] = built_facet_indexes.count()
             status['facet_indexes']['types'] = list(facet_indexes.values_list('facet_type', flat=True))
             
             # Check search metadata
@@ -422,6 +476,7 @@ class HybridIndexingService:
             indexed_metadata = SearchMetadata.objects.filter(is_indexed=True).count()
             status['search_metadata']['total_records'] = total_metadata
             status['search_metadata']['indexed_records'] = indexed_metadata
+            status['search_metadata']['is_built'] = indexed_metadata > 0
             
             return status
             

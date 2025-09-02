@@ -494,10 +494,86 @@ class KeywordIndexingService:
                 if 'date_to' in filters:
                     queryset = queryset.filter(institution_date__lte=filters['date_to'])
             
-            # Perform search
+            # Perform search with more flexible matching
             results = queryset.annotate(
                 rank=SearchRank(search_vector, search_query)
-            ).filter(rank__gt=0).order_by('-rank')[:top_k]
+            ).order_by('-rank')[:top_k * 2]  # Get more results for better scoring
+            
+            # If no results with meaningful rank, try partial matching
+            # PostgreSQL ranks can be very small (like 1e-20), so we check for very low ranks
+            if not results or all(r.rank < 0.001 for r in results):
+                # Try partial matching by splitting query into terms
+                query_terms = normalized_query.split()
+                partial_results = []
+                
+                for term in query_terms:
+                    if len(term) >= 2:  # Only search for terms with 2+ characters
+                        # First try metadata matching
+                        term_results = queryset.filter(
+                            Q(case_number_normalized__icontains=term) |
+                            Q(case_title_normalized__icontains=term) |
+                            Q(parties_normalized__icontains=term)
+                        )[:top_k]
+                        
+                        for result in term_results:
+                            # Calculate a simple relevance score
+                            score = 0
+                            if term.lower() in result.case_number_normalized.lower():
+                                score += 10  # High score for case number match
+                            if term.lower() in result.case_title_normalized.lower():
+                                score += 5   # Medium score for title match
+                            if term.lower() in result.parties_normalized.lower():
+                                score += 3   # Lower score for parties match
+                            
+                            if score > 0:
+                                partial_results.append({
+                                    'result': result,
+                                    'score': score,
+                                    'matched_term': term
+                                })
+                        
+                        # Always try content search in DocumentChunks for additional matches
+                        from ..models import DocumentChunk
+                        content_matches = DocumentChunk.objects.filter(
+                            chunk_text__icontains=term,
+                            is_embedded=True
+                        ).values('case_id').distinct()[:top_k]
+                        
+                        for match in content_matches:
+                            case_id = match['case_id']
+                            # Get the SearchMetadata for this case
+                            try:
+                                case_metadata = queryset.filter(case_id=case_id).first()
+                                if case_metadata:
+                                    # Calculate content relevance score
+                                    content_score = 2  # Base score for content match
+                                    
+                                    # Check if this case is already in partial_results
+                                    existing_result = next((item for item in partial_results if item['result'].case_id == case_id), None)
+                                    if existing_result:
+                                        # Boost existing score
+                                        existing_result['score'] += content_score
+                                    else:
+                                        # Add new result
+                                        partial_results.append({
+                                            'result': case_metadata,
+                                            'score': content_score,
+                                            'matched_term': term
+                                        })
+                            except:
+                                continue
+                
+                # Sort by score and take top results
+                partial_results.sort(key=lambda x: x['score'], reverse=True)
+                
+                # Create a mapping of case_id to score for easy lookup
+                score_mapping = {item['result'].case_id: item['score'] for item in partial_results}
+                
+                results = [item['result'] for item in partial_results[:top_k]]
+                
+                # Add rank field using actual calculated scores
+                for result in results:
+                    result.rank = score_mapping.get(result.case_id, 0.1) / 10.0  # Normalize scores to reasonable range
             
             # Format results
             search_results = []

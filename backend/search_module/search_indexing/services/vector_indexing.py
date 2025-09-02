@@ -20,7 +20,7 @@ from django.core.cache import cache
 from django.db import transaction
 
 from ..models import VectorIndex, DocumentChunk, IndexingLog
-from apps.cases.models import UnifiedCaseView
+from apps.cases.models import UnifiedCaseView, Case
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,8 @@ class VectorIndexingService:
         self.vector_index = None
         self.chunk_mappings = {}  # chunk_id -> index_position
         self.index_to_chunk_mapping = []  # List to map FAISS index positions to chunk IDs
+        self.faiss_index = None  # Cached FAISS index
+        self.last_index_update = None  # Track when index was last updated
         self.config = {
             'chunk_size': 512,
             'chunk_overlap': 50,
@@ -45,9 +47,10 @@ class VectorIndexingService:
     def initialize_model(self, model_name: str = "all-MiniLM-L6-v2"):
         """Initialize the sentence transformer model"""
         try:
-            logger.info(f"Loading sentence transformer model: {model_name}")
-            self.model = SentenceTransformer(model_name)
-            logger.info(f"Model loaded successfully. Dimension: {self.model.get_sentence_embedding_dimension()}")
+            if self.model is None:
+                logger.info(f"Loading sentence transformer model: {model_name}")
+                self.model = SentenceTransformer(model_name)
+                logger.info(f"Model loaded successfully. Dimension: {self.model.get_sentence_embedding_dimension()}")
             return True
         except Exception as e:
             logger.error(f"Error loading model {model_name}: {str(e)}")
@@ -444,17 +447,27 @@ class VectorIndexingService:
             stats['errors'].append(error_msg)
             return stats
     
-    def search(self, query: str, top_k: int = 10) -> List[Dict[str, any]]:
-        """Search for similar documents"""
+    def _load_cached_index(self):
+        """Load and cache the FAISS index and mapping"""
         try:
-            # Load index
+            # Check if we need to reload the index
             vector_index = VectorIndex.objects.filter(index_name="legal_cases_vector", is_active=True).first()
             if not vector_index or not vector_index.is_built:
                 logger.error("No active vector index found")
-                return []
+                return False
+            
+            # Check if index has been updated since last load
+            if (self.faiss_index is not None and 
+                self.last_index_update is not None and 
+                self.last_index_update >= vector_index.updated_at):
+                logger.debug("Using cached FAISS index")
+                return True
+            
+            logger.info("Loading FAISS index from disk...")
+            start_time = time.time()
             
             # Load FAISS index
-            index = faiss.read_index(vector_index.index_file_path)
+            self.faiss_index = faiss.read_index(vector_index.index_file_path)
             
             # Load mapping
             index_dir = os.path.dirname(vector_index.index_file_path)
@@ -463,18 +476,39 @@ class VectorIndexingService:
             try:
                 with open(mapping_file_path, 'rb') as f:
                     self.index_to_chunk_mapping = pickle.load(f)
+                logger.info(f"Loaded mapping with {len(self.index_to_chunk_mapping)} entries")
             except FileNotFoundError:
                 logger.error("Mapping file not found, falling back to old method")
                 self.index_to_chunk_mapping = []
             
-            # Create query embedding
-            if not self.model:
-                self.initialize_model()
+            # Update timestamp
+            self.last_index_update = vector_index.updated_at
             
+            load_time = time.time() - start_time
+            logger.info(f"FAISS index loaded in {load_time:.2f} seconds")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error loading cached index: {str(e)}")
+            return False
+
+    def search(self, query: str, top_k: int = 10) -> List[Dict[str, any]]:
+        """Search for similar documents"""
+        try:
+            # Initialize model if needed
+            if not self.model:
+                if not self.initialize_model():
+                    return []
+            
+            # Load cached index
+            if not self._load_cached_index():
+                return []
+            
+            # Create query embedding
             query_embedding = self.model.encode([query])
             
-            # Search
-            scores, indices = index.search(query_embedding, top_k)
+            # Search using cached index
+            scores, indices = self.faiss_index.search(query_embedding, top_k)
             
             # Get results
             results = []
@@ -490,15 +524,25 @@ class VectorIndexingService:
                             chunk_idx = int(idx)
                             chunk = DocumentChunk.objects.filter(is_embedded=True).order_by('id')[chunk_idx]
                         
+                        # Get case information
+                        case = Case.objects.get(id=chunk.case_id)
+                        
                         results.append({
                             'rank': i + 1,
                             'similarity': float(score),
                             'case_id': chunk.case_id,
+                            'case_number': case.case_number,
+                            'case_title': case.case_title,
+                            'court': case.court.name if case.court else '',
+                            'status': case.status,
+                            'parties': '',  # Will be populated from related data if needed
+                            'institution_date': case.institution_date,
+                            'disposal_date': None,  # Not available in Case model
                             'chunk_text': chunk.chunk_text[:200] + "..." if len(chunk.chunk_text) > 200 else chunk.chunk_text,
                             'chunk_index': chunk.chunk_index,
                             'page_number': chunk.page_number
                         })
-                    except (IndexError, DocumentChunk.DoesNotExist) as e:
+                    except (IndexError, DocumentChunk.DoesNotExist, UnifiedCaseView.DoesNotExist) as e:
                         logger.warning(f"Chunk at index {idx} not found: {str(e)}")
                         continue
             
