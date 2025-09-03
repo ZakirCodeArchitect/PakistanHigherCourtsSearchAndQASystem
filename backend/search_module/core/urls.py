@@ -21,4 +21,5 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/search/", include('search_indexing.urls')),
+    path("", include('frontend.urls')),  # Frontend routes
 ]

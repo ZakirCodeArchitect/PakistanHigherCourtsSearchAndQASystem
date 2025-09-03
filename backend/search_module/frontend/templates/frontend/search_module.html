@@ -1,0 +1,741 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Legal Cases Search - Pakistan Higher Courts Search & QA System{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="search-module-container">
+    <!-- Search Header -->
+    <div class="search-header bg-gradient-primary text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h2 fw-bold mb-2">
+                        <i class="fas fa-search me-3"></i>
+                        Legal Cases Search
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Advanced search powered by artificial intelligence and legal expertise
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'frontend:dashboard' %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Search Types Selection -->
+            <div class="col-lg-3 mb-4">
+                <div class="search-types-card">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-th-large me-2"></i>
+                        Search Types
+                    </h5>
+                    
+                    <!-- Smart Search (Hybrid) -->
+                    <div class="search-type-option active" data-search-type="hybrid">
+                        <div class="search-type-header">
+                            <div class="search-type-icon bg-primary">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="search-type-info">
+                                <h6 class="mb-1">🧠 SMART SEARCH</h6>
+                                <small class="text-muted">Hybrid Mode</small>
+                            </div>
+                        </div>
+                        <p class="search-type-description">
+                            Find cases using natural language and exact matches
+                        </p>
+                        <div class="search-type-features">
+                            <span class="feature-badge">AI-Powered</span>
+                            <span class="feature-badge">Best Results</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Citation Lookup (Lexical) -->
+                    <div class="search-type-option" data-search-type="lexical">
+                        <div class="search-type-header">
+                            <div class="search-type-icon bg-success">
+                                <i class="fas fa-quote-right"></i>
+                            </div>
+                            <div class="search-type-info">
+                                <h6 class="mb-1">🎯 CITATION LOOKUP</h6>
+                                <small class="text-muted">Lexical Mode</small>
+                            </div>
+                        </div>
+                        <p class="search-type-description">
+                            Search by legal references and case numbers
+                        </p>
+                        <div class="search-type-features">
+                            <span class="feature-badge">Exact Match</span>
+                            <span class="feature-badge">Fast Results</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Meaning Search (Semantic) -->
+                    <div class="search-type-option" data-search-type="semantic">
+                        <div class="search-type-header">
+                            <div class="search-type-icon bg-warning">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="search-type-info">
+                                <h6 class="mb-1">💡 MEANING SEARCH</h6>
+                                <small class="text-muted">Semantic Mode</small>
+                            </div>
+                        </div>
+                        <p class="search-type-description">
+                            Find cases by meaning, not just exact words
+                        </p>
+                        <div class="search-type-features">
+                            <span class="feature-badge">Context Aware</span>
+                            <span class="feature-badge">Related Cases</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Search Area -->
+            <div class="col-lg-9">
+                <div class="main-search-area">
+                    <!-- Search Input -->
+                    <div class="search-input-container mb-4">
+                        <div class="search-input-wrapper">
+                            <div class="search-input-group">
+                                <input type="text" 
+                                       class="form-control form-control-lg search-input" 
+                                       id="searchQuery" 
+                                       placeholder="Enter your search query (e.g., 'PPC 302', 'bail application', 'constitutional petition')"
+                                       autocomplete="off">
+                                <button class="btn btn-primary btn-lg search-btn" id="searchBtn">
+                                    <i class="fas fa-search me-2"></i>
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Query Examples -->
+                        <div class="query-examples mt-3">
+                            <small class="text-muted me-3">
+                                <strong>Examples:</strong>
+                            </small>
+                            <span class="example-query" data-query="PPC 302" onclick="setQueryAndSearch('PPC 302')">PPC 302</span>
+                            <span class="example-query" data-query="bail application" onclick="setQueryAndSearch('bail application')">bail application</span>
+                            <span class="example-query" data-query="constitutional petition" onclick="setQueryAndSearch('constitutional petition')">constitutional petition</span>
+                            <span class="example-query" data-query="habeas corpus" onclick="setQueryAndSearch('habeas corpus')">habeas corpus</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Results -->
+                    <div class="search-results" id="searchResults" style="display: none;">
+                        <div class="results-header mb-3">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                Search Results
+                                <span class="results-count" id="resultsCount"></span>
+                            </h5>
+                        </div>
+                        
+                        <div class="results-list" id="resultsList">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div class="loading-state text-center py-5" id="loadingState" style="display: none;">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted">Searching through legal cases...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-module-container {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 200px);
+}
+
+.search-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.search-types-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.search-type-option {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.search-type-option:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.search-type-option.active {
+    background: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.search-type-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.search-type-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    color: white;
+}
+
+.search-type-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.search-type-description {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.search-type-features {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.feature-badge {
+    background: #dee2e6;
+    color: #495057;
+    padding: 0.2rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+}
+
+.main-search-area {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.search-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-input {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.search-btn {
+    border-radius: 10px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.query-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.example-query {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.example-query:hover {
+    background: #1976d2;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.results-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.results-count {
+    color: #6c757d;
+    font-weight: normal;
+}
+
+.loading-state {
+    padding: 3rem 1rem;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.search-results {
+    margin-top: 2rem;
+}
+
+.results-list {
+    margin-bottom: 2rem;
+}
+
+.result-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.result-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.result-rank {
+    margin-left: 1rem;
+}
+
+.score-breakdown {
+    border-top: 1px solid #e9ecef;
+    padding-top: 0.5rem;
+}
+
+.search-metadata {
+    font-size: 0.85rem;
+}
+
+.result-title {
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.result-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.result-snippet {
+    color: #495057;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.result-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let currentSearchType = 'hybrid';
+
+// Initialize search module
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSearchModule();
+});
+
+function initializeSearchModule() {
+    // Search type selection
+    document.querySelectorAll('.search-type-option').forEach(option => {
+        option.addEventListener('click', function() {
+            selectSearchType(this.dataset.searchType);
+        });
+    });
+    
+    // Example queries
+    document.querySelectorAll('.example-query').forEach(example => {
+        example.addEventListener('click', function() {
+            document.getElementById('searchQuery').value = this.dataset.query;
+            performSearch();
+        });
+    });
+    
+    // Search button
+    document.getElementById('searchBtn').addEventListener('click', performSearch);
+    
+    // Search input enter key
+    document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    // Initialize with default search type
+    selectSearchType('hybrid');
+    
+    // Test API connection on startup
+    testAPIConnection();
+}
+
+function selectSearchType(searchType) {
+    // Remove active class from all options
+    document.querySelectorAll('.search-type-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    // Add active class to selected option
+    document.querySelector(`[data-search-type="${searchType}"]`).classList.add('active');
+    
+    // Update current search type
+    currentSearchType = searchType;
+    
+    // Update search button text based on type
+    const searchBtn = document.getElementById('searchBtn');
+    switch(searchType) {
+        case 'hybrid':
+            searchBtn.innerHTML = '<i class="fas fa-brain me-2"></i>Smart Search';
+            break;
+        case 'lexical':
+            searchBtn.innerHTML = '<i class="fas fa-quote-right me-2"></i>Citation Search';
+            break;
+        case 'semantic':
+            searchBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Meaning Search';
+            break;
+    }
+}
+
+async function performSearch() {
+    const query = document.getElementById('searchQuery').value.trim();
+    
+    if (!query) {
+        alert('Please enter a search query');
+        return;
+    }
+    
+    // Show loading state
+    showLoadingState();
+    
+    try {
+        // Get selected search mode
+        const selectedMode = getSelectedSearchMode();
+        
+        console.log(`🔍 Searching for: "${query}" in ${selectedMode} mode`);
+        
+        // Make actual API call to backend
+        const searchParams = new URLSearchParams({
+            q: query,
+            mode: selectedMode,
+            return_facets: 'true',
+            highlight: 'true',
+            limit: '10'
+        });
+        
+        const response = await fetch(`/api/search/search/?${searchParams}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        
+        console.log(`📊 Response status: ${response.status}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Search successful:', data);
+            showSearchResults();
+            displayRealResults(data);
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Search failed:', errorText);
+            throw new Error(`Search failed: ${response.status} - ${errorText}`);
+        }
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        showErrorState(`Search failed: ${error.message}`);
+        
+        // Only fallback to sample results if it's a network/API error
+        if (error.message.includes('Search failed')) {
+            setTimeout(() => {
+                showSearchResults();
+                displaySampleResults();
+            }, 1000);
+        }
+    }
+}
+
+function getSelectedSearchMode() {
+    const activeOption = document.querySelector('.search-type-option.active');
+    if (activeOption) {
+        const mode = activeOption.getAttribute('data-search-type');
+        return mode || 'hybrid';
+    }
+    return 'hybrid';
+}
+
+function getCSRFToken() {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+    return token ? token.value : '';
+}
+
+function displayRealResults(data) {
+    const resultsList = document.getElementById('resultsList');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    if (!data || !data.results || data.results.length === 0) {
+        resultsCount.textContent = ' (0 results)';
+        resultsList.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-search me-2"></i>No results found</div>';
+        return;
+    }
+    
+    // Show total results from pagination if available
+    const totalResults = data.pagination ? data.pagination.total : data.results.length;
+    resultsCount.textContent = ` (${totalResults} results)`;
+    
+    // Clear previous results
+    resultsList.innerHTML = '';
+    
+    // Display each result
+    data.results.forEach((result, index) => {
+        const resultCard = createResultCard(result, data.query_info);
+        resultsList.appendChild(resultCard);
+    });
+    
+    // Add search metadata if available
+    if (data.search_metadata) {
+        const metadataDiv = document.createElement('div');
+        metadataDiv.className = 'search-metadata mt-3 p-3 bg-light rounded';
+        metadataDiv.innerHTML = `
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Search completed in ${data.search_metadata.latency_ms}ms | 
+                Mode: ${data.search_metadata.mode} | 
+                ${data.query_info ? `Citations found: ${data.query_info.citations_found}` : ''}
+            </small>
+        `;
+        resultsList.appendChild(metadataDiv);
+    }
+}
+
+function displaySampleResults() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    // Sample results
+    const sampleResults = [
+        {
+            case_title: "Sample Case 1 - Constitutional Petition",
+            court: "Islamabad High Court",
+            status: "Pending",
+            date: "2025-01-15",
+            snippet: "This is a sample case about constitutional rights and fundamental freedoms..."
+        },
+        {
+            case_title: "Sample Case 2 - Criminal Appeal",
+            court: "Lahore High Court", 
+            status: "Disposed",
+            date: "2024-12-20",
+            snippet: "Sample criminal appeal case involving PPC 302 and related legal provisions..."
+        }
+    ];
+    
+    resultsCount.textContent = ` (${sampleResults.length} results)`;
+    
+    resultsList.innerHTML = '';
+    
+    sampleResults.forEach(result => {
+        const resultCard = createResultCard(result);
+        resultsList.appendChild(resultCard);
+    });
+}
+
+function createResultCard(result, queryInfo = null) {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    
+    // Extract data from the real backend response structure
+    const caseData = result.result_data || result;
+    
+    // Get case information from various possible sources
+    const title = caseData.case_title || caseData.title || caseData.case_number || 'Untitled Case';
+    const court = caseData.court_name || caseData.court || 'Unknown Court';
+    const status = caseData.status || caseData.case_status || 'Unknown Status';
+    const date = caseData.institution_date || caseData.hearing_date || caseData.disposal_date || 'Unknown Date';
+    
+    // Get snippets if available
+    let snippetText = 'No description available';
+    if (result.snippets && result.snippets.length > 0) {
+        snippetText = result.snippets[0].text || result.snippets[0].snippet || snippetText;
+    } else if (caseData.snippet) {
+        snippetText = caseData.snippet;
+    }
+    
+    // Get scores
+    const vectorScore = result.vector_score || 0;
+    const keywordScore = result.keyword_score || 0;
+    const finalScore = result.final_score || 0;
+    
+    // Create score display
+    let scoreDisplay = '';
+    if (finalScore > 0) {
+        scoreDisplay = `
+            <div class="score-breakdown mt-2">
+                <small class="text-muted">
+                    <span class="me-3"><i class="fas fa-brain me-1"></i>Vector: ${(vectorScore * 100).toFixed(1)}%</span>
+                    <span class="me-3"><i class="fas fa-quote-right me-1"></i>Keyword: ${(keywordScore * 100).toFixed(1)}%</span>
+                    <span class="fw-bold"><i class="fas fa-star me-1"></i>Final: ${(finalScore * 100).toFixed(1)}%</span>
+                </small>
+            </div>
+        `;
+    }
+    
+    // Create case metadata
+    const metadata = [];
+    if (caseData.case_number) metadata.push(`<span><i class="fas fa-hashtag me-1"></i>${caseData.case_number}</span>`);
+    if (court) metadata.push(`<span><i class="fas fa-gavel me-1"></i>${court}</span>`);
+    if (status) metadata.push(`<span><i class="fas fa-info-circle me-1"></i>${status}</span>`);
+    if (date) metadata.push(`<span><i class="fas fa-calendar me-1"></i>${date}</span>`);
+    if (caseData.bench) metadata.push(`<span><i class="fas fa-users me-1"></i>${caseData.bench}</span>`);
+    
+    card.innerHTML = `
+        <div class="result-header">
+            <div class="flex-grow-1">
+                <h6 class="result-title mb-2">${title}</h6>
+                <div class="result-meta mb-2">
+                    ${metadata.join('')}
+                </div>
+                ${scoreDisplay}
+            </div>
+            <div class="result-rank">
+                <span class="badge bg-primary">#${result.rank || 'N/A'}</span>
+            </div>
+        </div>
+        <div class="result-snippet mb-3">
+            ${snippetText}
+        </div>
+        <div class="result-actions">
+            <button class="btn btn-outline-primary btn-sm me-2" onclick="viewCaseDetails(${result.case_id})">
+                <i class="fas fa-eye me-1"></i>View Details
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="viewCaseHistory(${result.case_id})">
+                <i class="fas fa-history me-1"></i>History
+            </button>
+        </div>
+    `;
+    
+    return card;
+}
+
+function showLoadingState() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('searchResults').style.display = 'none';
+}
+
+function showSearchResults() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'block';
+}
+
+function showErrorState(message) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'block';
+    
+    const resultsList = document.getElementById('resultsList');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    resultsCount.textContent = ' (0 results)';
+    resultsList.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+        </div>
+    `;
+}
+
+function setQueryAndSearch(query) {
+    document.getElementById('searchQuery').value = query;
+    performSearch();
+}
+
+function viewCaseDetails(caseId) {
+    // Navigate to case details page
+    window.location.href = `/case/${caseId}/`;
+}
+
+function viewCaseHistory(caseId) {
+    // TODO: Implement case history view
+    alert(`Viewing history for case ${caseId}`);
+}
+
+async function testAPIConnection() {
+    try {
+        console.log('🔌 Testing API connection...');
+        const response = await fetch('/api/search/status/');
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ API connection successful:', data);
+            
+            // Show system status if available
+            if (data.status === 'healthy') {
+                console.log('🟢 System is healthy');
+            } else {
+                console.log('🟡 System status:', data.status);
+            }
+        } else {
+            console.warn('⚠️ API connection test failed:', response.status);
+        }
+    } catch (error) {
+        console.error('❌ API connection test failed:', error);
+    }
+}
+</script>
+{% endblock %}
