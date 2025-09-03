@@ -1,0 +1,744 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Case Details - Pakistan Higher Courts Search & QA System{% endblock %}
+
+{% block content %}
+<div class="case-details-container">
+    <!-- Header -->
+    <div class="case-header bg-gradient-primary text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-0">
+                            <li class="breadcrumb-item"><a href="{% url 'frontend:dashboard' %}" class="text-white">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'frontend:search_module' %}" class="text-white">Legal Cases Search</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Case Details</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h2 fw-bold mb-2 mt-2">
+                        <i class="fas fa-gavel me-3"></i>
+                        Case Details
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Comprehensive information about case #{{ case_id }}
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'frontend:search_module' %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Search
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        {% if case.error %}
+            <!-- Error State -->
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error:</strong> {{ case.error }}
+            </div>
+            <div class="text-center py-5">
+                <a href="{% url 'frontend:search_module' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Return to Search
+                </a>
+            </div>
+        {% else %}
+            <!-- Case Information -->
+            <div class="row">
+                <!-- Main Case Details -->
+                <div class="col-lg-8">
+                    <div class="case-main-info card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Case Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Case Number:</label>
+                                        <p class="mb-0">{{ case.case_number|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">SR Number:</label>
+                                        <p class="mb-0">{{ case.sr_number|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Court:</label>
+                                        <p class="mb-0">{{ case.court|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Status:</label>
+                                        <span class="badge bg-{% if case.status == 'Pending' %}warning{% elif case.status == 'Decided' %}success{% else %}secondary{% endif %}">
+                                            {{ case.status|default:"Unknown" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Institution Date:</label>
+                                        <p class="mb-0">{{ case.institution_date|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Hearing Date:</label>
+                                        <p class="mb-0">{{ case.hearing_date|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Bench:</label>
+                                        <p class="mb-0">{{ case.bench|default:"Not available" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Title -->
+                    <div class="case-title card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>
+                                Case Title
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-dark">{{ case.case_title|default:"No title available" }}</h6>
+                        </div>
+                    </div>
+
+                    <!-- Case Details (if available) -->
+                    {% if case.case_detail %}
+                    <div class="case-details card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                Detailed Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Case Stage:</label>
+                                        <p class="mb-0">{{ case.case_detail.case_stage|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Short Order:</label>
+                                        <p class="mb-0">{{ case.case_detail.short_order|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Case Description:</label>
+                                        <p class="mb-0">{{ case.case_detail.case_description|default:"Not available" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Advocates (Petitioner):</label>
+                                        <p class="mb-0">{{ case.case_detail.advocates_petitioner|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Advocates (Respondent):</label>
+                                        <p class="mb-0">{{ case.case_detail.advocates_respondent|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Disposal Date:</label>
+                                        <p class="mb-0">{{ case.case_detail.case_disposal_date|default:"Not available" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Case CMs Data (if available) -->
+                    {% if case.case_cms_data and case.case_cms_data|length > 0 %}
+                    <div class="case-cms-data card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>
+                                Case CMs Data
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>SR Number</th>
+                                            <th>CM</th>
+                                            <th>Institution</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cm in case.case_cms_data %}
+                                        <tr>
+                                            <td>{{ cm.sr_number|default:"N/A" }}</td>
+                                            <td>{{ cm.cm|default:"N/A" }}</td>
+                                            <td>{{ cm.institution|default:"N/A" }}</td>
+                                            <td><span class="badge bg-secondary">{{ cm.source_type|default:"main" }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Orders Data (if available) -->
+                    {% if case.orders_data and case.orders_data|length > 0 %}
+                    <div class="orders-data card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list-alt me-2"></i>
+                                Orders Data
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>SR Number</th>
+                                            <th>Hearing Date</th>
+                                            <th>Bench</th>
+                                            <th>Case Stage</th>
+                                            <th>Short Order</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for order in case.orders_data %}
+                                        <tr>
+                                            <td>{{ order.sr_number|default:"N/A" }}</td>
+                                            <td>{{ order.hearing_date|default:"N/A" }}</td>
+                                            <td>{{ order.bench|default:"N/A" }}</td>
+                                            <td>{{ order.case_stage|default:"N/A" }}</td>
+                                            <td>{{ order.short_order|default:"N/A" }}</td>
+                                            <td><span class="badge bg-secondary">{{ order.source_type|default:"main" }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Comments Data (if available) -->
+                    {% if case.comments_data and case.comments_data|length > 0 %}
+                    <div class="comments-data card mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-comments me-2"></i>
+                                Comments Data
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Compliance Date</th>
+                                            <th>Case No</th>
+                                            <th>Case Title</th>
+                                            <th>Doc Type</th>
+                                            <th>Parties</th>
+                                            <th>Description</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for comment in case.comments_data %}
+                                        <tr>
+                                            <td>{{ comment.compliance_date|default:"N/A" }}</td>
+                                            <td>{{ comment.case_no|default:"N/A" }}</td>
+                                            <td>{{ comment.case_title|default:"N/A" }}</td>
+                                            <td>{{ comment.doc_type|default:"N/A" }}</td>
+                                            <td>{{ comment.parties|default:"N/A" }}</td>
+                                            <td>{{ comment.description|default:"N/A" }}</td>
+                                            <td><span class="badge bg-secondary">{{ comment.source_type|default:"main" }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- FIR Information (for criminal cases) -->
+                    {% if case.case_detail and case.case_detail.fir_number %}
+                    <div class="fir-info card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                FIR Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">FIR Number:</label>
+                                        <p class="mb-0">{{ case.case_detail.fir_number }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">FIR Date:</label>
+                                        <p class="mb-0">{{ case.case_detail.fir_date|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Police Station:</label>
+                                        <p class="mb-0">{{ case.case_detail.police_station|default:"Not available" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Under Section:</label>
+                                        <p class="mb-0">{{ case.case_detail.under_section|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Accused Name:</label>
+                                        <p class="mb-0">{{ case.case_detail.name_of_accused|default:"Not available" }}</p>
+                                    </div>
+                                    <div class="info-item mb-3">
+                                        <label class="fw-bold text-muted">Incident:</label>
+                                        <p class="mb-0">{{ case.case_detail.incident|default:"Not available" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Orders Data -->
+                    {% if case.orders_data %}
+                    <div class="orders-data card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-gavel me-2"></i>
+                                Orders ({{ case.orders_data|length }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Document Availability:</strong> Order documents are available for viewing and downloading. 
+                                <strong>Note:</strong> Due to the nature of legal proceedings, some orders may share the same underlying document. 
+                                This is normal and each order represents a distinct legal action or decision.
+                                <button class="btn btn-sm btn-outline-info ms-3" onclick="refreshOrderInfo()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh Document Info
+                                </button>
+                            </div>
+                            {% for order in case.orders_data %}
+                            <div class="order-item border-bottom pb-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-2">Order #{{ order.sr_number }}</h6>
+                                        <p class="mb-1"><strong>Date:</strong> {{ order.hearing_date|default:"Not available" }}</p>
+                                        <p class="mb-1"><strong>Bench:</strong> {{ order.bench|default:"Not available" }}</p>
+                                        <p class="mb-1"><strong>Stage:</strong> {{ order.case_stage|default:"Not available" }}</p>
+                                        {% if order.short_order %}
+                                        <p class="mb-2"><strong>Order:</strong> {{ order.short_order }}</p>
+                                        {% endif %}
+                                        <div class="document-info mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-file-pdf me-1"></i>
+                                                <span id="doc-info-{{ order.id }}">Loading document info...</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDocument({{ case_id }}, {{ order.id }})">
+                                                <i class="fas fa-eye me-1"></i>View Document
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="downloadOrderDocument({{ case_id }}, {{ order.id }})">
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Quick Actions -->
+                    <div class="quick-actions card mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-bolt me-2"></i>
+                                Quick Actions
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="viewCaseHistory({{ case_id }})">
+                                    <i class="fas fa-history me-2"></i>View Case History
+                                </button>
+                                {% if case.judgement_data %}
+                                <button class="btn btn-outline-success btn-sm" onclick="viewJudgement({{ case_id }})">
+                                    <i class="fas fa-file-pdf me-2"></i>View Judgement
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-outline-info btn-sm" onclick="downloadCase({{ case_id }})">
+                                    <i class="fas fa-download me-2"></i>Download Case
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Statistics -->
+                    <div class="case-stats card mb-4">
+                        <div class="card-header bg-dark text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Case Statistics
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item d-flex justify-content-between mb-2">
+                                <span>Orders:</span>
+                                <span class="badge bg-primary">{{ case.orders_data|length|default:"0" }}</span>
+                            </div>
+                            <div class="stat-item d-flex justify-content-between mb-2">
+                                <span>Comments:</span>
+                                <span class="badge bg-info">{{ case.comments_data|length|default:"0" }}</span>
+                            </div>
+                            <div class="stat-item d-flex justify-content-between mb-2">
+                                <span>Case CMs:</span>
+                                <span class="badge bg-secondary">{{ case.case_cms_data|length|default:"0" }}</span>
+                            </div>
+                            
+                            <div class="stat-item d-flex justify-content-between">
+                                <span>Judgement:</span>
+                                <span class="badge bg-warning">{{ case.judgement_data|yesno:"Available,Not Available" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Cases -->
+                    <div class="related-cases card">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-link me-2"></i>
+                                Related Cases
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">Find similar cases based on:</p>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="findSimilarCases('{{ case.case_number|default:"" }}')">
+                                    <i class="fas fa-search me-2"></i>Same Case Number
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="findSimilarCases('{{ case.case_title|default:"" }}')">
+                                    <i class="fas fa-search me-2"></i>Similar Title
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="findSimilarCases('{{ case.case_detail.under_section|default:"" }}')">
+                                    <i class="fas fa-search me-2"></i>Same Section
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.case-details-container {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 200px);
+}
+
+.case-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.breadcrumb-dark .breadcrumb-item + .breadcrumb-item::before {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.breadcrumb-dark .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.breadcrumb-dark .breadcrumb-item a:hover {
+    color: white;
+}
+
+.info-item label {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+.quick-actions .btn {
+    font-size: 0.9rem;
+}
+
+.case-stats .stat-item {
+    font-size: 0.9rem;
+}
+
+.related-cases .btn {
+    font-size: 0.85rem;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    border: none;
+}
+</style>
+{% endblock %}
+
+       {% block extra_js %}
+       <script>
+       function viewCaseHistory(caseId) {
+           // TODO: Implement case history view
+           alert(`Viewing case history for case ${caseId}`);
+       }
+
+       async function viewJudgement(caseId) {
+           try {
+               const response = await fetch(`/api/search/judgement/${caseId}/`);
+               if (response.ok) {
+                   const data = await response.json();
+                   if (data.pdf_url) {
+                       // Open PDF in new tab
+                       window.open(data.pdf_url, '_blank');
+                   } else {
+                       alert('No PDF URL available for this judgement');
+                   }
+               } else {
+                   const errorData = await response.json();
+                   alert(`Error: ${errorData.error || 'Failed to load judgement'}`);
+               }
+           } catch (error) {
+               console.error('Error viewing judgement:', error);
+               alert('Failed to load judgement. Please try again.');
+           }
+       }
+
+       async function downloadCase(caseId) {
+           try {
+               // Get case documents first
+               const response = await fetch(`/api/search/case/${caseId}/`);
+               if (response.ok) {
+                   const caseData = await response.json();
+                   const documents = caseData.case_documents || [];
+                   
+                   if (documents.length > 0) {
+                       // Create a zip file or download multiple documents
+                       alert(`Found ${documents.length} documents. Download functionality will be implemented.`);
+                       
+                                               // For now, download the first document if available
+                        if (documents[0] && documents[0].document_id) {
+                            window.open(`/api/search/document/${caseId}/${documents[0].document_id}/download/?download=true`, '_blank');
+                        }
+                   } else {
+                       alert('No documents available for download');
+                   }
+               } else {
+                   alert('Failed to load case documents');
+               }
+           } catch (error) {
+               console.error('Error downloading case:', error);
+               alert('Failed to download case. Please try again.');
+           }
+       }
+
+                               
+
+                               async function viewOrderDocument(caseId, orderId) {
+            try {
+                console.log(`Viewing order document for case ${caseId}, order ${orderId}...`);
+                // Use the new order document API to get specific document for this order
+                const response = await fetch(`/api/search/order/${caseId}/${orderId}/document/`);
+                console.log(`API response status:`, response.status);
+                
+                if (response.ok) {
+                    const orderDocData = await response.json();
+                    console.log(`Order document data:`, orderDocData);
+                    
+                    if (orderDocData.document_id) {
+                        // For viewing, use the download URL which serves the PDF file inline
+                        // The download URL serves the PDF with proper content type for viewing
+                        const viewUrl = orderDocData.download_url;
+                        console.log(`Opening document for viewing:`, viewUrl);
+                        window.open(viewUrl, '_blank');
+                    } else {
+                        alert('No document available for this order');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error(`API error:`, errorData);
+                    alert(`Error: ${errorData.error || 'Failed to load order document'}`);
+                }
+            } catch (error) {
+                console.error('Error viewing order document:', error);
+                alert('Failed to load order document. Please try again.');
+            }
+        }
+
+               async function downloadOrderDocument(caseId, orderId) {
+            try {
+                console.log(`Downloading order document for case ${caseId}, order ${orderId}...`);
+                // Use the new order document API to get specific document for this order
+                const response = await fetch(`/api/search/order/${caseId}/${orderId}/document/`);
+                console.log(`API response status:`, response.status);
+                
+                if (response.ok) {
+                    const orderDocData = await response.json();
+                    console.log(`Order document data:`, orderDocData);
+                    
+                    if (orderDocData.document_id) {
+                        // Create a temporary link element for download
+                        const link = document.createElement('a');
+                        link.href = orderDocData.download_url + '?download=true';
+                        link.download = orderDocData.document_name || 'order_document.pdf'; // Use actual filename
+                        link.target = '_blank';
+                        link.style.display = 'none'; // Hide the link
+                        console.log(`Downloading document:`, orderDocData.download_url + '?download=true');
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else {
+                        alert('No document available for this order');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error(`API error:`, errorData);
+                    alert(`Error: ${errorData.error || 'Failed to load order document'}`);
+                }
+            } catch (error) {
+                console.error('Error downloading order document:', error);
+                alert('Failed to download order document. Please try again.');
+            }
+        }
+
+       function findSimilarCases(query) {
+           if (query && query.trim()) {
+               // Redirect to search with the query
+               window.location.href = `{% url 'frontend:search_module' %}?q=${encodeURIComponent(query.trim())}`;
+           } else {
+               alert('No query available for similar case search');
+           }
+       }
+       
+       // Function to load document information for all orders
+       async function loadOrderDocumentInfo() {
+           const caseId = {{ case_id }};
+           const orders = document.querySelectorAll('.order-item');
+           
+           console.log(`Found ${orders.length} order elements`);
+           
+           for (const order of orders) {
+               // Find the view button to get the order ID
+               const viewButton = order.querySelector('button[onclick*="viewOrderDocument"]');
+               if (!viewButton) {
+                   console.warn('No view button found for order:', order);
+                   continue;
+               }
+               
+               // Extract order ID from onclick attribute more reliably
+               const onclickAttr = viewButton.getAttribute('onclick');
+               console.log('Button onclick attribute:', onclickAttr);
+               
+               const orderIdMatch = onclickAttr.match(/viewOrderDocument\([^,]+,\s*(\d+)\)/);
+               if (!orderIdMatch) {
+                   console.warn('Could not extract order ID from onclick:', onclickAttr);
+                   continue;
+               }
+               
+               const orderId = orderIdMatch[1];
+               console.log(`Processing order ID: ${orderId}`);
+               
+               const docInfoSpan = order.querySelector(`#doc-info-${orderId}`);
+               if (!docInfoSpan) {
+                   console.warn(`No doc-info span found for order ${orderId}`);
+                   continue;
+               }
+               
+               try {
+                   console.log(`Loading document info for order ${orderId}...`);
+                   const response = await fetch(`/api/search/order/${caseId}/${orderId}/document/`);
+                   if (response.ok) {
+                       const orderDocData = await response.json();
+                       const documentName = orderDocData.document_name || 'Unknown Document';
+                       const mappingMethod = orderDocData.mapping_method || 'unknown';
+                       
+                       // Show document info with mapping method
+                       let infoText = documentName.substring(0, 40) + '...';
+                       if (mappingMethod === 'smart_match') {
+                           infoText += ' (Smart Match)';
+                       } else if (mappingMethod === 'fallback') {
+                           infoText += ' (Fallback)';
+                       }
+                       
+                       docInfoSpan.textContent = infoText;
+                       docInfoSpan.className = 'text-success';
+                       console.log(`Document info loaded for order ${orderId}:`, infoText);
+                   } else {
+                       const errorData = await response.json();
+                       console.error(`API error for order ${orderId}:`, errorData);
+                       docInfoSpan.textContent = 'Document not available';
+                       docInfoSpan.className = 'text-danger';
+                   }
+               } catch (error) {
+                   console.error(`Error loading document info for order ${orderId}:`, error);
+                   docInfoSpan.textContent = 'Error loading info';
+                   docInfoSpan.className = 'text-warning';
+               }
+           }
+       }
+       
+       // Initialize when page loads
+       document.addEventListener('DOMContentLoaded', function() {
+           console.log('DOM loaded, initializing order document info...');
+           // Add a small delay to ensure all elements are properly rendered
+           setTimeout(() => {
+               loadOrderDocumentInfo();
+           }, 100);
+           
+           // Also try again after a longer delay in case of any rendering issues
+           setTimeout(() => {
+               console.log('Retrying order document info loading...');
+               loadOrderDocumentInfo();
+           }, 1000);
+       });
+       
+       // Add a manual refresh function for debugging
+       window.refreshOrderInfo = function() {
+           console.log('Manual refresh of order document info...');
+           loadOrderDocumentInfo();
+       };
+       </script>
+       {% endblock %}

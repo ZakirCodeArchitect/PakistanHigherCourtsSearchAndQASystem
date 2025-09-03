@@ -1,0 +1,522 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Legal Cases Search - Pakistan Higher Courts Search & QA System{% endblock %}
+
+{% block content %}
+<div class="search-module-container">
+    <!-- Search Header -->
+    <div class="search-header bg-gradient-primary text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h2 fw-bold mb-2">
+                        <i class="fas fa-search me-3"></i>
+                        Legal Cases Search
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Advanced search powered by artificial intelligence and legal expertise
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'frontend:dashboard' %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Search Types Selection -->
+            <div class="col-lg-3 mb-4">
+                <div class="search-types-card">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-th-large me-2"></i>
+                        Search Types
+                    </h5>
+                    
+                    <!-- Smart Search (Hybrid) -->
+                    <div class="search-type-option active" data-search-type="hybrid">
+                        <div class="search-type-header">
+                            <div class="search-type-icon bg-primary">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="search-type-info">
+                                <h6 class="mb-1">🧠 SMART SEARCH</h6>
+                                <small class="text-muted">Hybrid Mode</small>
+                            </div>
+                        </div>
+                        <p class="search-type-description">
+                            Find cases using natural language and exact matches
+                        </p>
+                        <div class="search-type-features">
+                            <span class="feature-badge">AI-Powered</span>
+                            <span class="feature-badge">Best Results</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Citation Lookup (Lexical) -->
+                    <div class="search-type-option" data-search-type="lexical">
+                        <div class="search-type-header">
+                            <div class="search-type-icon bg-success">
+                                <i class="fas fa-quote-right"></i>
+                            </div>
+                            <div class="search-type-info">
+                                <h6 class="mb-1">🎯 CITATION LOOKUP</h6>
+                                <small class="text-muted">Lexical Mode</small>
+                            </div>
+                        </div>
+                        <p class="search-type-description">
+                            Search by legal references and case numbers
+                        </p>
+                        <div class="search-type-features">
+                            <span class="feature-badge">Exact Match</span>
+                            <span class="feature-badge">Fast Results</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Meaning Search (Semantic) -->
+                    <div class="search-type-option" data-search-type="semantic">
+                        <div class="search-type-header">
+                            <div class="search-type-icon bg-warning">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="search-type-info">
+                                <h6 class="mb-1">💡 MEANING SEARCH</h6>
+                                <small class="text-muted">Semantic Mode</small>
+                            </div>
+                        </div>
+                        <p class="search-type-description">
+                            Find cases by meaning, not just exact words
+                        </p>
+                        <div class="search-type-features">
+                            <span class="feature-badge">Context Aware</span>
+                            <span class="feature-badge">Related Cases</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Search Area -->
+            <div class="col-lg-9">
+                <div class="main-search-area">
+                    <!-- Search Input -->
+                    <div class="search-input-container mb-4">
+                        <div class="search-input-wrapper">
+                            <div class="search-input-group">
+                                <input type="text" 
+                                       class="form-control form-control-lg search-input" 
+                                       id="searchQuery" 
+                                       placeholder="Enter your search query (e.g., 'PPC 302', 'bail application', 'constitutional petition')"
+                                       autocomplete="off">
+                                <button class="btn btn-primary btn-lg search-btn" id="searchBtn">
+                                    <i class="fas fa-search me-2"></i>
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Query Examples -->
+                        <div class="query-examples mt-3">
+                            <small class="text-muted me-3">
+                                <strong>Examples:</strong>
+                            </small>
+                            <span class="example-query" data-query="PPC 302">PPC 302</span>
+                            <span class="example-query" data-query="bail application">bail application</span>
+                            <span class="example-query" data-query="constitutional petition">constitutional petition</span>
+                            <span class="example-query" data-query="habeas corpus">habeas corpus</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Results -->
+                    <div class="search-results" id="searchResults" style="display: none;">
+                        <div class="results-header mb-3">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                Search Results
+                                <span class="results-count" id="resultsCount"></span>
+                            </h5>
+                        </div>
+                        
+                        <div class="results-list" id="resultsList">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div class="loading-state text-center py-5" id="loadingState" style="display: none;">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted">Searching through legal cases...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-module-container {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 200px);
+}
+
+.search-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.search-types-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.search-type-option {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.search-type-option:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.search-type-option.active {
+    background: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.search-type-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.search-type-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    color: white;
+}
+
+.search-type-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.search-type-description {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.search-type-features {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.feature-badge {
+    background: #dee2e6;
+    color: #495057;
+    padding: 0.2rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+}
+
+.main-search-area {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.search-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-input {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.search-btn {
+    border-radius: 10px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.query-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.example-query {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.example-query:hover {
+    background: #1976d2;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.results-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.results-count {
+    color: #6c757d;
+    font-weight: normal;
+}
+
+.loading-state {
+    padding: 3rem 1rem;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.search-results {
+    margin-top: 2rem;
+}
+
+.results-list {
+    margin-bottom: 2rem;
+}
+
+.result-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.result-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.result-title {
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.result-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.result-snippet {
+    color: #495057;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.result-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let currentSearchType = 'hybrid';
+
+// Initialize search module
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSearchModule();
+});
+
+function initializeSearchModule() {
+    // Search type selection
+    document.querySelectorAll('.search-type-option').forEach(option => {
+        option.addEventListener('click', function() {
+            selectSearchType(this.dataset.searchType);
+        });
+    });
+    
+    // Example queries
+    document.querySelectorAll('.example-query').forEach(example => {
+        example.addEventListener('click', function() {
+            document.getElementById('searchQuery').value = this.dataset.query;
+            performSearch();
+        });
+    });
+    
+    // Search button
+    document.getElementById('searchBtn').addEventListener('click', performSearch);
+    
+    // Initialize with default search type
+    selectSearchType('hybrid');
+}
+
+function selectSearchType(searchType) {
+    // Remove active class from all options
+    document.querySelectorAll('.search-type-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    // Add active class to selected option
+    document.querySelector(`[data-search-type="${searchType}"]`).classList.add('active');
+    
+    // Update current search type
+    currentSearchType = searchType;
+    
+    // Update search button text based on type
+    const searchBtn = document.getElementById('searchBtn');
+    switch(searchType) {
+        case 'hybrid':
+            searchBtn.innerHTML = '<i class="fas fa-brain me-2"></i>Smart Search';
+            break;
+        case 'lexical':
+            searchBtn.innerHTML = '<i class="fas fa-quote-right me-2"></i>Citation Search';
+            break;
+        case 'semantic':
+            searchBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Meaning Search';
+            break;
+    }
+}
+
+async function performSearch() {
+    const query = document.getElementById('searchQuery').value.trim();
+    
+    if (!query) {
+        alert('Please enter a search query');
+        return;
+    }
+    
+    // Show loading state
+    showLoadingState();
+    
+    try {
+        // For now, just show a simple result
+        setTimeout(() => {
+            showSearchResults();
+            displaySampleResults();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Search error:', error);
+    }
+}
+
+function displaySampleResults() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    // Sample results
+    const sampleResults = [
+        {
+            case_title: "Sample Case 1 - Constitutional Petition",
+            court: "Islamabad High Court",
+            status: "Pending",
+            date: "2025-01-15",
+            snippet: "This is a sample case about constitutional rights and fundamental freedoms..."
+        },
+        {
+            case_title: "Sample Case 2 - Criminal Appeal",
+            court: "Lahore High Court", 
+            status: "Disposed",
+            date: "2024-12-20",
+            snippet: "Sample criminal appeal case involving PPC 302 and related legal provisions..."
+        }
+    ];
+    
+    resultsCount.textContent = ` (${sampleResults.length} results)`;
+    
+    resultsList.innerHTML = '';
+    
+    sampleResults.forEach(result => {
+        const resultCard = createResultCard(result);
+        resultsList.appendChild(resultCard);
+    });
+}
+
+function createResultCard(result) {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = `
+        <div class="result-header">
+            <div>
+                <h6 class="result-title">${result.case_title}</h6>
+                <div class="result-meta">
+                    <span><i class="fas fa-gavel me-1"></i>${result.court}</span>
+                    <span><i class="fas fa-calendar me-1"></i>${result.date}</span>
+                    <span><i class="fas fa-info-circle me-1"></i>${result.status}</span>
+                </div>
+            </div>
+        </div>
+        <div class="result-snippet">
+            ${result.snippet}
+        </div>
+        <div class="result-actions">
+            <button class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-eye me-1"></i>View Details
+            </button>
+        </div>
+    `;
+    
+    return card;
+}
+
+function showLoadingState() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('searchResults').style.display = 'none';
+}
+
+function showSearchResults() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'block';
+}
+</script>
+{% endblock %}

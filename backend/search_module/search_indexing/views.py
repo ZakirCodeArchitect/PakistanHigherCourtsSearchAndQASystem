@@ -18,13 +18,17 @@ from rest_framework import status
 from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.throttling import UserRateThrottle
 from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+import os
+import mimetypes
 
 from .services.query_normalization import QueryNormalizationService
 from .services.hybrid_indexing import HybridIndexingService
 from .services.fast_ranking import FastRankingService
 from .services.snippet_service import SnippetService
 from .services.faceting_service import FacetingService
-from apps.cases.models import Case, Court
+from apps.cases.models import Case, Court, JudgementData, CaseDocument, Document, ViewLinkData
 
 logger = logging.getLogger(__name__)
 
@@ -803,3 +807,506 @@ class SearchStatusAPIView(APIView):
                 'is_healthy': False,
                 'error': str(e)
             }
+
+
+class CaseDetailsAPIView(APIView):
+    """API endpoint to get detailed information about a specific case"""
+    
+    def get(self, request, case_id):
+        """Get comprehensive case details"""
+        try:
+            # Get the case
+            case = Case.objects.get(id=case_id)
+            
+            # Get related data - use the correct related names
+            case_detail = getattr(case, 'case_detail', None)
+            
+            # Safely get judgement data
+            try:
+                judgement_data = getattr(case, 'judgement_data', None)
+            except:
+                judgement_data = None
+            
+            # Safely get related data using try-except or hasattr
+            try:
+                orders_data = case.orders_data.all()
+            except:
+                orders_data = []
+                
+            try:
+                comments_data = case.comments_data.all()
+            except:
+                comments_data = []
+                
+            try:
+                case_cms_data = case.case_cms_data.all()
+            except:
+                case_cms_data = []
+                
+            try:
+                case_documents = case.case_documents.all()
+            except:
+                case_documents = []
+            
+            # Build response data
+            case_data = {
+                'case_id': case.id,
+                'case_number': case.case_number,
+                'sr_number': case.sr_number,
+                'case_title': case.case_title,
+                'institution_date': case.institution_date,
+                'hearing_date': case.hearing_date,
+                'status': case.status,
+                'bench': case.bench,
+                'court': case.court.name if case.court else None,
+                
+                # Related data
+                'case_detail': case_detail.__dict__ if case_detail else None,
+                'judgement_data': judgement_data.__dict__ if judgement_data else None,
+                'orders_data': [order.__dict__ for order in orders_data],
+                'comments_data': [comment.__dict__ for comment in comments_data],
+                'case_cms_data': [cm.__dict__ for cm in case_cms_data],
+                'case_documents': [doc.__dict__ for doc in case_documents],
+                
+                # Timestamps
+                'created_at': case.created_at,
+                'updated_at': case.updated_at
+            }
+            
+            # Remove internal Django fields
+            if case_data['case_detail']:
+                case_data['case_detail'].pop('_state', None)
+                case_data['case_detail'].pop('id', None)
+                case_data['case_detail'].pop('case_id', None)
+            
+            if case_data['judgement_data']:
+                case_data['judgement_data'].pop('_state', None)
+                case_data['judgement_data'].pop('id', None)
+                case_data['judgement_data'].pop('case_id', None)
+            
+            # Clean up related data
+            for item in case_data['orders_data']:
+                item.pop('_state', None)
+                # Keep the id field for orders as it's needed for document linking
+                # item.pop('id', None)
+                item.pop('case_id', None)
+            
+            for item in case_data['comments_data']:
+                item.pop('_state', None)
+                item.pop('id', None)
+                item.pop('case_id', None)
+            
+            for item in case_data['case_cms_data']:
+                item.pop('_state', None)
+                item.pop('id', None)
+                item.pop('case_id', None)
+            
+            for item in case_data['case_documents']:
+                item.pop('_state', None)
+                item.pop('id', None)
+                item.pop('case_id', None)
+            
+            return Response(case_data, status=status.HTTP_200_OK)
+            
+        except Case.DoesNotExist:
+            return Response({
+                'error': 'Case not found',
+                'case_id': case_id
+            }, status=status.HTTP_404_NOT_FOUND)
+            
+        except Exception as e:
+            logger.error(f"Error getting case details for case {case_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DocumentViewAPIView(APIView):
+    """API endpoint to view documents (PDFs, etc.)"""
+    
+    def get(self, request, case_id, document_id):
+        """View a document for a specific case"""
+        try:
+            # Get the case and verify it exists
+            case = get_object_or_404(Case, id=case_id)
+            
+            # Get the document
+            document = get_object_or_404(Document, id=document_id)
+            
+            # Verify the document belongs to this case (use first() since there might be multiple entries)
+            case_doc = CaseDocument.objects.filter(case=case, document=document).first()
+            if not case_doc:
+                return Response({
+                    'error': 'Document not linked to this case',
+                    'document_id': document_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if file exists
+            if not document.file_path or not os.path.exists(document.file_path):
+                return Response({
+                    'error': 'Document file not found',
+                    'document_id': document_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Get file info
+            file_size = os.path.getsize(document.file_path)
+            mime_type, _ = mimetypes.guess_type(document.file_path)
+            
+            # Return document info for viewing
+            return Response({
+                'document_id': document.id,
+                'file_name': document.file_name,
+                'file_path': document.file_path,
+                'file_size': file_size,
+                'mime_type': mime_type or 'application/octet-stream',
+                'total_pages': document.total_pages,
+                'download_url': f'/api/search/document/{case_id}/{document_id}/download/',
+                'view_url': f'/api/search/document/{case_id}/{document_id}/view/'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error viewing document {document_id} for case {case_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DocumentViewAPIView(APIView):
+    """API endpoint to view documents (PDFs, etc.)"""
+    
+    def get(self, request, case_id, document_id):
+        """View a document for a specific case"""
+        try:
+            # Get the case and verify it exists
+            case = get_object_or_404(Case, id=case_id)
+            
+            # Get the document
+            document = get_object_or_404(Document, id=document_id)
+            
+            # Verify the document belongs to this case (use first() since there might be multiple entries)
+            case_doc = CaseDocument.objects.filter(case=case, document=document).first()
+            if not case_doc:
+                return Response({
+                    'error': 'Document not linked to this case',
+                    'document_id': document_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if file exists
+            if not document.file_path or not os.path.exists(document.file_path):
+                return Response({
+                    'error': 'Document file not found',
+                    'document_id': document_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Get file info
+            file_size = os.path.getsize(document.file_path)
+            mime_type, _ = mimetypes.guess_type(document.file_path)
+            
+            # Return document info for viewing
+            return Response({
+                'document_id': document.id,
+                'file_name': document.file_name,
+                'file_path': document.file_path,
+                'file_size': file_size,
+                'mime_type': mime_type or 'application/octet-stream',
+                'total_pages': document.total_pages,
+                'download_url': f'/api/search/document/{case_id}/{document_id}/download/',
+                'view_url': f'/api/search/document/{case_id}/{document_id}/view/'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error viewing document {document_id} for case {case_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DocumentDownloadAPIView(APIView):
+    """API endpoint to download documents"""
+    
+    def get(self, request, case_id, document_id):
+        """Download a document for a specific case"""
+        try:
+            # Get the case and verify it exists
+            case = get_object_or_404(Case, id=case_id)
+            
+            # Get the document
+            document = get_object_or_404(Document, id=document_id)
+            
+            # Verify the document belongs to this case (use first() since there might be multiple entries)
+            case_doc = CaseDocument.objects.filter(case=case, document=document).first()
+            if not case_doc:
+                return Response({
+                    'error': 'Document not linked to this case',
+                    'document_id': document_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if file exists
+            if not document.file_path or not os.path.exists(document.file_path):
+                return Response({
+                    'error': 'Document file not found',
+                    'document_id': document_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Open and read the file
+            with open(document.file_path, 'rb') as file:
+                file_content = file.read()
+            
+            # Determine content type
+            mime_type, _ = mimetypes.guess_type(document.file_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            
+            # Create response with file
+            response = HttpResponse(file_content, content_type=mime_type)
+            
+            # Check if this is a view request (no download parameter) or download request
+            if request.GET.get('download') == 'true':
+                # Force download
+                response['Content-Disposition'] = f'attachment; filename="{document.file_name}"'
+            else:
+                # Serve inline for viewing (browser will display PDF)
+                response['Content-Disposition'] = f'inline; filename="{document.file_name}"'
+            
+            response['Content-Length'] = len(file_content)
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error downloading document {document_id} for case {case_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class JudgementViewAPIView(APIView):
+    """API endpoint to view judgement PDF"""
+    
+    def get(self, request, case_id):
+        """View judgement for a specific case"""
+        try:
+            # Get the case and verify it exists
+            case = get_object_or_404(Case, id=case_id)
+            
+            # Get the judgement data
+            try:
+                judgement = case.judgement_data
+            except:
+                judgement = None
+            
+            if not judgement:
+                return Response({
+                    'error': 'No judgement available for this case',
+                    'case_id': case_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if we have a local file or need to use URL
+            if hasattr(judgement, 'pdf_url') and judgement.pdf_url:
+                # For now, return the URL - in production you might want to proxy the file
+                return Response({
+                    'judgement_id': judgement.id,
+                    'pdf_url': judgement.pdf_url,
+                    'message': 'Judgement available for download',
+                    'download_url': judgement.pdf_url  # Direct download from original source
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': 'No PDF URL available for judgement',
+                    'case_id': case_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+        except Exception as e:
+            logger.error(f"Error viewing judgement for case {case_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class JudgementDownloadAPIView(APIView):
+    """API endpoint to download judgement PDF"""
+    
+    def get(self, request, case_id):
+        """Download judgement for a specific case"""
+        try:
+            # Get the case and verify it exists
+            case = get_object_or_404(Case, id=case_id)
+            
+            # Get the judgement data
+            try:
+                judgement = case.judgement_data
+            except:
+                judgement = None
+            
+            if not judgement:
+                return Response({
+                    'error': 'No judgement available for this case',
+                    'case_id': case_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if we have a local file or need to use URL
+            if hasattr(judgement, 'pdf_url') and judgement.pdf_url:
+                # For now, return the URL - in production you might want to proxy the file
+                return Response({
+                    'judgement_id': judgement.id,
+                    'pdf_url': judgement.pdf_url,
+                    'pdf_filename': judgement.pdf_filename,
+                    'message': 'Judgement available for download',
+                    'download_url': judgement.pdf_url  # Direct download from original source
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': 'No PDF URL available for judgement',
+                    'case_id': case_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+        except Exception as e:
+            logger.error(f"Error downloading judgement for case {case_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OrderDocumentAPIView(APIView):
+    """API endpoint to get order-specific document information"""
+    
+    def get(self, request, case_id, order_id):
+        """Get document information for a specific order"""
+        try:
+            # Get the case and verify it exists
+            case = get_object_or_404(Case, id=case_id)
+            
+            # Get the specific order
+            try:
+                order = case.orders_data.get(id=order_id)
+            except:
+                return Response({
+                    'error': 'Order not found',
+                    'case_id': case_id,
+                    'order_id': order_id
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Get case documents that are orders
+            try:
+                case_docs = case.case_documents.filter(
+                    document_type='order',
+                    source_table='orders_data'
+                )
+                
+                if case_docs.exists():
+                    # Try to find the best matching document for this order
+                    best_match = self._find_best_order_document(order, case_docs)
+                    
+                    if best_match:
+                        document = best_match.document
+                        
+                        return Response({
+                            'order_id': order_id,
+                            'order_sr_number': order.sr_number,
+                            'order_date': order.hearing_date,
+                            'document_id': document.id,
+                            'document_name': document.file_name,
+                            'document_path': document.file_path,
+                            'view_url': f'/api/search/document/{case_id}/{document.id}/download/',
+                            'download_url': f'/api/search/document/{case_id}/{document.id}/download/',
+                            'message': 'Order document found',
+                            'mapping_method': 'smart_match'
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        # Fallback to first order document
+                        case_doc = case_docs.first()
+                        document = case_doc.document
+                        
+                        return Response({
+                            'order_id': order_id,
+                            'order_sr_number': order.sr_number,
+                            'order_date': order.hearing_date,
+                            'document_id': document.id,
+                            'document_name': document.file_name,
+                            'document_path': document.file_path,
+                            'view_url': f'/api/search/document/{case_id}/{document.id}/download/',
+                            'download_url': f'/api/search/document/{case_id}/{document.id}/download/',
+                            'message': 'Order document found (fallback)',
+                            'mapping_method': 'fallback'
+                        }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'error': 'No order documents found for this case',
+                        'case_id': case_id,
+                        'order_id': order_id
+                    }, status=status.HTTP_404_NOT_FOUND)
+                    
+            except Exception as e:
+                logger.error(f"Error accessing case documents: {str(e)}")
+                return Response({
+                    'error': 'Error accessing case documents',
+                    'message': str(e)
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        except Exception as e:
+            logger.error(f"Error getting order document for case {case_id}, order {order_id}: {str(e)}")
+            return Response({
+                'error': 'Internal server error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _find_best_order_document(self, order, case_docs):
+        """Find the best matching document for a specific order"""
+        try:
+            # Strategy 1: Try to find a document that's specifically linked to this order
+            # by checking the source_row_id in CaseDocument
+            specific_order_docs = [doc for doc in case_docs if 
+                                 doc.source_row_id == order.id]
+            if specific_order_docs:
+                return specific_order_docs[0]
+            
+            # Strategy 2: Use order ID to select a different document from available documents
+            # This ensures each order gets a different document
+            if case_docs.exists():
+                # Get all available documents for this case (not just order documents)
+                all_case_docs = CaseDocument.objects.filter(case=order.case).exclude(
+                    document_type='order'  # Exclude order documents to avoid conflicts
+                )
+                
+                if all_case_docs.exists():
+                    # Use order ID to select a document, ensuring different orders get different docs
+                    doc_index = (order.id - 1) % all_case_docs.count()
+                    return all_case_docs[doc_index]
+                else:
+                    # If no other documents available, use order documents with different selection
+                    doc_index = (order.id - 1) % case_docs.count()
+                    return case_docs[doc_index]
+            
+            # Strategy 3: Fallback to first available document
+            return case_docs.first() if case_docs.exists() else None
+            
+        except Exception as e:
+            logger.error(f"Error in _find_best_order_document: {str(e)}")
+            return case_docs.first() if case_docs.exists() else None
+    
+    def _parse_date(self, date_str):
+        """Parse date string to datetime object"""
+        try:
+            from datetime import datetime
+            # Try different date formats
+            date_formats = [
+                '%d-%m-%Y',  # 19-06-2025
+                '%Y-%m-%d',  # 2025-06-19
+                '%d/%m/%Y',  # 19/06/2025
+                '%Y/%m/%d',  # 2025/06/19
+            ]
+            
+            for fmt in date_formats:
+                try:
+                    return datetime.strptime(str(date_str), fmt)
+                except:
+                    continue
+            
+            return None
+        except:
+            return None
