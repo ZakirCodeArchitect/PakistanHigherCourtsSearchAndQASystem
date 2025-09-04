@@ -537,7 +537,7 @@ class VectorIndexingService:
                             'status': case.status,
                             'parties': '',  # Will be populated from related data if needed
                             'institution_date': case.institution_date,
-                            'disposal_date': None,  # Not available in Case model
+                            'hearing_date': case.hearing_date,
                             'chunk_text': chunk.chunk_text[:200] + "..." if len(chunk.chunk_text) > 200 else chunk.chunk_text,
                             'chunk_index': chunk.chunk_index,
                             'page_number': chunk.page_number

@@ -197,6 +197,8 @@ class HybridIndexingService:
                     'case_title': exact_case_match['case_title'],
                     'court': exact_case_match['court'],
                     'status': exact_case_match['status'],
+                    'institution_date': exact_case_match.get('institution_date', ''),
+                    'hearing_date': exact_case_match.get('hearing_date', ''),
                     'vector_score': 0,
                     'keyword_score': 0,
                     'final_score': exact_case_match['exact_score'],
@@ -282,6 +284,8 @@ class HybridIndexingService:
                     'case_title': best_match.case_title,
                     'court': best_match.court.name if best_match.court else '',
                     'status': getattr(best_match, 'status', ''),
+                    'institution_date': getattr(best_match, 'institution_date', ''),
+                    'hearing_date': getattr(best_match, 'hearing_date', ''),
                     'exact_match': True,
                     'exact_score': best_score
                 }
@@ -315,6 +319,11 @@ class HybridIndexingService:
                         case_results[case_id]['vector_score'], 
                         result.get('similarity', 0)
                     )
+                    # Merge date fields from vector results
+                    if result.get('institution_date'):
+                        case_results[case_id]['result_data']['institution_date'] = result['institution_date']
+                    if result.get('hearing_date'):
+                        case_results[case_id]['result_data']['hearing_date'] = result['hearing_date']
             
             # Process keyword results
             for result in keyword_results:
@@ -332,6 +341,11 @@ class HybridIndexingService:
                         case_results[case_id]['keyword_score'], 
                         result.get('rank', 0)
                     )
+                    # Merge date fields from keyword results
+                    if result.get('institution_date'):
+                        case_results[case_id]['result_data']['institution_date'] = result['institution_date']
+                    if result.get('hearing_date'):
+                        case_results[case_id]['result_data']['hearing_date'] = result['hearing_date']
             
             # Calculate combined scores
             vector_weight = self.config.get('vector_weight', 0.6)
@@ -387,7 +401,7 @@ class HybridIndexingService:
                     'status': result_data.get('status', ''),
                     'parties': result_data.get('parties', ''),
                     'institution_date': result_data.get('institution_date'),
-                    'disposal_date': result_data.get('disposal_date')
+                    'hearing_date': result_data.get('hearing_date') or result_data.get('disposal_date')
                 })
                 
                 final_results.append(final_result)

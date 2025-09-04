@@ -457,7 +457,7 @@ class KeywordIndexingService:
                 'status': result.status_normalized,
                 'parties': result.parties_normalized,
                 'institution_date': result.institution_date,
-                'disposal_date': result.disposal_date,
+                'hearing_date': result.disposal_date,  # Map disposal_date to hearing_date for consistency
                 'rank': score
             })
         
@@ -587,7 +587,7 @@ class KeywordIndexingService:
                     'status': result.status_normalized,
                     'parties': result.parties_normalized,
                     'institution_date': result.institution_date,
-                    'disposal_date': result.disposal_date
+                    'hearing_date': result.disposal_date  # Map disposal_date to hearing_date for consistency
                 })
             
             return search_results
