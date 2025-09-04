@@ -129,6 +129,19 @@
                             <span class="example-query" data-query="constitutional petition" onclick="setQueryAndSearch('constitutional petition')">constitutional petition</span>
                             <span class="example-query" data-query="habeas corpus" onclick="setQueryAndSearch('habeas corpus')">habeas corpus</span>
                         </div>
+                        
+                        <!-- Results per page selector -->
+                        <div class="results-per-page-selector mt-3 d-inline-flex align-items-center">
+                            <label for="resultsPerPage" class="form-label me-2 mb-0">
+                                <strong>Results per page:</strong>
+                            </label>
+                            <select id="resultsPerPage" class="form-select form-select-sm">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
                     </div>
                     
                     <!-- Search Results -->
@@ -143,6 +156,27 @@
                         
                         <div class="results-list" id="resultsList">
                             <!-- Results will be populated here -->
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="pagination-container mt-4" id="paginationContainer" style="display: none;">
+                            <!-- Results Summary -->
+                            <div class="results-summary text-center mb-3">
+                                <small class="text-muted">
+                                    Showing <span id="currentResultsRange">1-10</span> of <span id="totalResults">0</span> results
+                                </small>
+                            </div>
+                            
+                            <nav aria-label="Search results pagination">
+                                <ul class="pagination justify-content-center" id="paginationList">
+                                    <!-- Pagination will be populated here -->
+                                </ul>
+                            </nav>
+                            <div class="pagination-info text-center mt-2">
+                                <small class="text-muted" id="paginationInfo">
+                                    <!-- Pagination info will be populated here -->
+                                </small>
+                            </div>
                         </div>
                     </div>
                     
@@ -378,6 +412,90 @@
     display: flex;
     gap: 0.5rem;
 }
+
+/* Results per page selector styling */
+.results-per-page-selector {
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    width: fit-content;
+    display: inline-flex;
+}
+
+.results-per-page-selector label {
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+    margin-right: 0.5rem;
+}
+
+.results-per-page-selector select {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    width: 70px;
+    background-position: right 0.5rem center;
+    background-size: 16px 12px;
+    padding-right: 2rem;
+    cursor: pointer;
+}
+
+.results-per-page-selector select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Results summary styling */
+.results-summary {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.results-summary span {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Pagination styling */
+.pagination-container {
+    border-top: 1px solid #e9ecef;
+    padding-top: 1rem;
+    margin-top: 2rem;
+}
+
+.pagination-container:empty {
+    display: none;
+}
+
+.pagination .page-link {
+    color: #667eea;
+    border: 1px solid #dee2e6;
+    margin: 0 2px;
+    border-radius: 6px;
+}
+
+.pagination .page-link:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white !important;
+    font-weight: 600;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
 </style>
 {% endblock %}
 
@@ -468,13 +586,14 @@ async function performSearch() {
         
         console.log(`🔍 Searching for: "${query}" in ${selectedMode} mode`);
         
-        // Make actual API call to backend
+        // Always fetch maximum results from backend (we'll paginate on frontend)
         const searchParams = new URLSearchParams({
             q: query,
             mode: selectedMode,
             return_facets: 'true',
             highlight: 'true',
-            limit: '10'
+            limit: '1000',  // Fetch maximum results
+            offset: '0'
         });
         
         const response = await fetch(`/api/search/search/?${searchParams}`, {
@@ -491,6 +610,11 @@ async function performSearch() {
             const data = await response.json();
             console.log('✅ Search successful:', data);
             showSearchResults();
+            
+            // Store all results globally for client-side pagination
+            window.allSearchResults = data;
+            window.currentPage = 1;
+            
             displayRealResults(data);
         } else {
             const errorText = await response.text();
@@ -536,33 +660,12 @@ function displayRealResults(data) {
         return;
     }
     
-    // Show total results from pagination if available
-    const totalResults = data.pagination ? data.pagination.total : data.results.length;
+    // Show total results
+    const totalResults = data.results.length;
     resultsCount.textContent = ` (${totalResults} results)`;
     
-    // Clear previous results
-    resultsList.innerHTML = '';
-    
-    // Display each result
-    data.results.forEach((result, index) => {
-        const resultCard = createResultCard(result, data.query_info);
-        resultsList.appendChild(resultCard);
-    });
-    
-    // Add search metadata if available
-    if (data.search_metadata) {
-        const metadataDiv = document.createElement('div');
-        metadataDiv.className = 'search-metadata mt-3 p-3 bg-light rounded';
-        metadataDiv.innerHTML = `
-            <small class="text-muted">
-                <i class="fas fa-info-circle me-1"></i>
-                Search completed in ${data.search_metadata.latency_ms}ms | 
-                Mode: ${data.search_metadata.mode} | 
-                ${data.query_info ? `Citations found: ${data.query_info.citations_found}` : ''}
-            </small>
-        `;
-        resultsList.appendChild(metadataDiv);
-    }
+    // Apply client-side pagination
+    applyClientSidePagination();
 }
 
 function displaySampleResults() {
@@ -737,5 +840,254 @@ async function testAPIConnection() {
         console.error('❌ API connection test failed:', error);
     }
 }
+
+// Client-side pagination function
+function applyClientSidePagination() {
+    if (!window.allSearchResults || !window.allSearchResults.results) {
+        return;
+    }
+    
+    const resultsPerPage = parseInt(document.getElementById('resultsPerPage').value);
+    const totalResults = window.allSearchResults.results.length;
+    const totalPages = Math.ceil(totalResults / resultsPerPage);
+    
+    // Ensure current page is valid
+    if (window.currentPage > totalPages) {
+        window.currentPage = totalPages;
+    }
+    if (window.currentPage < 1) {
+        window.currentPage = 1;
+    }
+    
+    // Calculate start and end indices
+    const startIndex = (window.currentPage - 1) * resultsPerPage;
+    const endIndex = Math.min(startIndex + resultsPerPage, totalResults);
+    
+    // Get current page results
+    const currentPageResults = window.allSearchResults.results.slice(startIndex, endIndex);
+    
+    // Display current page results
+    const resultsList = document.getElementById('resultsList');
+    resultsList.innerHTML = '';
+    
+    currentPageResults.forEach((result, index) => {
+        const resultCard = createResultCard(result, window.allSearchResults.query_info);
+        resultsList.appendChild(resultCard);
+    });
+    
+    // Add search metadata if available
+    if (window.allSearchResults.search_metadata) {
+        const metadataDiv = document.createElement('div');
+        metadataDiv.className = 'search-metadata mt-3 p-3 bg-light rounded';
+        metadataDiv.innerHTML = `
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Search completed in ${window.allSearchResults.search_metadata.latency_ms}ms | 
+                Mode: ${window.allSearchResults.search_metadata.mode} | 
+                ${window.allSearchResults.query_info ? `Citations found: ${window.allSearchResults.query_info.citations_found}` : ''}
+            </small>
+        `;
+        resultsList.appendChild(metadataDiv);
+    }
+    
+    // Update pagination display
+    displayClientSidePagination(totalResults, resultsPerPage, totalPages, startIndex, endIndex);
+}
+
+// Display client-side pagination controls
+function displayClientSidePagination(totalResults, resultsPerPage, totalPages, startIndex, endIndex) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    const paginationList = document.getElementById('paginationList');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const currentResultsRange = document.getElementById('currentResultsRange');
+    const totalResultsSpan = document.getElementById('totalResults');
+    
+    // Always show pagination container
+    paginationContainer.style.display = 'block';
+    
+    // Update results summary
+    if (currentResultsRange) {
+        currentResultsRange.textContent = `${startIndex + 1}-${endIndex}`;
+    }
+    if (totalResultsSpan) {
+        totalResultsSpan.textContent = totalResults;
+    }
+    
+    // Update pagination info
+    if (paginationInfo) {
+        paginationInfo.innerHTML = `Page ${window.currentPage} of ${totalPages}`;
+    }
+    
+    // Only show pagination controls if there are multiple pages
+    if (totalPages <= 1) {
+        paginationList.innerHTML = '';
+        return;
+    }
+    
+    // Clear previous pagination
+    paginationList.innerHTML = '';
+    
+    // Previous button
+    if (window.currentPage > 1) {
+        const prevLi = document.createElement('li');
+        prevLi.className = 'page-item';
+        prevLi.innerHTML = `
+            <a class="page-link" href="#" onclick="goToClientPage(${window.currentPage - 1})">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        `;
+        paginationList.appendChild(prevLi);
+    }
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, window.currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === window.currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `
+            <a class="page-link" href="#" onclick="goToClientPage(${i})">${i}</a>
+        `;
+        paginationList.appendChild(pageLi);
+    }
+    
+    // Next button
+    if (window.currentPage < totalPages) {
+        const nextLi = document.createElement('li');
+        nextLi.className = 'page-item';
+        nextLi.innerHTML = `
+            <a class="page-link" href="#" onclick="goToClientPage(${window.currentPage + 1})">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        `;
+        paginationList.appendChild(nextLi);
+    }
+}
+
+// Navigate to specific page (client-side)
+function goToClientPage(pageNumber) {
+    window.currentPage = pageNumber;
+    applyClientSidePagination();
+    
+    // Scroll to top of results
+    document.getElementById('searchResults').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Old pagination functions (keeping for reference)
+function displayPagination(data) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    const paginationList = document.getElementById('paginationList');
+    const paginationInfo = document.getElementById('paginationInfo');
+    
+    console.log('🔍 displayPagination called with:', data);
+    console.log('🔍 Pagination container:', paginationContainer);
+    console.log('🔍 Pagination list:', paginationList);
+    console.log('🔍 Pagination info:', paginationInfo);
+    
+    // Always show pagination container for results summary
+    paginationContainer.style.display = 'block';
+    
+    // Calculate pagination info
+    const totalResults = data.pagination ? data.pagination.total : data.results.length;
+    const limit = data.pagination ? data.pagination.limit : data.results.length;
+    const offset = data.pagination ? data.pagination.offset : 0;
+    
+    const totalPages = Math.ceil(totalResults / limit);
+    const currentPage = Math.floor(offset / limit) + 1;
+    const startResult = offset + 1;
+    const endResult = Math.min(offset + limit, totalResults);
+    
+    // Update results summary
+    const currentResultsRange = document.getElementById('currentResultsRange');
+    const totalResultsSpan = document.getElementById('totalResults');
+    
+    if (currentResultsRange) {
+        currentResultsRange.textContent = `${startResult}-${endResult}`;
+    }
+    if (totalResultsSpan) {
+        totalResultsSpan.textContent = totalResults;
+    }
+    
+    // Update pagination info
+    if (paginationInfo) {
+        paginationInfo.innerHTML = `
+            Page ${currentPage} of ${totalPages}
+        `;
+    }
+    
+    // Only show pagination controls if there are multiple pages
+    if (totalPages <= 1) {
+        paginationList.innerHTML = '';
+        return;
+    }
+    
+    // Clear previous pagination
+    paginationList.innerHTML = '';
+    
+    // Previous button
+    if (data.pagination && data.pagination.has_previous) {
+        const prevLi = document.createElement('li');
+        prevLi.className = 'page-item';
+        prevLi.innerHTML = `
+            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1})">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        `;
+        paginationList.appendChild(prevLi);
+    }
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `
+            <a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>
+        `;
+        paginationList.appendChild(pageLi);
+    }
+    
+    // Next button
+    if (data.pagination && data.pagination.has_next) {
+        const nextLi = document.createElement('li');
+        nextLi.className = 'page-item';
+        nextLi.innerHTML = `
+            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1})">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        `;
+        paginationList.appendChild(nextLi);
+    }
+}
+
+// Old server-side pagination function (no longer used)
+// function goToPage(pageNumber) { ... }
+
+// Add event listener for results per page change
+document.addEventListener('DOMContentLoaded', function() {
+    const resultsPerPageSelect = document.getElementById('resultsPerPage');
+    if (resultsPerPageSelect) {
+        resultsPerPageSelect.addEventListener('change', function() {
+            // If there are current results, apply new pagination without re-searching
+            if (window.allSearchResults && window.allSearchResults.results) {
+                window.currentPage = 1; // Reset to first page
+                applyClientSidePagination();
+            }
+        });
+    }
+});
 </script>
 {% endblock %}
