@@ -74,7 +74,8 @@ class SearchAPIView(APIView):
                 search_results.get('keyword_results', []),
                 params['query'],
                 None,  # exact_case_match - will be handled by fast ranking service
-                params.get('filters')
+                params.get('filters'),
+                params['limit']  # Pass the limit parameter to control number of results
             )
             
             # Generate snippets if requested
@@ -167,7 +168,7 @@ class SearchAPIView(APIView):
                 'mode': request.GET.get('mode', 'hybrid').lower(),
                 'filters': self._parse_filters(request),
                 'offset': int(request.GET.get('offset', 0)),
-                'limit': min(int(request.GET.get('limit', 10)), 100),  # Cap at 100
+                'limit': min(int(request.GET.get('limit', 10)), 1000),  # Cap at 1000 for better user experience
                 'return_facets': request.GET.get('return_facets', 'false').lower() == 'true',
                 'highlight': request.GET.get('highlight', 'false').lower() == 'true',
                 'debug': request.GET.get('debug', 'false').lower() == 'true',

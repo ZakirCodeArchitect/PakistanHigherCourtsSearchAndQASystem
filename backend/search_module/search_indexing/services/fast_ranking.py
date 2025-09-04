@@ -33,7 +33,8 @@ class FastRankingService:
                     keyword_results: List[Dict],
                     query: str,
                     exact_case_match: Dict[str, Any] = None,
-                    filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+                    filters: Dict[str, Any] = None,
+                    top_k: int = None) -> List[Dict[str, Any]]:
         """
         Fast ranking without complex database queries
         
@@ -59,8 +60,9 @@ class FastRankingService:
             # Step 3: Sort by final score
             ranked_results = sorted(scored_results, key=lambda x: x['final_score'], reverse=True)
             
-            # Step 4: Limit to top results (use a reasonable default)
-            final_results = ranked_results[:10]  # Default to top 10
+            # Step 4: Limit to top results (use provided top_k or reasonable default)
+            limit = top_k if top_k is not None else 10
+            final_results = ranked_results[:limit]
             
             # Step 5: Add ranking metadata
             for i, result in enumerate(final_results):
@@ -73,7 +75,8 @@ class FastRankingService:
         except Exception as e:
             logger.error(f"Error in fast ranking: {str(e)}")
             # Fallback to simple ranking
-            return self._fallback_ranking(vector_results, keyword_results, 10)  # Default to top 10
+            limit = top_k if top_k is not None else 10
+            return self._fallback_ranking(vector_results, keyword_results, limit)
     
     def _combine_results_fast(self, vector_results: List[Dict], keyword_results: List[Dict]) -> Dict[int, Dict]:
         """Combine results by case ID - fast in-memory operation"""
