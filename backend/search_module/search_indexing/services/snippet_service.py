@@ -287,12 +287,15 @@ class SnippetService:
             if len(chunk_text) < self.default_config['min_snippet_length']:
                 return None
             
+            # Extract meaningful content from chunk
+            meaningful_text = self._extract_meaningful_content(chunk_text)
+            
             # Truncate if too long
-            if len(chunk_text) > self.default_config['max_snippet_length']:
+            if len(meaningful_text) > self.default_config['max_snippet_length']:
                 # Try to find a good break point
-                truncated_text = self._truncate_at_sentence_boundary(chunk_text)
+                truncated_text = self._truncate_at_sentence_boundary(meaningful_text)
             else:
-                truncated_text = chunk_text
+                truncated_text = meaningful_text
             
             snippet = {
                 'text': truncated_text,
@@ -315,6 +318,92 @@ class SnippetService:
         except Exception as e:
             logger.error(f"Error creating snippet from chunk: {str(e)}")
             return None
+    
+    def _extract_meaningful_content(self, chunk_text: str) -> str:
+        """Extract meaningful legal content from chunk text, removing document metadata"""
+        try:
+            # If the text is all on one line (common in chunks), split by sentences
+            if '\n' not in chunk_text or len(chunk_text.split('\n')) == 1:
+                # Split by sentences and find the first substantial legal content
+                sentences = chunk_text.split('. ')
+                
+                for sentence in sentences:
+                    sentence = sentence.strip()
+                    if not sentence:
+                        continue
+                    
+                    # Skip metadata sentences
+                    if any(pattern in sentence for pattern in [
+                        'Document:', 'Type:', 'ORDER SHEET', 'JUDGMENT SHEET',
+                        'DATE OF HEARING:', '====================', '====='
+                    ]):
+                        continue
+                    
+                    # Skip incomplete sentences that start with numbers or fragments
+                    if sentence.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                        # Extract the content after the number
+                        parts = sentence.split('.', 1)
+                        if len(parts) > 1:
+                            sentence = parts[1].strip()
+                    
+                    # Skip sentences that start with fragments
+                    if sentence.startswith(('of ', 'and ', 'the ', 'in ', 'at ', 'on ', 'for ', 'with ', 'by ')):
+                        continue
+                    
+                    # Look for substantial legal content that makes sense
+                    if len(sentence) > 100 and any(word in sentence.lower() for word in [
+                        'court', 'judge', 'petitioner', 'respondent', 'order', 'judgment', 
+                        'law', 'legal', 'counsel', 'application', 'petition', 'appeal',
+                        'proceedings', 'hearing', 'argument', 'submits', 'alleged'
+                    ]):
+                        # Ensure the sentence starts with a capital letter and makes sense
+                        if sentence[0].isupper() and not sentence.startswith(('of ', 'and ', 'the ', 'in ', 'at ', 'on ', 'for ', 'with ', 'by ')):
+                            return sentence + '.'
+                
+                # If no substantial legal content found, return the longest complete sentence
+                complete_sentences = [s for s in sentences if len(s) > 50 and s[0].isupper() and not s.startswith(('of ', 'and ', 'the ', 'in ', 'at ', 'on ', 'for ', 'with ', 'by '))]
+                if complete_sentences:
+                    longest_sentence = max(complete_sentences, key=len)
+                    return longest_sentence + '.'
+                
+                # Fallback: return original text if no good sentences found
+                return chunk_text
+            
+            else:
+                # Handle multi-line text
+                lines = chunk_text.split('\n')
+                meaningful_lines = []
+                
+                # Skip document metadata lines
+                skip_patterns = [
+                    'Document:', 'Type:', 'ORDER SHEET', 'JUDGMENT SHEET',
+                    'Case Number:', 'Case Title:', 'Status:', 'Bench:',
+                    'S. No. of order', 'Date of order', 'Order with signature'
+                ]
+                
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # Skip lines that are mostly metadata
+                    is_metadata = any(pattern in line for pattern in skip_patterns)
+                    if is_metadata and len(line) < 100:  # Short metadata lines
+                        continue
+                    
+                    # Keep lines with substantial legal content
+                    if len(line) > 50:  # Substantial content
+                        meaningful_lines.append(line)
+                
+                # If we have meaningful content, join it
+                if meaningful_lines:
+                    return ' '.join(meaningful_lines)
+                else:
+                    return chunk_text
+                
+        except Exception as e:
+            logger.error(f"Error extracting meaningful content: {str(e)}")
+            return chunk_text
     
     def _create_metadata_snippet(self, 
                                 text: str, 
@@ -418,10 +507,16 @@ class SnippetService:
                 if pos > last_sentence_end:
                     last_sentence_end = pos
             
-            if last_sentence_end > 0:
-                truncated = truncated[:last_sentence_end + 1]
-            
-            return truncated + "..."
+            if last_sentence_end > self.default_config['min_snippet_length']:
+                # Found a good sentence boundary
+                return truncated[:last_sentence_end + 1]
+            else:
+                # No good sentence boundary, try word boundary
+                last_space = truncated.rfind(' ')
+                if last_space > self.default_config['min_snippet_length']:
+                    return truncated[:last_space] + "..."
+                else:
+                    return truncated + "..."
             
         except Exception as e:
             logger.error(f"Error truncating at sentence boundary: {str(e)}")

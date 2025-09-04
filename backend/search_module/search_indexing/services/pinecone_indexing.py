@@ -603,6 +603,8 @@ class PineconeIndexingService:
                     'court': metadata.get('court', ''),
                     'status': metadata.get('status', ''),
                     'bench': metadata.get('bench', ''),
+                    'institution_date': metadata.get('institution_date'),
+                    'hearing_date': metadata.get('hearing_date'),
                     'search_type': 'pinecone'
                 })
             

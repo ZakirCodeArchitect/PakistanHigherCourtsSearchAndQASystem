@@ -99,6 +99,13 @@ class FastRankingService:
                         combined[case_id]['vector_score'],
                         result.get('similarity', 0)
                     )
+                    # Merge result_data to preserve all fields, especially dates
+                    combined[case_id]['result_data'].update(result)
+                    # Ensure date fields are preserved
+                    if result.get('institution_date'):
+                        combined[case_id]['result_data']['institution_date'] = result['institution_date']
+                    if result.get('hearing_date'):
+                        combined[case_id]['result_data']['hearing_date'] = result['hearing_date']
         
         # Process keyword results
         for result in keyword_results:
@@ -117,6 +124,13 @@ class FastRankingService:
                         combined[case_id]['keyword_score'],
                         result.get('rank', 0)
                     )
+                    # Merge result_data to preserve all fields, especially dates
+                    combined[case_id]['result_data'].update(result)
+                    # Ensure date fields are preserved
+                    if result.get('institution_date'):
+                        combined[case_id]['result_data']['institution_date'] = result['institution_date']
+                    if result.get('hearing_date'):
+                        combined[case_id]['result_data']['hearing_date'] = result['hearing_date']
         
         return combined
     

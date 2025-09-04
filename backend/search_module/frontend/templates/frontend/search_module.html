@@ -1,141 +1,115 @@
 {% extends 'frontend/base.html' %}
+{% load static %}
 
-{% block title %}Legal Cases Search - Pakistan Higher Courts Search & QA System{% endblock %}
+{% block title %}Legal Cases Search - Pakistan Higher Courts{% endblock %}
 
 {% block content %}
 {% csrf_token %}
-<div class="search-module-container">
-    <!-- Search Header -->
-    <div class="search-header bg-gradient-primary text-white py-4">
+
+<!-- Professional Header Section -->
+<div class="search-header-section">
         <div class="container">
-            <div class="row align-items-center">
+        <div class="row align-items-center py-4">
                 <div class="col-md-8">
-                    <h1 class="h2 fw-bold mb-2">
-                        <i class="fas fa-search me-3"></i>
-                        Legal Cases Search
-                    </h1>
-                    <p class="mb-0 opacity-75">
-                        Advanced search powered by artificial intelligence and legal expertise
-                    </p>
+                <div class="header-content">
+                    <h1 class="page-title">Legal Cases Search</h1>
+                    <p class="page-subtitle">Comprehensive case law research and analysis platform</p>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="{% url 'frontend:dashboard' %}" class="btn btn-outline-light">
-                        <i class="fas fa-arrow-left me-2"></i>
-                        Back to Dashboard
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'frontend:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Dashboard
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container-fluid py-4">
+<div class="container">
         <div class="row">
-            <!-- Search Types Selection -->
-            <div class="col-lg-3 mb-4">
-                <div class="search-types-card">
-                    <h5 class="fw-bold mb-3">
-                        <i class="fas fa-th-large me-2"></i>
-                        Search Types
-                    </h5>
+        <!-- Search Types Navigation -->
+        <div class="col-lg-3">
+            <div class="search-types-panel">
+                <h6 class="panel-title">Search Methodology</h6>
                     
                     <!-- Smart Search (Hybrid) -->
-                    <div class="search-type-option active" data-search-type="hybrid">
-                        <div class="search-type-header">
-                            <div class="search-type-icon bg-primary">
-                                <i class="fas fa-brain"></i>
-                            </div>
-                            <div class="search-type-info">
-                                <h6 class="mb-1">🧠 SMART SEARCH</h6>
-                                <small class="text-muted">Hybrid Mode</small>
-                            </div>
+                <div class="search-type-option active" data-mode="hybrid">
+                    <div class="option-header">
+                        <div class="option-icon">
+                            <i class="fas fa-search-plus"></i>
                         </div>
-                        <p class="search-type-description">
-                            Find cases using natural language and exact matches
-                        </p>
-                        <div class="search-type-features">
-                            <span class="feature-badge">AI-Powered</span>
-                            <span class="feature-badge">Best Results</span>
+                        <div class="option-title">
+                            <h6>Comprehensive Search</h6>
+                            <span class="option-subtitle">Hybrid Analysis</span>
                         </div>
+                    </div>
+                    <p class="option-description">Combines semantic understanding with exact text matching for optimal results</p>
                     </div>
                     
                     <!-- Citation Lookup (Lexical) -->
-                    <div class="search-type-option" data-search-type="lexical">
-                        <div class="search-type-header">
-                            <div class="search-type-icon bg-success">
-                                <i class="fas fa-quote-right"></i>
-                            </div>
-                            <div class="search-type-info">
-                                <h6 class="mb-1">🎯 CITATION LOOKUP</h6>
-                                <small class="text-muted">Lexical Mode</small>
-                            </div>
+                <div class="search-type-option" data-mode="lexical">
+                    <div class="option-header">
+                        <div class="option-icon">
+                            <i class="fas fa-book-open"></i>
                         </div>
-                        <p class="search-type-description">
-                            Search by legal references and case numbers
-                        </p>
-                        <div class="search-type-features">
-                            <span class="feature-badge">Exact Match</span>
-                            <span class="feature-badge">Fast Results</span>
+                        <div class="option-title">
+                            <h6>Citation Lookup</h6>
+                            <span class="option-subtitle">Lexical Search</span>
                         </div>
+                    </div>
+                    <p class="option-description">Precise matching for case numbers, legal references, and statutory citations</p>
                     </div>
                     
                     <!-- Meaning Search (Semantic) -->
-                    <div class="search-type-option" data-search-type="semantic">
-                        <div class="search-type-header">
-                            <div class="search-type-icon bg-warning">
+                <div class="search-type-option" data-mode="semantic">
+                    <div class="option-header">
+                        <div class="option-icon">
                                 <i class="fas fa-lightbulb"></i>
-                            </div>
-                            <div class="search-type-info">
-                                <h6 class="mb-1">💡 MEANING SEARCH</h6>
-                                <small class="text-muted">Semantic Mode</small>
-                            </div>
                         </div>
-                        <p class="search-type-description">
-                            Find cases by meaning, not just exact words
-                        </p>
-                        <div class="search-type-features">
-                            <span class="feature-badge">Context Aware</span>
-                            <span class="feature-badge">Related Cases</span>
+                        <div class="option-title">
+                            <h6>Conceptual Search</h6>
+                            <span class="option-subtitle">Semantic Analysis</span>
                         </div>
+                    </div>
+                    <p class="option-description">Contextual understanding to find related cases and legal concepts</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Main Search Area -->
+        <!-- Main Search Interface -->
             <div class="col-lg-9">
-                <div class="main-search-area">
-                    <!-- Search Input -->
-                    <div class="search-input-container mb-4">
-                        <div class="search-input-wrapper">
-                            <div class="search-input-group">
+            <div class="search-interface-panel">
+                <!-- Search Input Section -->
+                <div class="search-input-section">
+                    <div class="search-form">
+                        <div class="input-group">
                                 <input type="text" 
-                                       class="form-control form-control-lg search-input" 
                                        id="searchQuery" 
-                                       placeholder="Enter your search query (e.g., 'PPC 302', 'bail application', 'constitutional petition')"
+                                   class="form-control search-input" 
+                                   placeholder="Enter case number, legal citation, or search terms..."
                                        autocomplete="off">
-                                <button class="btn btn-primary btn-lg search-btn" id="searchBtn">
-                                    <i class="fas fa-search me-2"></i>
-                                    Search
+                            <button class="btn btn-primary search-btn" type="button" onclick="performSearch()">
+                                <i class="fas fa-search me-2"></i>Search
                                 </button>
                             </div>
                         </div>
                         
-                        <!-- Query Examples -->
-                        <div class="query-examples mt-3">
-                            <small class="text-muted me-3">
-                                <strong>Examples:</strong>
-                            </small>
-                            <span class="example-query" data-query="PPC 302" onclick="setQueryAndSearch('PPC 302')">PPC 302</span>
-                            <span class="example-query" data-query="bail application" onclick="setQueryAndSearch('bail application')">bail application</span>
-                            <span class="example-query" data-query="constitutional petition" onclick="setQueryAndSearch('constitutional petition')">constitutional petition</span>
-                            <span class="example-query" data-query="habeas corpus" onclick="setQueryAndSearch('habeas corpus')">habeas corpus</span>
+                    <!-- Search Examples -->
+                    <div class="search-examples">
+                        <span class="examples-label">Quick searches:</span>
+                        <div class="example-links">
+                            <a href="#" onclick="setQueryAndSearch('PPC 302')" class="example-link">PPC 302</a>
+                            <a href="#" onclick="setQueryAndSearch('bail application')" class="example-link">Bail Application</a>
+                            <a href="#" onclick="setQueryAndSearch('constitutional petition')" class="example-link">Constitutional Petition</a>
+                            <a href="#" onclick="setQueryAndSearch('habeas corpus')" class="example-link">Habeas Corpus</a>
                         </div>
-                        
-                        <!-- Results per page selector -->
-                        <div class="results-per-page-selector mt-3 d-inline-flex align-items-center">
-                            <label for="resultsPerPage" class="form-label me-2 mb-0">
-                                <strong>Results per page:</strong>
-                            </label>
-                            <select id="resultsPerPage" class="form-select form-select-sm">
+                    </div>
+                    
+                    <!-- Results Configuration -->
+                    <div class="results-config">
+                        <div class="config-item">
+                            <label for="resultsPerPage" class="config-label">Results per page:</label>
+                            <select id="resultsPerPage" class="form-select config-select">
                                 <option value="10">10</option>
                                 <option value="20">20</option>
                                 <option value="50">50</option>
@@ -143,432 +117,636 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <!-- Search Results -->
-                    <div class="search-results" id="searchResults" style="display: none;">
-                        <div class="results-header mb-3">
-                            <h5 class="mb-0">
-                                <i class="fas fa-list me-2"></i>
-                                Search Results
-                                <span class="results-count" id="resultsCount"></span>
-                            </h5>
                         </div>
                         
-                        <div class="results-list" id="resultsList">
-                            <!-- Results will be populated here -->
-                        </div>
-                        
-                        <!-- Pagination Controls -->
-                        <div class="pagination-container mt-4" id="paginationContainer" style="display: none;">
-                            <!-- Results Summary -->
-                            <div class="results-summary text-center mb-3">
-                                <small class="text-muted">
-                                    Showing <span id="currentResultsRange">1-10</span> of <span id="totalResults">0</span> results
-                                </small>
-                            </div>
-                            
-                            <nav aria-label="Search results pagination">
-                                <ul class="pagination justify-content-center" id="paginationList">
-                                    <!-- Pagination will be populated here -->
-                                </ul>
-                            </nav>
-                            <div class="pagination-info text-center mt-2">
-                                <small class="text-muted" id="paginationInfo">
-                                    <!-- Pagination info will be populated here -->
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Loading State -->
-                    <div class="loading-state text-center py-5" id="loadingState" style="display: none;">
-                        <div class="spinner-border text-primary mb-3" role="status">
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state" style="display: none;">
+                    <div class="loading-content">
+                        <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        <p class="text-muted">Searching through legal cases...</p>
+                        <p class="loading-text">Searching case law database...</p>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div id="errorState" class="error-state" style="display: none;">
+                    <div class="error-content">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        <p class="error-text">Search failed. Please try again.</p>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div id="searchResults" class="search-results" style="display: none;">
+                    <div class="results-header">
+                        <h5 class="results-title">
+                            Search Results
+                            <span id="resultsCount" class="results-count"></span>
+                        </h5>
+                    </div>
+                    
+                    <div id="resultsList" class="results-list">
+                        <!-- Results will be populated here -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <div id="paginationContainer" class="pagination-container">
+                        <div class="results-summary">
+                            <span>Showing <span id="currentResultsRange">1-10</span> of <span id="totalResults">0</span> results</span>
+                            <span id="paginationInfo" class="pagination-info">Page 1 of 1</span>
+                        </div>
+                        <nav aria-label="Search results pagination">
+                            <ul id="paginationList" class="pagination justify-content-center">
+                                <!-- Pagination will be populated here -->
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_css %}
 <style>
-.search-module-container {
-    background-color: #f8f9fa;
-    min-height: calc(100vh - 200px);
+/* Professional Design System */
+:root {
+    --primary-color: #1e3a8a;
+    --primary-light: #3b82f6;
+    --secondary-color: #64748b;
+    --accent-color: #0f172a;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --background-light: #f8fafc;
+    --background-white: #ffffff;
+    --success-color: #059669;
+    --warning-color: #d97706;
+    --error-color: #dc2626;
 }
 
-.search-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Header Section */
+.search-header-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.search-types-card {
-    background: white;
-    border-radius: 15px;
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0.5rem 0 0 0;
+    font-weight: 400;
+}
+
+/* Search Types Panel */
+.search-types-panel {
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.panel-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .search-type-option {
-    background: #f8f9fa;
-    border-radius: 10px;
     padding: 1rem;
-    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    background: var(--background-white);
 }
 
 .search-type-option:hover {
-    background: #e9ecef;
-    transform: translateY(-2px);
+    border-color: var(--primary-light);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 .search-type-option.active {
-    background: #e3f2fd;
-    border-color: #2196f3;
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.15);
 }
 
-.search-type-header {
+.option-header {
     display: flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
-.search-type-icon {
+.option-icon {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 8px;
+    background: var(--primary-color);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 0.75rem;
-    color: white;
+    font-size: 1rem;
 }
 
-.search-type-info h6 {
+.search-type-option.active .option-icon {
+    background: var(--primary-color);
+}
+
+.option-title h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
     margin: 0;
-    font-size: 0.9rem;
-    font-weight: bold;
 }
 
-.search-type-description {
-    font-size: 0.85rem;
-    color: #6c757d;
-    margin-bottom: 0.5rem;
-}
-
-.search-type-features {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.feature-badge {
-    background: #dee2e6;
-    color: #495057;
-    padding: 0.2rem 0.5rem;
-    border-radius: 15px;
+.option-subtitle {
     font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
-.main-search-area {
-    background: white;
-    border-radius: 15px;
+.option-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Search Interface Panel */
+.search-interface-panel {
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 2rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.search-input-group {
-    display: flex;
-    gap: 0.5rem;
+.search-input-section {
+    margin-bottom: 2rem;
+}
+
+.search-form .input-group {
+    margin-bottom: 1.5rem;
 }
 
 .search-input {
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    transition: all 0.3s ease;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
 }
 
 .search-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
 }
 
 .search-btn {
-    border-radius: 10px;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    border-radius: 8px;
+    padding: 0.875rem 1.5rem;
+    font-weight: 600;
+    background: var(--primary-color);
+    border: none;
+    transition: all 0.2s ease;
 }
 
-.query-examples {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.example-query {
-    background: #e3f2fd;
-    color: #1976d2;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.example-query:hover {
-    background: #1976d2;
-    color: white;
+.search-btn:hover {
+    background: var(--primary-light);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
-.results-header {
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e9ecef;
+/* Search Examples */
+.search-examples {
+    margin-bottom: 1.5rem;
 }
 
-.results-count {
-    color: #6c757d;
-    font-weight: normal;
+.examples-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 1rem;
 }
 
+.example-links {
+    display: inline-flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.example-link {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    background: var(--background-white);
+}
+
+.example-link:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    text-decoration: none;
+}
+
+/* Results Configuration */
+.results-config {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.config-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.config-select {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    width: auto;
+    min-width: 80px;
+}
+
+/* Loading State */
 .loading-state {
-    padding: 3rem 1rem;
+    text-align: center;
+    padding: 3rem 2rem;
 }
 
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
+.loading-text {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Error State */
+.error-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.error-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.error-text {
+    font-size: 1rem;
+    color: var(--error-color);
+    margin: 0;
+}
+
+/* Search Results */
 .search-results {
     margin-top: 2rem;
 }
 
-.results-list {
-    margin-bottom: 2rem;
+.results-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
+.results-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.results-count {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+/* Result Cards */
 .result-card {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1rem;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
 }
 
 .result-card:hover {
-    border-color: #667eea;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
-}
-
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+    border-color: var(--primary-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .result-rank {
-    margin-left: 1rem;
-}
-
-.score-breakdown {
-    border-top: 1px solid #e9ecef;
-    padding-top: 0.5rem;
-}
-
-.search-metadata {
-    font-size: 0.85rem;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--primary-color);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 .result-title {
-    font-weight: bold;
-    color: #495057;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
 }
 
 .result-meta {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
-    font-size: 0.9rem;
-    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.meta-item i {
+    color: var(--text-muted);
+    width: 16px;
 }
 
 .result-snippet {
-    color: #495057;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
     margin-bottom: 1rem;
+    background: var(--background-light);
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.score-breakdown {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+}
+
+.score-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-muted);
+}
+
+.score-value {
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 .result-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
-/* Results per page selector styling */
-.results-per-page-selector {
-    margin-top: 1rem;
-    padding: 0.5rem 0.75rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-    width: fit-content;
-    display: inline-flex;
-}
-
-.results-per-page-selector label {
-    font-weight: 600;
-    color: #495057;
-    white-space: nowrap;
-    margin-right: 0.5rem;
-}
-
-.results-per-page-selector select {
-    border: 1px solid #ced4da;
+.btn-view-details {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
     border-radius: 6px;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.9rem;
-    width: 70px;
-    background-position: right 0.5rem center;
-    background-size: 16px 12px;
-    padding-right: 2rem;
-    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.results-per-page-selector select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+.btn-view-details:hover {
+    background: var(--primary-light);
+    color: white;
+    transform: translateY(-1px);
 }
 
-/* Results summary styling */
-.results-summary {
-    background: #f8f9fa;
-    padding: 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+.btn-history {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.results-summary span {
-    font-weight: 600;
-    color: #495057;
+.btn-history:hover {
+    background: var(--background-light);
+    color: var(--text-primary);
 }
 
-/* Pagination styling */
+/* Pagination */
 .pagination-container {
-    border-top: 1px solid #e9ecef;
-    padding-top: 1rem;
     margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
 }
 
-.pagination-container:empty {
-    display: none;
+.results-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.pagination-info {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.pagination {
+    margin: 0;
 }
 
 .pagination .page-link {
-    color: #667eea;
-    border: 1px solid #dee2e6;
-    margin: 0 2px;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.125rem;
     border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
 }
 
 .pagination .page-link:hover {
-    background-color: #667eea;
-    border-color: #667eea;
-    color: white;
+    background-color: var(--background-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 .pagination .page-item.active .page-link {
-    background-color: #667eea;
-    border-color: #667eea;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
     color: white !important;
     font-weight: 600;
 }
 
-.pagination-info {
-    color: #6c757d;
-    font-size: 0.9rem;
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-types-panel {
+        position: static;
+        margin-bottom: 2rem;
+    }
+    
+    .search-interface-panel {
+        padding: 1.5rem;
+    }
+    
+    .results-config {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .results-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    gap: 0.5rem;
+    }
 }
 </style>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-// Global variables
-let currentSearchType = 'hybrid';
+// Global variables for client-side pagination
+window.allSearchResults = null;
+window.currentPage = 1;
 
-// Initialize search module
+// Search type selection
 document.addEventListener('DOMContentLoaded', function() {
-    initializeSearchModule();
+    const searchTypeOptions = document.querySelectorAll('.search-type-option');
+
+    searchTypeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            searchTypeOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // Add active class to clicked option
+            this.classList.add('active');
+        });
+    });
+    
+    // Add event listener for results per page change
+    const resultsPerPageSelect = document.getElementById('resultsPerPage');
+    if (resultsPerPageSelect) {
+        resultsPerPageSelect.addEventListener('change', function() {
+            if (window.allSearchResults && window.allSearchResults.results) {
+                window.currentPage = 1;
+                applyClientSidePagination();
+            }
+        });
+    }
+    
+    // Add Enter key support
+    const searchInput = document.getElementById('searchQuery');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+            performSearch();
+            }
+        });
+    }
 });
 
-function initializeSearchModule() {
-    // Search type selection
-    document.querySelectorAll('.search-type-option').forEach(option => {
-        option.addEventListener('click', function() {
-            selectSearchType(this.dataset.searchType);
-        });
-    });
-    
-    // Example queries
-    document.querySelectorAll('.example-query').forEach(example => {
-        example.addEventListener('click', function() {
-            document.getElementById('searchQuery').value = this.dataset.query;
-            performSearch();
-        });
-    });
-    
-    // Search button
-    document.getElementById('searchBtn').addEventListener('click', performSearch);
-    
-    // Search input enter key
-    document.getElementById('searchQuery').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
-    
-    // Initialize with default search type
-    selectSearchType('hybrid');
-    
-    // Test API connection on startup
-    testAPIConnection();
+// Get selected search mode
+function getSelectedSearchMode() {
+    const activeOption = document.querySelector('.search-type-option.active');
+    return activeOption ? activeOption.getAttribute('data-mode') : 'hybrid';
 }
 
-function selectSearchType(searchType) {
-    // Remove active class from all options
-    document.querySelectorAll('.search-type-option').forEach(option => {
-        option.classList.remove('active');
-    });
+// Get CSRF token
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Set query and search
+function setQueryAndSearch(query) {
+    document.getElementById('searchQuery').value = query;
+    performSearch();
+}
+
+// Show loading state
+function showLoadingState() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'none';
+}
+
+// Show error state
+function showErrorState(message) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('searchResults').style.display = 'none';
     
-    // Add active class to selected option
-    document.querySelector(`[data-search-type="${searchType}"]`).classList.add('active');
-    
-    // Update current search type
-    currentSearchType = searchType;
-    
-    // Update search button text based on type
-    const searchBtn = document.getElementById('searchBtn');
-    switch(searchType) {
-        case 'hybrid':
-            searchBtn.innerHTML = '<i class="fas fa-brain me-2"></i>Smart Search';
-            break;
-        case 'lexical':
-            searchBtn.innerHTML = '<i class="fas fa-quote-right me-2"></i>Citation Search';
-            break;
-        case 'semantic':
-            searchBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Meaning Search';
-            break;
+    const errorText = document.querySelector('.error-text');
+    if (errorText) {
+        errorText.textContent = message;
     }
 }
 
+// Show search results
+function showSearchResults() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'block';
+}
+
+// Perform search
 async function performSearch() {
     const query = document.getElementById('searchQuery').value.trim();
     
@@ -577,22 +755,17 @@ async function performSearch() {
         return;
     }
     
-    // Show loading state
     showLoadingState();
     
     try {
-        // Get selected search mode
         const selectedMode = getSelectedSearchMode();
         
-        console.log(`🔍 Searching for: "${query}" in ${selectedMode} mode`);
-        
-        // Always fetch maximum results from backend (we'll paginate on frontend)
         const searchParams = new URLSearchParams({
             q: query,
             mode: selectedMode,
             return_facets: 'true',
             highlight: 'true',
-            limit: '1000',  // Fetch maximum results
+            limit: '1000',
             offset: '0'
         });
         
@@ -604,52 +777,32 @@ async function performSearch() {
             }
         });
         
-        console.log(`📊 Response status: ${response.status}`);
-        
         if (response.ok) {
             const data = await response.json();
-            console.log('✅ Search successful:', data);
+            console.log('🔍 Full API response:', data);
+            console.log('🔍 Results array:', data.results);
+            if (data.results && data.results.length > 0) {
+                console.log('🔍 First result structure:', data.results[0]);
+            }
+            
             showSearchResults();
             
-            // Store all results globally for client-side pagination
             window.allSearchResults = data;
             window.currentPage = 1;
             
             displayRealResults(data);
         } else {
             const errorText = await response.text();
-            console.error('❌ Search failed:', errorText);
             throw new Error(`Search failed: ${response.status} - ${errorText}`);
         }
         
     } catch (error) {
         console.error('Search error:', error);
         showErrorState(`Search failed: ${error.message}`);
-        
-        // Only fallback to sample results if it's a network/API error
-        if (error.message.includes('Search failed')) {
-            setTimeout(() => {
-                showSearchResults();
-                displaySampleResults();
-            }, 1000);
-        }
     }
 }
 
-function getSelectedSearchMode() {
-    const activeOption = document.querySelector('.search-type-option.active');
-    if (activeOption) {
-        const mode = activeOption.getAttribute('data-search-type');
-        return mode || 'hybrid';
-    }
-    return 'hybrid';
-}
-
-function getCSRFToken() {
-    const token = document.querySelector('[name=csrfmiddlewaretoken]');
-    return token ? token.value : '';
-}
-
+// Display real results
 function displayRealResults(data) {
     const resultsList = document.getElementById('resultsList');
     const resultsCount = document.getElementById('resultsCount');
@@ -660,116 +813,158 @@ function displayRealResults(data) {
         return;
     }
     
-    // Show total results
     const totalResults = data.results.length;
     resultsCount.textContent = ` (${totalResults} results)`;
     
-    // Apply client-side pagination
     applyClientSidePagination();
 }
 
-function displaySampleResults() {
-    const resultsList = document.getElementById('resultsList');
-    const resultsCount = document.getElementById('resultsCount');
-    
-    // Sample results
-    const sampleResults = [
-        {
-            case_title: "Sample Case 1 - Constitutional Petition",
-            court: "Islamabad High Court",
-            status: "Pending",
-            date: "2025-01-15",
-            snippet: "This is a sample case about constitutional rights and fundamental freedoms..."
-        },
-        {
-            case_title: "Sample Case 2 - Criminal Appeal",
-            court: "Lahore High Court", 
-            status: "Disposed",
-            date: "2024-12-20",
-            snippet: "Sample criminal appeal case involving PPC 302 and related legal provisions..."
-        }
-    ];
-    
-    resultsCount.textContent = ` (${sampleResults.length} results)`;
-    
-    resultsList.innerHTML = '';
-    
-    sampleResults.forEach(result => {
-        const resultCard = createResultCard(result);
-        resultsList.appendChild(resultCard);
-    });
-}
-
-function createResultCard(result, queryInfo = null) {
+// Create result card
+function createResultCard(result, queryInfo) {
     const card = document.createElement('div');
     card.className = 'result-card';
     
-    // Extract data from the real backend response structure
-    const caseData = result.result_data || result;
+    // Debug: Log the result structure
+    console.log('🔍 Result structure:', result);
     
-    // Get case information from various possible sources
-    const title = caseData.case_title || caseData.title || caseData.case_number || 'Untitled Case';
-    const court = caseData.court_name || caseData.court || 'Unknown Court';
-    const status = caseData.status || caseData.case_status || 'Unknown Status';
-    const date = caseData.institution_date || caseData.hearing_date || caseData.disposal_date || 'Unknown Date';
+    // Extract data from the correct structure
+    const resultData = result.result_data || result;
+    const caseData = resultData.case_data || resultData;
     
-    // Get snippets if available
-    let snippetText = 'No description available';
-    if (result.snippets && result.snippets.length > 0) {
-        snippetText = result.snippets[0].text || result.snippets[0].snippet || snippetText;
-    } else if (caseData.snippet) {
-        snippetText = caseData.snippet;
+    // Safely extract values with fallbacks
+    const title = caseData.title || caseData.case_title || resultData.title || 'No title available';
+    const court = caseData.court || caseData.court_name || resultData.court || 'Unknown Court';
+    const status = caseData.status || caseData.case_status || resultData.status || 'Unknown Status';
+    
+    // Try to get date from multiple possible fields
+    const institutionDate = caseData.institution_date || resultData.institution_date || '';
+    const hearingDate = caseData.hearing_date || resultData.hearing_date || '';
+    const date = caseData.date || caseData.case_date || caseData.created_at || resultData.date || institutionDate || hearingDate || 'Unknown Date';
+    
+    // Debug: Log date and snippet information (remove in production)
+    // console.log('🔍 Date and snippet debugging:', {
+    //     institutionDate,
+    //     hearingDate,
+    //     date,
+    //     caseData,
+    //     resultData,
+    //     snippets: result.snippets
+    // });
+    
+    const caseId = result.case_id || caseData.id || resultData.id || result.id || 'N/A';
+    
+    // Debug: Log case ID extraction (remove in production)
+    // console.log('🔍 Case ID extraction:', {
+    //     'result.case_id': result.case_id,
+    //     'caseData.id': caseData.id,
+    //     'resultData.id': resultData.id,
+    //     'result.id': result.id,
+    //     'final caseId': caseId
+    // });
+    // Try to get snippet from multiple sources
+    let snippet = result.snippet || resultData.snippet || caseData.snippet || '';
+    
+    // If no snippet, try to get from snippets array
+    if (!snippet && result.snippets && result.snippets.length > 0) {
+        // Get the best snippet (highest relevance score)
+        const bestSnippet = result.snippets.reduce((best, current) => {
+            const currentScore = current.relevance_score || 0;
+            const bestScore = best.relevance_score || 0;
+            return currentScore > bestScore ? current : best;
+        });
+        
+        snippet = bestSnippet.text || bestSnippet.content || bestSnippet.original_text || '';
+        
+        // Clean up the snippet text
+        if (snippet) {
+            // Remove excessive metadata and clean up the text
+            snippet = snippet.replace(/Case Number:.*?Case Title:/g, '');
+            snippet = snippet.replace(/Status:.*?Bench:/g, '');
+            snippet = snippet.replace(/Case Metadata:.*$/g, '');
+            snippet = snippet.replace(/Document:.*?Type:.*?ORDER SHEET/g, '');
+            snippet = snippet.replace(/JUDGMENT SHEET.*?JUDICIAL DEPARTMENT/g, '');
+            snippet = snippet.trim();
+            
+            // Limit snippet length
+            if (snippet.length > 300) {
+                snippet = snippet.substring(0, 300) + '...';
+            }
+        }
     }
     
-    // Get scores
-    const vectorScore = result.vector_score || 0;
-    const keywordScore = result.keyword_score || 0;
-    const finalScore = result.final_score || 0;
-    
-    // Create score display
-    let scoreDisplay = '';
-    if (finalScore > 0) {
-        scoreDisplay = `
-            <div class="score-breakdown mt-2">
-                <small class="text-muted">
-                    <span class="me-3"><i class="fas fa-brain me-1"></i>Vector: ${(vectorScore * 100).toFixed(1)}%</span>
-                    <span class="me-3"><i class="fas fa-quote-right me-1"></i>Keyword: ${(keywordScore * 100).toFixed(1)}%</span>
-                    <span class="fw-bold"><i class="fas fa-star me-1"></i>Final: ${(finalScore * 100).toFixed(1)}%</span>
-                </small>
-            </div>
-        `;
+    // If still no snippet, use a default message
+    if (!snippet) {
+        snippet = 'No snippet available';
     }
     
-    // Create case metadata
-    const metadata = [];
-    if (caseData.case_number) metadata.push(`<span><i class="fas fa-hashtag me-1"></i>${caseData.case_number}</span>`);
-    if (court) metadata.push(`<span><i class="fas fa-gavel me-1"></i>${court}</span>`);
-    if (status) metadata.push(`<span><i class="fas fa-info-circle me-1"></i>${status}</span>`);
-    if (date) metadata.push(`<span><i class="fas fa-calendar me-1"></i>${date}</span>`);
-    if (caseData.bench) metadata.push(`<span><i class="fas fa-users me-1"></i>${caseData.bench}</span>`);
+    // Format date if it exists
+    let formattedDate = date;
+    if (date && date !== 'Unknown Date' && date !== null && date !== '') {
+        try {
+            // Handle different date formats
+            let dateStr = date;
+            if (typeof date === 'object' && date.year && date.month && date.day) {
+                // Handle datetime.date objects from Python
+                dateStr = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+            }
+            
+            const dateObj = new Date(dateStr);
+            if (!isNaN(dateObj.getTime())) {
+                formattedDate = dateObj.toLocaleDateString();
+            } else {
+                // Try to format as-is if it's already a string
+                formattedDate = dateStr;
+            }
+        } catch (e) {
+            // Keep original date if formatting fails
+            formattedDate = date;
+        }
+    }
     
     card.innerHTML = `
-        <div class="result-header">
-            <div class="flex-grow-1">
-                <h6 class="result-title mb-2">${title}</h6>
-                <div class="result-meta mb-2">
-                    ${metadata.join('')}
-                </div>
-                ${scoreDisplay}
+        <div class="result-rank">#${result.rank || 'N/A'}</div>
+        <h5 class="result-title">${title}</h5>
+        
+        <div class="result-meta">
+            <div class="meta-item">
+                <i class="fas fa-gavel"></i>
+                <span>${court}</span>
             </div>
-            <div class="result-rank">
-                <span class="badge bg-primary">#${result.rank || 'N/A'}</span>
+            <div class="meta-item">
+                <i class="fas fa-info-circle"></i>
+                <span>${status}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <span>${formattedDate}</span>
             </div>
         </div>
-        <div class="result-snippet mb-3">
-            ${snippetText}
+        
+        <div class="result-snippet">
+            ${snippet}
         </div>
+        
+        <div class="score-breakdown">
+            <div class="score-item">
+                <span>Vector:</span>
+                <span class="score-value">${((result.vector_score || 0) * 100).toFixed(1)}%</span>
+            </div>
+            <div class="score-item">
+                <span>Keyword:</span>
+                <span class="score-value">${((result.keyword_score || 0) * 100).toFixed(1)}%</span>
+            </div>
+            <div class="score-item">
+                <span>Final:</span>
+                <span class="score-value">${((result.final_score || 0) * 100).toFixed(1)}%</span>
+            </div>
+        </div>
+        
         <div class="result-actions">
-            <button class="btn btn-outline-primary btn-sm me-2" onclick="viewCaseDetails(${result.case_id})">
-                <i class="fas fa-eye me-1"></i>View Details
+            <button class="btn btn-view-details" onclick="viewCaseDetails(${caseId})" data-case-id="${caseId}">
+                <i class="fas fa-eye me-2"></i>View Details
             </button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="viewCaseHistory(${result.case_id})">
-                <i class="fas fa-history me-1"></i>History
+            <button class="btn btn-history" onclick="viewCaseHistory(${caseId})">
+                <i class="fas fa-history me-2"></i>History
             </button>
         </div>
     `;
@@ -777,71 +972,7 @@ function createResultCard(result, queryInfo = null) {
     return card;
 }
 
-function showLoadingState() {
-    document.getElementById('loadingState').style.display = 'block';
-    document.getElementById('searchResults').style.display = 'none';
-}
-
-function showSearchResults() {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('searchResults').style.display = 'block';
-}
-
-function showErrorState(message) {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('searchResults').style.display = 'block';
-    
-    const resultsList = document.getElementById('resultsList');
-    const resultsCount = document.getElementById('resultsCount');
-    
-    resultsCount.textContent = ' (0 results)';
-    resultsList.innerHTML = `
-        <div class="alert alert-danger" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            ${message}
-        </div>
-    `;
-}
-
-function setQueryAndSearch(query) {
-    document.getElementById('searchQuery').value = query;
-    performSearch();
-}
-
-function viewCaseDetails(caseId) {
-    // Navigate to case details page
-    window.location.href = `/case/${caseId}/`;
-}
-
-function viewCaseHistory(caseId) {
-    // TODO: Implement case history view
-    alert(`Viewing history for case ${caseId}`);
-}
-
-async function testAPIConnection() {
-    try {
-        console.log('🔌 Testing API connection...');
-        const response = await fetch('/api/search/status/');
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ API connection successful:', data);
-            
-            // Show system status if available
-            if (data.status === 'healthy') {
-                console.log('🟢 System is healthy');
-            } else {
-                console.log('🟡 System status:', data.status);
-            }
-        } else {
-            console.warn('⚠️ API connection test failed:', response.status);
-        }
-    } catch (error) {
-        console.error('❌ API connection test failed:', error);
-    }
-}
-
-// Client-side pagination function
+// Client-side pagination
 function applyClientSidePagination() {
     if (!window.allSearchResults || !window.allSearchResults.results) {
         return;
@@ -851,7 +982,6 @@ function applyClientSidePagination() {
     const totalResults = window.allSearchResults.results.length;
     const totalPages = Math.ceil(totalResults / resultsPerPage);
     
-    // Ensure current page is valid
     if (window.currentPage > totalPages) {
         window.currentPage = totalPages;
     }
@@ -859,14 +989,11 @@ function applyClientSidePagination() {
         window.currentPage = 1;
     }
     
-    // Calculate start and end indices
     const startIndex = (window.currentPage - 1) * resultsPerPage;
     const endIndex = Math.min(startIndex + resultsPerPage, totalResults);
     
-    // Get current page results
     const currentPageResults = window.allSearchResults.results.slice(startIndex, endIndex);
     
-    // Display current page results
     const resultsList = document.getElementById('resultsList');
     resultsList.innerHTML = '';
     
@@ -875,7 +1002,6 @@ function applyClientSidePagination() {
         resultsList.appendChild(resultCard);
     });
     
-    // Add search metadata if available
     if (window.allSearchResults.search_metadata) {
         const metadataDiv = document.createElement('div');
         metadataDiv.className = 'search-metadata mt-3 p-3 bg-light rounded';
@@ -890,11 +1016,10 @@ function applyClientSidePagination() {
         resultsList.appendChild(metadataDiv);
     }
     
-    // Update pagination display
     displayClientSidePagination(totalResults, resultsPerPage, totalPages, startIndex, endIndex);
 }
 
-// Display client-side pagination controls
+// Display client-side pagination
 function displayClientSidePagination(totalResults, resultsPerPage, totalPages, startIndex, endIndex) {
     const paginationContainer = document.getElementById('paginationContainer');
     const paginationList = document.getElementById('paginationList');
@@ -902,10 +1027,8 @@ function displayClientSidePagination(totalResults, resultsPerPage, totalPages, s
     const currentResultsRange = document.getElementById('currentResultsRange');
     const totalResultsSpan = document.getElementById('totalResults');
     
-    // Always show pagination container
     paginationContainer.style.display = 'block';
     
-    // Update results summary
     if (currentResultsRange) {
         currentResultsRange.textContent = `${startIndex + 1}-${endIndex}`;
     }
@@ -913,21 +1036,17 @@ function displayClientSidePagination(totalResults, resultsPerPage, totalPages, s
         totalResultsSpan.textContent = totalResults;
     }
     
-    // Update pagination info
     if (paginationInfo) {
         paginationInfo.innerHTML = `Page ${window.currentPage} of ${totalPages}`;
     }
     
-    // Only show pagination controls if there are multiple pages
     if (totalPages <= 1) {
         paginationList.innerHTML = '';
         return;
     }
     
-    // Clear previous pagination
     paginationList.innerHTML = '';
     
-    // Previous button
     if (window.currentPage > 1) {
         const prevLi = document.createElement('li');
         prevLi.className = 'page-item';
@@ -939,7 +1058,6 @@ function displayClientSidePagination(totalResults, resultsPerPage, totalPages, s
         paginationList.appendChild(prevLi);
     }
     
-    // Page numbers
     const maxVisiblePages = 5;
     let startPage = Math.max(1, window.currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -957,7 +1075,6 @@ function displayClientSidePagination(totalResults, resultsPerPage, totalPages, s
         paginationList.appendChild(pageLi);
     }
     
-    // Next button
     if (window.currentPage < totalPages) {
         const nextLi = document.createElement('li');
         nextLi.className = 'page-item';
@@ -970,124 +1087,32 @@ function displayClientSidePagination(totalResults, resultsPerPage, totalPages, s
     }
 }
 
-// Navigate to specific page (client-side)
+// Navigate to specific page
 function goToClientPage(pageNumber) {
     window.currentPage = pageNumber;
     applyClientSidePagination();
-    
-    // Scroll to top of results
     document.getElementById('searchResults').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Old pagination functions (keeping for reference)
-function displayPagination(data) {
-    const paginationContainer = document.getElementById('paginationContainer');
-    const paginationList = document.getElementById('paginationList');
-    const paginationInfo = document.getElementById('paginationInfo');
+// View case details
+function viewCaseDetails(caseId) {
+    console.log('View Details clicked for case ID:', caseId);
     
-    console.log('🔍 displayPagination called with:', data);
-    console.log('🔍 Pagination container:', paginationContainer);
-    console.log('🔍 Pagination list:', paginationList);
-    console.log('🔍 Pagination info:', paginationInfo);
-    
-    // Always show pagination container for results summary
-    paginationContainer.style.display = 'block';
-    
-    // Calculate pagination info
-    const totalResults = data.pagination ? data.pagination.total : data.results.length;
-    const limit = data.pagination ? data.pagination.limit : data.results.length;
-    const offset = data.pagination ? data.pagination.offset : 0;
-    
-    const totalPages = Math.ceil(totalResults / limit);
-    const currentPage = Math.floor(offset / limit) + 1;
-    const startResult = offset + 1;
-    const endResult = Math.min(offset + limit, totalResults);
-    
-    // Update results summary
-    const currentResultsRange = document.getElementById('currentResultsRange');
-    const totalResultsSpan = document.getElementById('totalResults');
-    
-    if (currentResultsRange) {
-        currentResultsRange.textContent = `${startResult}-${endResult}`;
-    }
-    if (totalResultsSpan) {
-        totalResultsSpan.textContent = totalResults;
-    }
-    
-    // Update pagination info
-    if (paginationInfo) {
-        paginationInfo.innerHTML = `
-            Page ${currentPage} of ${totalPages}
-        `;
-    }
-    
-    // Only show pagination controls if there are multiple pages
-    if (totalPages <= 1) {
-        paginationList.innerHTML = '';
-        return;
-    }
-    
-    // Clear previous pagination
-    paginationList.innerHTML = '';
-    
-    // Previous button
-    if (data.pagination && data.pagination.has_previous) {
-        const prevLi = document.createElement('li');
-        prevLi.className = 'page-item';
-        prevLi.innerHTML = `
-            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1})">
-                <i class="fas fa-chevron-left"></i> Previous
-            </a>
-        `;
-        paginationList.appendChild(prevLi);
-    }
-    
-    // Page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage + 1 < maxVisiblePages) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        const pageLi = document.createElement('li');
-        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        pageLi.innerHTML = `
-            <a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>
-        `;
-        paginationList.appendChild(pageLi);
-    }
-    
-    // Next button
-    if (data.pagination && data.pagination.has_next) {
-        const nextLi = document.createElement('li');
-        nextLi.className = 'page-item';
-        nextLi.innerHTML = `
-            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1})">
-                Next <i class="fas fa-chevron-right"></i>
-            </a>
-        `;
-        paginationList.appendChild(nextLi);
+    if (caseId && caseId !== 'N/A' && caseId !== 'undefined' && caseId !== 'null') {
+        const url = `/case/${caseId}/`;
+        console.log('Navigating to:', url);
+        window.location.href = url;
+    } else {
+        console.error('Invalid case ID:', caseId);
+        alert(`Case ID not available: ${caseId}`);
     }
 }
 
-// Old server-side pagination function (no longer used)
-// function goToPage(pageNumber) { ... }
-
-// Add event listener for results per page change
-document.addEventListener('DOMContentLoaded', function() {
-    const resultsPerPageSelect = document.getElementById('resultsPerPage');
-    if (resultsPerPageSelect) {
-        resultsPerPageSelect.addEventListener('change', function() {
-            // If there are current results, apply new pagination without re-searching
-            if (window.allSearchResults && window.allSearchResults.results) {
-                window.currentPage = 1; // Reset to first page
-                applyClientSidePagination();
-            }
-        });
-    }
-});
+// View case history
+function viewCaseHistory(caseId) {
+    // Placeholder for case history functionality
+    alert('Case history feature coming soon!');
+}
 </script>
+
 {% endblock %}

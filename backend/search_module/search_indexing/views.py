@@ -309,7 +309,9 @@ class SearchAPIView(APIView):
                         'case_number': result.get('case_number', ''),
                         'case_title': result.get('case_title', ''),
                         'court': result.get('court', ''),
-                        'status': result.get('status', '')
+                        'status': result.get('status', ''),
+                        'institution_date': result.get('institution_date'),
+                        'hearing_date': result.get('hearing_date')
                     })
                 
                 if result.get('keyword_score', 0) > 0:
@@ -319,7 +321,9 @@ class SearchAPIView(APIView):
                         'case_number': result.get('case_number', ''),
                         'case_title': result.get('case_title', ''),
                         'court': result.get('court', ''),
-                        'status': result.get('status', '')
+                        'status': result.get('status', ''),
+                        'institution_date': result.get('institution_date'),
+                        'hearing_date': result.get('hearing_date')
                     })
                 
                 # If neither score is > 0, still include the result with default scores
@@ -331,7 +335,9 @@ class SearchAPIView(APIView):
                         'case_number': result.get('case_number', ''),
                         'case_title': result.get('case_title', ''),
                         'court': result.get('court', ''),
-                        'status': result.get('status', '')
+                        'status': result.get('status', ''),
+                        'institution_date': result.get('institution_date'),
+                        'hearing_date': result.get('hearing_date')
                     })
             
             return {
