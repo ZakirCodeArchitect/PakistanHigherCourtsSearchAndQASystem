@@ -12,8 +12,8 @@
         <div class="row align-items-center py-4">
                 <div class="col-md-8">
                 <div class="header-content">
-                    <h1 class="page-title">Legal Cases Search</h1>
-                    <p class="page-subtitle">Comprehensive case law research and analysis platform</p>
+                                    <h1 class="page-title">Legal Cases Search - Dynamic Quick Search</h1>
+                <p class="page-subtitle">Comprehensive case law research and analysis platform</p>
                 </div>
             </div>
             <div class="col-md-4 text-end">
@@ -117,11 +117,35 @@
                     <!-- Search Examples -->
                     <div class="search-examples">
                         <span class="examples-label">Quick searches:</span>
+                        <!-- Dynamic Query Examples based on Search Type -->
                         <div class="example-links">
-                            <a href="#" onclick="setQueryAndSearch('PPC 302')" class="example-link">PPC 302</a>
-                            <a href="#" onclick="setQueryAndSearch('bail application')" class="example-link">Bail Application</a>
-                            <a href="#" onclick="setQueryAndSearch('constitutional petition')" class="example-link">Constitutional Petition</a>
-                            <a href="#" onclick="setQueryAndSearch('habeas corpus')" class="example-link">Habeas Corpus</a>
+                            
+                            <!-- Lexical Search Examples (Citation Lookup) -->
+                            <div class="search-examples" id="lexical-examples" style="display: none;">
+                                <a href="#" onclick="setQueryAndSearch('PPC 302')" class="example-link">PPC 302</a>
+                                <a href="#" onclick="setQueryAndSearch('PLJ 2023')" class="example-link">PLJ 2023</a>
+                                <a href="#" onclick="setQueryAndSearch('2023 SCMR 123')" class="example-link">2023 SCMR 123</a>
+                                <a href="#" onclick="setQueryAndSearch('PLD 2023 SC 45')" class="example-link">PLD 2023 SC 45</a>
+                                <a href="#" onclick="setQueryAndSearch('Crl. Appeal 5/2025')" class="example-link">Crl. Appeal 5/2025</a>
+                            </div>
+                            
+                            <!-- Semantic Search Examples (Conceptual) -->
+                            <div class="search-examples" id="semantic-examples" style="display: none;">
+                                <a href="#" onclick="setQueryAndSearch('constitutional rights')" class="example-link">Constitutional Rights</a>
+                                <a href="#" onclick="setQueryAndSearch('criminal procedure')" class="example-link">Criminal Procedure</a>
+                                <a href="#" onclick="setQueryAndSearch('family law')" class="example-link">Family Law</a>
+                                <a href="#" onclick="setQueryAndSearch('property disputes')" class="example-link">Property Disputes</a>
+                                <a href="#" onclick="setQueryAndSearch('contract law')" class="example-link">Contract Law</a>
+                            </div>
+                            
+                            <!-- Hybrid Search Examples (Comprehensive) -->
+                            <div class="search-examples" id="hybrid-examples">
+                                <a href="#" onclick="setQueryAndSearch('murder case')" class="example-link">Murder Cases</a>
+                                <a href="#" onclick="setQueryAndSearch('bail application')" class="example-link">Bail Applications</a>
+                                <a href="#" onclick="setQueryAndSearch('constitutional petition')" class="example-link">Constitutional Petitions</a>
+                                <a href="#" onclick="setQueryAndSearch('habeas corpus')" class="example-link">Habeas Corpus</a>
+                                <a href="#" onclick="setQueryAndSearch('tax appeal')" class="example-link">Tax Appeals</a>
+                            </div>
                         </div>
                     </div>
                     
@@ -1248,6 +1272,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add active class to clicked option
             this.classList.add('active');
+            
+            // Update search mode
+            window.currentSearchMode = this.getAttribute('data-mode');
+            
+            // Update quick search examples based on search type
+            updateQuickSearchExamples(window.currentSearchMode);
         });
     });
     
@@ -1262,6 +1292,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Initialize quick search examples with default search type
+    updateQuickSearchExamples('hybrid');
+    
     // Add Enter key support
     const searchInput = document.getElementById('searchQuery');
     if (searchInput) {
@@ -1272,6 +1305,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Update quick search examples based on search type
+function updateQuickSearchExamples(searchType) {
+    console.log('Updating quick search examples for:', searchType);
+    
+    // Hide all search examples
+    const lexicalExamples = document.getElementById('lexical-examples');
+    const semanticExamples = document.getElementById('semantic-examples');
+    const hybridExamples = document.getElementById('hybrid-examples');
+    
+    if (lexicalExamples) lexicalExamples.style.display = 'none';
+    if (semanticExamples) semanticExamples.style.display = 'none';
+    if (hybridExamples) hybridExamples.style.display = 'none';
+    
+    // Show the relevant search examples based on search type
+    switch(searchType) {
+        case 'lexical':
+            if (lexicalExamples) lexicalExamples.style.display = 'block';
+            console.log('Showing lexical examples');
+            break;
+        case 'semantic':
+            if (semanticExamples) semanticExamples.style.display = 'block';
+            console.log('Showing semantic examples');
+            break;
+        case 'hybrid':
+            if (hybridExamples) hybridExamples.style.display = 'block';
+            console.log('Showing hybrid examples');
+            break;
+    }
+}
 
 // Get selected search mode
 function getSelectedSearchMode() {
