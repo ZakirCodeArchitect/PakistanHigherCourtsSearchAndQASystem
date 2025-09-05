@@ -364,6 +364,155 @@
     display: flex;
     gap: 0.5rem;
 }
+
+/* Enhanced result card styles */
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.result-rank {
+    flex-shrink: 0;
+    margin-right: 1rem;
+}
+
+.rank-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: bold;
+    min-width: 2rem;
+    text-align: center;
+    display: inline-block;
+}
+
+.result-content {
+    flex: 1;
+}
+
+.case-number {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.result-scores {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: var(--background-light);
+    border-radius: 6px;
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.score-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.score-value {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.search-metadata {
+    border-top: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+.results-count {
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+.results-count.text-success {
+    color: var(--success-color, #28a745) !important;
+}
+
+.results-count.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.results-count.text-danger {
+    color: var(--danger-color, #dc3545) !important;
+}
+
+/* Search suggestions styles */
+.suggestions-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: var(--background-light);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.suggestion-value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.suggestion-type-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    background: var(--primary-color);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.suggestion-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Make search input container relative for suggestions positioning */
+.search-input-container {
+    position: relative;
+}
 </style>
 {% endblock %}
 
@@ -395,6 +544,23 @@ function initializeSearchModule() {
     
     // Search button
     document.getElementById('searchBtn').addEventListener('click', performSearch);
+    
+    // Search input enter key
+    document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    // Add search suggestions on input
+    document.getElementById('searchQuery').addEventListener('input', function(e) {
+        const query = e.target.value.trim();
+        if (query.length >= 2) {
+            loadSearchSuggestions(query);
+        } else {
+            hideSuggestions();
+        }
+    });
     
     // Initialize with default search type
     selectSearchType('hybrid');
@@ -439,74 +605,247 @@ async function performSearch() {
     showLoadingState();
     
     try {
-        // For now, just show a simple result
-        setTimeout(() => {
-            showSearchResults();
-            displaySampleResults();
-        }, 2000);
+        // Get search parameters
+        const limit = parseInt(document.getElementById('resultsPerPage')?.value) || 10;
+        const searchParams = {
+            query: query,
+            mode: currentSearchType,
+            filters: {},
+            offset: 0,
+            limit: limit,
+            return_facets: true,
+            highlight: true
+        };
+        
+        // Call the real search API
+        const response = await fetch('/frontend/api/search/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(searchParams)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Search failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Display real search results
+        showSearchResults();
+        displaySearchResults(data);
         
     } catch (error) {
         console.error('Search error:', error);
+        showErrorState('Search failed. Please try again.');
     }
 }
 
-function displaySampleResults() {
+function displaySearchResults(data) {
     const resultsList = document.getElementById('resultsList');
     const resultsCount = document.getElementById('resultsCount');
     
-    // Sample results
-    const sampleResults = [
-        {
-            case_title: "Sample Case 1 - Constitutional Petition",
-            court: "Islamabad High Court",
-            status: "Pending",
-            date: "2025-01-15",
-            snippet: "This is a sample case about constitutional rights and fundamental freedoms..."
-        },
-        {
-            case_title: "Sample Case 2 - Criminal Appeal",
-            court: "Lahore High Court", 
-            status: "Disposed",
-            date: "2024-12-20",
-            snippet: "Sample criminal appeal case involving PPC 302 and related legal provisions..."
-        }
-    ];
+    // Get results and pagination info
+    const results = data.results || [];
+    const totalResults = data.pagination?.total || results.length;
+    const searchMetadata = data.search_metadata || {};
     
-    resultsCount.textContent = ` (${sampleResults.length} results)`;
+    // Update results count with proper formatting
+    if (totalResults === 0) {
+        resultsCount.textContent = ' (No results found)';
+        resultsCount.className = 'results-count text-muted';
+    } else {
+        resultsCount.textContent = ` (${totalResults.toLocaleString()} results)`;
+        resultsCount.className = 'results-count text-success';
+    }
     
+    // Clear previous results
     resultsList.innerHTML = '';
     
-    sampleResults.forEach(result => {
-        const resultCard = createResultCard(result);
+    if (results.length === 0) {
+        showNoResultsState();
+        return;
+    }
+    
+    // Display each result
+    results.forEach((result, index) => {
+        const resultCard = createSearchResultCard(result, index + 1);
         resultsList.appendChild(resultCard);
     });
+    
+    // Add search metadata info
+    addSearchMetadata(searchMetadata);
 }
 
-function createResultCard(result) {
+function showNoResultsState() {
+    const resultsList = document.getElementById('resultsList');
+    resultsList.innerHTML = `
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No results found</h5>
+            <p class="text-muted">Try different search terms or check your spelling.</p>
+        </div>
+    `;
+}
+
+function addSearchMetadata(metadata) {
+    const resultsList = document.getElementById('resultsList');
+    
+    // Add metadata info at the bottom
+    const metadataDiv = document.createElement('div');
+    metadataDiv.className = 'search-metadata mt-3 p-3 bg-light rounded';
+    metadataDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    Search completed in ${metadata.latency_ms || 0}ms
+                </small>
+            </div>
+            <div class="col-md-6 text-end">
+                <small class="text-muted">
+                    <i class="fas fa-brain me-1"></i>
+                    ${metadata.search_type || 'hybrid'} search
+                </small>
+            </div>
+        </div>
+    `;
+    
+    resultsList.appendChild(metadataDiv);
+}
+
+function createSearchResultCard(result, rank) {
     const card = document.createElement('div');
     card.className = 'result-card';
+    
+    // Format dates
+    const institutionDate = formatDate(result.institution_date);
+    const hearingDate = formatDate(result.hearing_date);
+    
+    // Get case title and number
+    const caseTitle = result.case_title || result.result_data?.case_title || 'Unknown Case';
+    const caseNumber = result.case_number || result.result_data?.case_number || '';
+    const court = result.court || result.result_data?.court || 'Unknown Court';
+    const status = result.status || result.result_data?.status || 'Unknown Status';
+    
+    // Get scores for display
+    const vectorScore = result.vector_score ? (result.vector_score * 100).toFixed(1) : '0.0';
+    const keywordScore = result.keyword_score ? (result.keyword_score * 100).toFixed(1) : '0.0';
+    const finalScore = result.final_score ? (result.final_score * 100).toFixed(1) : '0.0';
+    
+    // Create snippets if available
+    const snippets = result.snippets || [];
+    const snippetText = snippets.length > 0 ? snippets[0].text : 'No preview available';
+    
     card.innerHTML = `
         <div class="result-header">
-            <div>
-                <h6 class="result-title">${result.case_title}</h6>
+            <div class="result-rank">
+                <span class="rank-badge">#${rank}</span>
+            </div>
+            <div class="result-content">
+                <h6 class="result-title">${escapeHtml(caseTitle)}</h6>
                 <div class="result-meta">
-                    <span><i class="fas fa-gavel me-1"></i>${result.court}</span>
-                    <span><i class="fas fa-calendar me-1"></i>${result.date}</span>
-                    <span><i class="fas fa-info-circle me-1"></i>${result.status}</span>
+                    <span><i class="fas fa-gavel me-1"></i>${escapeHtml(court)}</span>
+                    <span><i class="fas fa-calendar me-1"></i>${institutionDate}</span>
+                    <span><i class="fas fa-info-circle me-1"></i>${escapeHtml(status)}</span>
                 </div>
+                ${caseNumber ? `<div class="case-number"><strong>Case No:</strong> ${escapeHtml(caseNumber)}</div>` : ''}
             </div>
         </div>
         <div class="result-snippet">
-            ${result.snippet}
+            <p>${escapeHtml(snippetText)}</p>
+        </div>
+        <div class="result-scores">
+            <div class="score-item">
+                <span class="score-label">Vector:</span>
+                <span class="score-value">${vectorScore}%</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Keyword:</span>
+                <span class="score-value">${keywordScore}%</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Final:</span>
+                <span class="score-value">${finalScore}%</span>
+            </div>
         </div>
         <div class="result-actions">
-            <button class="btn btn-outline-primary btn-sm">
+            <button class="btn btn-outline-primary btn-sm" onclick="viewCaseDetails(${result.case_id})">
                 <i class="fas fa-eye me-1"></i>View Details
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="copyCaseInfo('${escapeHtml(caseNumber)}', '${escapeHtml(caseTitle)}')">
+                <i class="fas fa-copy me-1"></i>Copy Info
             </button>
         </div>
     `;
     
     return card;
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (error) {
+        return dateString;
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function viewCaseDetails(caseId) {
+    // Open case details in a new tab or modal
+    window.open(`/api/search/case/${caseId}/`, '_blank');
+}
+
+function copyCaseInfo(caseNumber, caseTitle) {
+    const text = `Case: ${caseNumber}\nTitle: ${caseTitle}`;
+    navigator.clipboard.writeText(text).then(() => {
+        // Show success notification
+        showNotification('Case information copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Case information copied to clipboard!', 'success');
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Create a simple notification
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'info'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
 }
 
 function showLoadingState() {
@@ -518,5 +857,128 @@ function showSearchResults() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('searchResults').style.display = 'block';
 }
+
+function showErrorState(message) {
+    const resultsList = document.getElementById('resultsList');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    resultsCount.textContent = ' (Error)';
+    resultsCount.className = 'results-count text-danger';
+    
+    resultsList.innerHTML = `
+        <div class="text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+            <h5 class="text-danger">Search Error</h5>
+            <p class="text-muted">${message}</p>
+            <button class="btn btn-primary" onclick="performSearch()">
+                <i class="fas fa-redo me-1"></i>Try Again
+            </button>
+        </div>
+    `;
+    
+    showSearchResults();
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Search suggestions functionality
+let suggestionsTimeout;
+
+async function loadSearchSuggestions(query) {
+    // Clear previous timeout
+    if (suggestionsTimeout) {
+        clearTimeout(suggestionsTimeout);
+    }
+    
+    // Debounce the suggestions request
+    suggestionsTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`/frontend/api/suggestions/?q=${encodeURIComponent(query)}&type=auto`);
+            if (response.ok) {
+                const data = await response.json();
+                displaySuggestions(data.suggestions || []);
+            }
+        } catch (error) {
+            console.error('Suggestions error:', error);
+            // Don't show error for suggestions, just fail silently
+        }
+    }, 300);
+}
+
+function displaySuggestions(suggestions) {
+    const searchInput = document.getElementById('searchQuery');
+    const suggestionsContainer = document.getElementById('suggestionsContainer');
+    
+    if (!suggestionsContainer) {
+        // Create suggestions container if it doesn't exist
+        const container = document.createElement('div');
+        container.id = 'suggestionsContainer';
+        container.className = 'suggestions-container';
+        searchInput.parentNode.appendChild(container);
+    }
+    
+    const container = document.getElementById('suggestionsContainer');
+    
+    if (suggestions.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.innerHTML = '';
+    container.style.display = 'block';
+    
+    suggestions.forEach(suggestion => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item';
+        suggestionItem.innerHTML = `
+            <div class="suggestion-content">
+                <span class="suggestion-value">${escapeHtml(suggestion.value)}</span>
+                <span class="suggestion-type-badge">${suggestion.type}</span>
+            </div>
+            <div class="suggestion-info">${escapeHtml(suggestion.additional_info || '')}</div>
+        `;
+        
+        suggestionItem.addEventListener('click', () => {
+            searchInput.value = suggestion.value;
+            hideSuggestions();
+            performSearch();
+        });
+        
+        container.appendChild(suggestionItem);
+    });
+}
+
+function hideSuggestions() {
+    const container = document.getElementById('suggestionsContainer');
+    if (container) {
+        container.style.display = 'none';
+    }
+}
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', function(e) {
+    const searchInput = document.getElementById('searchQuery');
+    const suggestionsContainer = document.getElementById('suggestionsContainer');
+    
+    if (suggestionsContainer && 
+        !searchInput.contains(e.target) && 
+        !suggestionsContainer.contains(e.target)) {
+        hideSuggestions();
+    }
+});
 </script>
 {% endblock %}

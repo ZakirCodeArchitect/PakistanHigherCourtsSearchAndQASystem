@@ -126,7 +126,7 @@ class SearchAPIView(APIView):
                 }
             }
             
-            # Ensure results have proper score fields for display
+            # Ensure results have proper score fields and case information for display
             for result in response_data['results']:
                 # Extract scores from the fast ranking service results
                 if 'vector_score' in result:
@@ -137,6 +137,19 @@ class SearchAPIView(APIView):
                     result['final_score'] = round(result['final_score'], 4)
                 if 'base_score' in result:
                     result['base_score'] = round(result['base_score'], 4)
+                
+                # Extract case information from result_data if available
+                if 'result_data' in result:
+                    result_data = result['result_data']
+                    # Update result with case information from result_data
+                    result.update({
+                        'case_title': result_data.get('case_title', ''),
+                        'case_number': result_data.get('case_number', ''),
+                        'court': result_data.get('court', ''),
+                        'status': result_data.get('status', ''),
+                        'institution_date': result_data.get('institution_date'),
+                        'hearing_date': result_data.get('hearing_date')
+                    })
             
             # Add debug information if requested
             if params.get('debug', False):
@@ -268,16 +281,37 @@ class SearchAPIView(APIView):
             return {'vector_results': [], 'keyword_results': []}
     
     def _perform_semantic_search(self, params: Dict[str, Any], query_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform semantic-only search"""
+        """Perform semantic-only search with adaptive result limiting"""
         try:
+            # Determine adaptive fetch size based on query characteristics
+            base_fetch_size = params['limit'] * 5  # Start with 5x the requested limit
+            
+            # Adjust fetch size based on query specificity
+            query_specificity = self._calculate_query_specificity(params['query'], query_info)
+            if query_specificity < 0.3:  # Generic query
+                max_fetch_size = 200  # Allow more results for generic queries
+            elif query_specificity < 0.6:  # Moderately specific
+                max_fetch_size = 100
+            else:  # Very specific query
+                max_fetch_size = 50
+            
+            fetch_size = min(base_fetch_size, max_fetch_size)
+            
             # Use vector service for semantic search
             vector_results = self.hybrid_service.vector_service.search(
                 params['query'],
-                top_k=params['limit'] * 2  # Get more for ranking
+                top_k=fetch_size
             )
             
+            # Apply adaptive filtering based on score distribution
+            filtered_vector_results = self._apply_adaptive_semantic_filtering(
+                vector_results, params['query'], query_specificity
+            )
+            
+            logger.info(f"Semantic search: {len(vector_results)} raw results, {len(filtered_vector_results)} after adaptive filtering (specificity: {query_specificity:.2f})")
+            
             return {
-                'vector_results': vector_results,
+                'vector_results': filtered_vector_results,
                 'keyword_results': []
             }
             
@@ -286,26 +320,48 @@ class SearchAPIView(APIView):
             return {'vector_results': [], 'keyword_results': []}
     
     def _perform_hybrid_search(self, params: Dict[str, Any], query_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform hybrid search"""
+        """Perform hybrid search with adaptive result limiting"""
         try:
-            # Use hybrid service
+            # Determine adaptive fetch size based on query characteristics
+            base_fetch_size = params['limit'] * 4  # Start with 4x the requested limit
+            
+            # Adjust fetch size based on query specificity
+            query_specificity = self._calculate_query_specificity(params['query'], query_info)
+            if query_specificity < 0.3:  # Generic query
+                max_fetch_size = 150  # Allow more results for generic queries
+            elif query_specificity < 0.6:  # Moderately specific
+                max_fetch_size = 75
+            else:  # Very specific query
+                max_fetch_size = 40
+            
+            fetch_size = min(base_fetch_size, max_fetch_size)
+            
+            # Use hybrid service with adaptive limits
             hybrid_results = self.hybrid_service.hybrid_search(
                 params['query'],
                 filters=params.get('filters'),
-                top_k=params['limit'] * 2  # Get more for ranking
+                top_k=fetch_size
+            )
+            
+            # Apply adaptive filtering based on score distribution
+            filtered_results = self._apply_adaptive_hybrid_filtering(
+                hybrid_results, params['query'], query_specificity
             )
             
             # Convert to expected format for fast ranking service
             vector_results = []
             keyword_results = []
             
-            for result in hybrid_results:
+            for result in filtered_results:
                 # Each hybrid result contains both vector and keyword scores
-                # Create separate entries for vector and keyword results
-                if result.get('vector_score', 0) > 0:
+                vector_score = result.get('vector_score', 0)
+                keyword_score = result.get('keyword_score', 0)
+                final_score = result.get('final_score', 0)
+                
+                if vector_score > 0:
                     vector_results.append({
                         'case_id': result['case_id'],
-                        'similarity': result['vector_score'],  # Use vector_score as similarity
+                        'similarity': vector_score,  # Use vector_score as similarity
                         'case_number': result.get('case_number', ''),
                         'case_title': result.get('case_title', ''),
                         'court': result.get('court', ''),
@@ -314,10 +370,10 @@ class SearchAPIView(APIView):
                         'hearing_date': result.get('hearing_date')
                     })
                 
-                if result.get('keyword_score', 0) > 0:
+                if keyword_score > 0:
                     keyword_results.append({
                         'case_id': result['case_id'],
-                        'rank': result['keyword_score'],  # Use keyword_score as rank
+                        'rank': keyword_score,  # Use keyword_score as rank
                         'case_number': result.get('case_number', ''),
                         'case_title': result.get('case_title', ''),
                         'court': result.get('court', ''),
@@ -326,12 +382,11 @@ class SearchAPIView(APIView):
                         'hearing_date': result.get('hearing_date')
                     })
                 
-                # If neither score is > 0, still include the result with default scores
-                if result.get('vector_score', 0) == 0 and result.get('keyword_score', 0) == 0:
-                    # This might be an exact match result
+                # If neither score is > 0 but final_score is meaningful, include as vector result
+                if vector_score == 0 and keyword_score == 0 and final_score > 0:
                     vector_results.append({
                         'case_id': result['case_id'],
-                        'similarity': 0.1,  # Give a small default score
+                        'similarity': final_score,  # Use final_score as similarity
                         'case_number': result.get('case_number', ''),
                         'case_title': result.get('case_title', ''),
                         'court': result.get('court', ''),
@@ -339,6 +394,8 @@ class SearchAPIView(APIView):
                         'institution_date': result.get('institution_date'),
                         'hearing_date': result.get('hearing_date')
                     })
+            
+            logger.info(f"Hybrid search: {len(hybrid_results)} raw results, {len(filtered_results)} after adaptive filtering, {len(vector_results)} vector + {len(keyword_results)} keyword (specificity: {query_specificity:.2f})")
             
             return {
                 'vector_results': vector_results,
@@ -379,6 +436,154 @@ class SearchAPIView(APIView):
                 'has_next': False,
                 'has_previous': False
             }
+    
+    def _calculate_query_specificity(self, query: str, query_info: Dict[str, Any]) -> float:
+        """Calculate query specificity score (0.0 = very generic, 1.0 = very specific)"""
+        try:
+            specificity_score = 0.0
+            
+            # Base specificity from query length and complexity
+            query_length = len(query.split())
+            if query_length == 1:
+                specificity_score += 0.1  # Single word queries are often generic
+            elif query_length == 2:
+                specificity_score += 0.3
+            elif query_length >= 3:
+                specificity_score += 0.5
+            
+            # Boost for exact citations and case numbers
+            citations_found = len(query_info.get('citations', []))
+            exact_matches = len(query_info.get('exact_identifiers', []))
+            
+            if citations_found > 0:
+                specificity_score += 0.4  # Citations are very specific
+            if exact_matches > 0:
+                specificity_score += 0.3  # Exact identifiers are specific
+            
+            # Boost for legal terminology
+            legal_terms = ['section', 'article', 'clause', 'subsection', 'paragraph', 'act', 'code', 'law']
+            query_lower = query.lower()
+            legal_term_count = sum(1 for term in legal_terms if term in query_lower)
+            specificity_score += min(0.2, legal_term_count * 0.1)
+            
+            # Boost for case numbers and specific identifiers
+            if any(char.isdigit() for char in query):
+                specificity_score += 0.2  # Numbers often indicate specific references
+            
+            # Penalty for very common words
+            common_words = ['case', 'court', 'law', 'legal', 'right', 'act', 'section', 'article']
+            common_word_count = sum(1 for word in common_words if word in query_lower)
+            if common_word_count >= 2:
+                specificity_score -= 0.1  # Multiple common words reduce specificity
+            
+            # Normalize to 0.0-1.0 range
+            return max(0.0, min(1.0, specificity_score))
+            
+        except Exception as e:
+            logger.error(f"Error calculating query specificity: {str(e)}")
+            return 0.5  # Default to moderate specificity
+    
+    def _apply_adaptive_semantic_filtering(self, results: List[Dict], query: str, specificity: float) -> List[Dict]:
+        """Apply adaptive filtering to semantic search results based on score distribution"""
+        try:
+            if not results:
+                return []
+            
+            # Extract similarity scores
+            similarities = [result.get('similarity', 0) for result in results]
+            if not similarities:
+                return []
+            
+            # Calculate adaptive threshold based on score distribution
+            max_similarity = max(similarities)
+            avg_similarity = sum(similarities) / len(similarities)
+            
+            # Base threshold
+            if specificity < 0.3:  # Generic query - be more inclusive
+                base_threshold = max(0.05, avg_similarity * 0.3)
+            elif specificity < 0.6:  # Moderate specificity
+                base_threshold = max(0.08, avg_similarity * 0.4)
+            else:  # Specific query - be more selective
+                base_threshold = max(0.1, avg_similarity * 0.5)
+            
+            # Adjust threshold based on score distribution
+            if max_similarity > 0.8:  # High-quality results available
+                threshold = base_threshold
+            elif max_similarity > 0.5:  # Moderate quality
+                threshold = base_threshold * 0.8
+            else:  # Lower quality results
+                threshold = base_threshold * 0.6
+            
+            # Filter results
+            filtered_results = []
+            for result in results:
+                similarity = result.get('similarity', 0)
+                if similarity >= threshold:
+                    filtered_results.append(result)
+            
+            # Ensure we don't return too few results for generic queries
+            min_results = 5 if specificity < 0.3 else 3
+            if len(filtered_results) < min_results and len(results) >= min_results:
+                # Take top results even if below threshold
+                sorted_results = sorted(results, key=lambda x: x.get('similarity', 0), reverse=True)
+                filtered_results = sorted_results[:min_results]
+            
+            return filtered_results
+            
+        except Exception as e:
+            logger.error(f"Error in adaptive semantic filtering: {str(e)}")
+            return results  # Return original results on error
+    
+    def _apply_adaptive_hybrid_filtering(self, results: List[Dict], query: str, specificity: float) -> List[Dict]:
+        """Apply adaptive filtering to hybrid search results based on score distribution"""
+        try:
+            if not results:
+                return []
+            
+            # Extract scores
+            vector_scores = [result.get('vector_score', 0) for result in results]
+            keyword_scores = [result.get('keyword_score', 0) for result in results]
+            final_scores = [result.get('final_score', 0) for result in results]
+            
+            # Calculate adaptive thresholds
+            if specificity < 0.3:  # Generic query - be more inclusive
+                vector_threshold = max(0.03, max(vector_scores) * 0.2) if vector_scores else 0.03
+                keyword_threshold = max(0.03, max(keyword_scores) * 0.2) if keyword_scores else 0.03
+                final_threshold = max(0.05, max(final_scores) * 0.2) if final_scores else 0.05
+            elif specificity < 0.6:  # Moderate specificity
+                vector_threshold = max(0.05, max(vector_scores) * 0.3) if vector_scores else 0.05
+                keyword_threshold = max(0.05, max(keyword_scores) * 0.3) if keyword_scores else 0.05
+                final_threshold = max(0.08, max(final_scores) * 0.3) if final_scores else 0.08
+            else:  # Specific query - be more selective
+                vector_threshold = max(0.08, max(vector_scores) * 0.4) if vector_scores else 0.08
+                keyword_threshold = max(0.08, max(keyword_scores) * 0.4) if keyword_scores else 0.08
+                final_threshold = max(0.1, max(final_scores) * 0.4) if final_scores else 0.1
+            
+            # Filter results
+            filtered_results = []
+            for result in results:
+                vector_score = result.get('vector_score', 0)
+                keyword_score = result.get('keyword_score', 0)
+                final_score = result.get('final_score', 0)
+                
+                # Include if any score meets threshold
+                if (vector_score >= vector_threshold or 
+                    keyword_score >= keyword_threshold or 
+                    final_score >= final_threshold):
+                    filtered_results.append(result)
+            
+            # Ensure we don't return too few results for generic queries
+            min_results = 5 if specificity < 0.3 else 3
+            if len(filtered_results) < min_results and len(results) >= min_results:
+                # Take top results by final score
+                sorted_results = sorted(results, key=lambda x: x.get('final_score', 0), reverse=True)
+                filtered_results = sorted_results[:min_results]
+            
+            return filtered_results
+            
+        except Exception as e:
+            logger.error(f"Error in adaptive hybrid filtering: {str(e)}")
+            return results  # Return original results on error
 
 
 class SuggestAPIView(APIView):
