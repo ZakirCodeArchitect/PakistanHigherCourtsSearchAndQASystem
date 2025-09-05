@@ -90,7 +90,7 @@
                                        autocomplete="off"
                                        onkeyup="handleSearchInput(event)"
                                        onfocus="showSuggestions()"
-                                       onblur="hideSuggestions()">
+                                       onblur="handleSearchBlur(event)">
                             <button class="btn btn-primary search-btn" type="button" onclick="performSearch()">
                                 <i class="fas fa-search me-2"></i>Search
                                 </button>
@@ -426,6 +426,10 @@
     cursor: pointer;
     transition: all 0.2s ease;
     border-bottom: 1px solid var(--border-color);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .suggestion-item:last-child {
@@ -2037,8 +2041,24 @@ function createSuggestionItem(suggestion, index) {
         <span class="suggestion-type-badge">${typeBadge}</span>
     `;
     
-    // Add click handler
-    item.addEventListener('click', () => selectSuggestion(suggestion));
+    // Add click handler with preventDefault
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🎯 Suggestion clicked:', suggestion);
+        selectSuggestion(suggestion);
+    });
+    
+    // Add mouseenter handler for better UX
+    item.addEventListener('mouseenter', () => {
+        // Remove previous highlights
+        const highlightedItems = document.querySelectorAll('.suggestion-item.highlighted');
+        highlightedItems.forEach(item => item.classList.remove('highlighted'));
+        
+        // Highlight current item
+        item.classList.add('highlighted');
+        window.selectedSuggestionIndex = index;
+    });
     
     return item;
 }
@@ -2117,12 +2137,24 @@ function navigateSuggestions(direction) {
 
 // Select a suggestion
 function selectSuggestion(suggestion) {
+    console.log('🎯 Selecting suggestion:', suggestion);
     const searchInput = document.getElementById('searchQuery');
-    searchInput.value = suggestion.value;
-    hideSuggestions();
     
-    // Optionally perform search immediately
-    // performSearch();
+    if (searchInput && suggestion) {
+        searchInput.value = suggestion.value;
+        console.log('🎯 Search input updated to:', suggestion.value);
+        
+        // Hide suggestions
+        hideSuggestions();
+        
+        // Focus back on input
+        searchInput.focus();
+        
+        // Optionally perform search immediately
+        // performSearch();
+    } else {
+        console.error('❌ Error selecting suggestion:', { searchInput, suggestion });
+    }
 }
 
 // Show suggestions dropdown
@@ -2134,6 +2166,14 @@ function showSuggestions() {
         const dropdown = document.getElementById('suggestionsDropdown');
         dropdown.style.display = 'block';
     }
+}
+
+// Handle search input blur event
+function handleSearchBlur(event) {
+    // Add a small delay to allow click events on suggestions to fire first
+    setTimeout(() => {
+        hideSuggestions();
+    }, 150);
 }
 
 // Hide suggestions dropdown
