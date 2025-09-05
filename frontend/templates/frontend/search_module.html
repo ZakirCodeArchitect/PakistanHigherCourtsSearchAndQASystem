@@ -2,6 +2,8 @@
 
 {% block title %}Legal Cases Search - Pakistan Higher Courts Search & QA System{% endblock %}
 
+<!-- Cache busting: Updated with dynamic quick search options - {{ "now"|date:"Y-m-d H:i:s" }} -->
+
 {% block content %}
 <div class="search-module-container">
     <!-- Search Header -->
@@ -11,7 +13,7 @@
                 <div class="col-md-8">
                     <h1 class="h2 fw-bold mb-2">
                         <i class="fas fa-search me-3"></i>
-                        Legal Cases Search
+                        Legal Cases Search - Dynamic Quick Search Updated
                     </h1>
                     <p class="mb-0 opacity-75">
                         Advanced search powered by artificial intelligence and legal expertise
@@ -109,7 +111,7 @@
                                 <input type="text" 
                                        class="form-control form-control-lg search-input" 
                                        id="searchQuery" 
-                                       placeholder="Enter your search query (e.g., 'PPC 302', 'bail application', 'constitutional petition')"
+                                       placeholder="Enter your search query"
                                        autocomplete="off">
                                 <button class="btn btn-primary btn-lg search-btn" id="searchBtn">
                                     <i class="fas fa-search me-2"></i>
@@ -118,15 +120,38 @@
                             </div>
                         </div>
                         
-                        <!-- Query Examples -->
+                        <!-- Dynamic Query Examples based on Search Type -->
                         <div class="query-examples mt-3">
                             <small class="text-muted me-3">
-                                <strong>Examples:</strong>
+                                <strong>Quick searches (Dynamic):</strong>
                             </small>
-                            <span class="example-query" data-query="PPC 302">PPC 302</span>
-                            <span class="example-query" data-query="bail application">bail application</span>
-                            <span class="example-query" data-query="constitutional petition">constitutional petition</span>
-                            <span class="example-query" data-query="habeas corpus">habeas corpus</span>
+                            
+                            <!-- Lexical Search Examples (Citation Lookup) -->
+                            <div class="search-examples" id="lexical-examples" style="display: none;">
+                                <span class="example-query" data-query="PPC 302">PPC 302</span>
+                                <span class="example-query" data-query="PLJ 2023">PLJ 2023</span>
+                                <span class="example-query" data-query="2023 SCMR 123">2023 SCMR 123</span>
+                                <span class="example-query" data-query="PLD 2023 SC 45">PLD 2023 SC 45</span>
+                                <span class="example-query" data-query="Crl. Appeal 5/2025">Crl. Appeal 5/2025</span>
+                            </div>
+                            
+                            <!-- Semantic Search Examples (Conceptual) -->
+                            <div class="search-examples" id="semantic-examples" style="display: none;">
+                                <span class="example-query" data-query="constitutional rights">Constitutional Rights</span>
+                                <span class="example-query" data-query="criminal procedure">Criminal Procedure</span>
+                                <span class="example-query" data-query="family law">Family Law</span>
+                                <span class="example-query" data-query="property disputes">Property Disputes</span>
+                                <span class="example-query" data-query="contract law">Contract Law</span>
+                            </div>
+                            
+                            <!-- Hybrid Search Examples (Comprehensive) -->
+                            <div class="search-examples" id="hybrid-examples">
+                                <span class="example-query" data-query="murder case">Murder Cases</span>
+                                <span class="example-query" data-query="bail application">Bail Applications</span>
+                                <span class="example-query" data-query="constitutional petition">Constitutional Petitions</span>
+                                <span class="example-query" data-query="habeas corpus">Habeas Corpus</span>
+                                <span class="example-query" data-query="tax appeal">Tax Appeals</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -578,6 +603,9 @@ function selectSearchType(searchType) {
     // Update current search type
     currentSearchType = searchType;
     
+    // Update quick search examples based on search type
+    updateQuickSearchExamples(searchType);
+    
     // Update search button text based on type
     const searchBtn = document.getElementById('searchBtn');
     switch(searchType) {
@@ -589,6 +617,36 @@ function selectSearchType(searchType) {
             break;
         case 'semantic':
             searchBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Meaning Search';
+            break;
+    }
+}
+
+function updateQuickSearchExamples(searchType) {
+    console.log('Updating quick search examples for:', searchType);
+    
+    // Hide all search examples
+    document.getElementById('lexical-examples').style.display = 'none';
+    document.getElementById('semantic-examples').style.display = 'none';
+    document.getElementById('hybrid-examples').style.display = 'none';
+    
+    // Update placeholder text and show relevant search examples
+    const searchInput = document.getElementById('searchQuery');
+    
+    switch(searchType) {
+        case 'lexical':
+            document.getElementById('lexical-examples').style.display = 'block';
+            searchInput.placeholder = "Enter citation (e.g., 'PPC 302', 'PLJ 2023', '2023 SCMR 123')";
+            console.log('Showing lexical examples');
+            break;
+        case 'semantic':
+            document.getElementById('semantic-examples').style.display = 'block';
+            searchInput.placeholder = "Enter legal concept (e.g., 'constitutional rights', 'criminal procedure')";
+            console.log('Showing semantic examples');
+            break;
+        case 'hybrid':
+            document.getElementById('hybrid-examples').style.display = 'block';
+            searchInput.placeholder = "Enter any query (e.g., 'murder case', 'bail application', 'constitutional petition')";
+            console.log('Showing hybrid examples');
             break;
     }
 }
