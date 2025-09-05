@@ -62,7 +62,9 @@ class KeywordIndexingService:
             # Normalize case data
             case_number_normalized = self.normalize_text(case_data.get('case_number', ''))
             case_title_normalized = self.normalize_text(case_data.get('case_title', ''))
-            court_normalized = self.normalize_text(case_data.get('bench', ''))
+            # Fix: Use court name instead of bench
+            court_name = case_data.get('court_name', '') or case_data.get('court', '') or case_data.get('bench', '')
+            court_normalized = self.normalize_text(court_name)
             status_normalized = self.normalize_text(case_data.get('status', ''))
             
             # Get parties information

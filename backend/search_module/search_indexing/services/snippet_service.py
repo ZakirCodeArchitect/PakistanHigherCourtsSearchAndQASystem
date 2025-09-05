@@ -9,6 +9,7 @@ from typing import List, Dict, Optional, Tuple, Any
 from django.db.models import Q
 from apps.cases.models import Case, TermOccurrence, DocumentText
 from ..models import DocumentChunk
+from .simple_ai_snippet_service import SimpleAISnippetService
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +29,22 @@ class SnippetService:
             'prefer_lexical_matches': True,
             'include_page_numbers': True,
             'highlight_terms': True,
+            'use_ai_snippets': True,  # Enable AI-powered snippets
+            'ai_snippet_priority': True  # Prioritize AI snippets over traditional ones
         }
         
         # Update with custom config
         if config:
             self.default_config.update(config)
+        
+        # Initialize AI snippet service
+        self.ai_snippet_service = None
+        if self.default_config.get('use_ai_snippets', False):
+            try:
+                self.ai_snippet_service = SimpleAISnippetService()
+            except Exception as e:
+                logger.warning(f"Failed to initialize AI snippet service: {e}")
+                self.ai_snippet_service = None
     
     def generate_snippets(self, 
                           case_id: int, 
@@ -56,20 +68,31 @@ class SnippetService:
             
             snippets = []
             
-            # Strategy 1: Generate snippets from lexical matches
-            if self.default_config['prefer_lexical_matches']:
-                lexical_snippets = self._generate_lexical_snippets(case_id, query, max_snippets)
-                snippets.extend(lexical_snippets)
+            # Strategy 1: Try AI-powered snippet generation first (if enabled)
+            if (self.ai_snippet_service and 
+                self.default_config.get('ai_snippet_priority', False)):
+                
+                ai_snippets = self._generate_ai_snippets(case_id, query, query_info, max_snippets)
+                if ai_snippets:
+                    snippets.extend(ai_snippets)
+                    logger.info(f"Generated {len(ai_snippets)} AI snippets for case {case_id}")
             
-            # Strategy 2: Generate snippets from semantic chunks
+            # Strategy 2: Fallback to traditional methods if AI snippets insufficient
             if len(snippets) < max_snippets:
+                # Generate snippets from semantic chunks (prioritize actual content)
                 semantic_snippets = self._generate_semantic_snippets(case_id, query_info, max_snippets - len(snippets))
                 snippets.extend(semantic_snippets)
-            
-            # Strategy 3: Generate snippets from case metadata
-            if len(snippets) < max_snippets:
-                metadata_snippets = self._generate_metadata_snippets(case_id, query, max_snippets - len(snippets))
-                snippets.extend(metadata_snippets)
+                
+                # Generate snippets from lexical matches with expanded terms
+                if len(snippets) < max_snippets:
+                    expanded_query = self._expand_query_terms(query)
+                    lexical_snippets = self._generate_lexical_snippets(case_id, expanded_query, max_snippets - len(snippets))
+                    snippets.extend(lexical_snippets)
+                
+                # Generate snippets from case metadata (fallback only)
+                if len(snippets) < max_snippets:
+                    metadata_snippets = self._generate_metadata_snippets(case_id, query, max_snippets - len(snippets))
+                    snippets.extend(metadata_snippets)
             
             # Sort snippets by relevance and limit
             sorted_snippets = sorted(snippets, key=lambda x: x['relevance_score'], reverse=True)
@@ -79,15 +102,88 @@ class SnippetService:
             logger.error(f"Error generating snippets for case {case_id}: {str(e)}")
             return []
     
+    def _generate_ai_snippets(self, case_id: int, query: str, query_info: Dict[str, Any], max_snippets: int) -> List[Dict[str, Any]]:
+        """Generate AI-powered snippets for a case"""
+        try:
+            # Get case data
+            case = Case.objects.filter(id=case_id).first()
+            if not case:
+                return []
+            
+            # Prepare case data
+            case_data = {
+                'case_title': case.case_title or 'Unknown Case',
+                'court': case.court.name if case.court else 'Unknown Court',
+                'status': case.status or 'Unknown Status',
+                'case_number': case.case_number or 'N/A',
+                'institution_date': case.institution_date,
+                'hearing_date': case.hearing_date
+            }
+            
+            # Get document chunks for context
+            document_chunks = []
+            chunks = DocumentChunk.objects.filter(
+                case_id=case_id,
+                is_embedded=True
+            ).order_by('chunk_index')[:5]  # Limit to first 5 chunks
+            
+            for chunk in chunks:
+                if chunk.chunk_text and len(chunk.chunk_text.strip()) > 50:
+                    document_chunks.append(chunk.chunk_text)
+            
+            # Generate AI snippets
+            ai_snippets = self.ai_snippet_service.generate_ai_snippet(
+                case_data=case_data,
+                query=query,
+                document_chunks=document_chunks,
+                max_snippets=max_snippets
+            )
+            
+            return ai_snippets
+            
+        except Exception as e:
+            logger.error(f"Error generating AI snippets for case {case_id}: {str(e)}")
+            return []
+    
+    def _expand_query_terms(self, query: str) -> str:
+        """Expand query terms to include related legal terms"""
+        # Legal term expansions
+        expansions = {
+            'murder': 'murder killing homicide death sentence killed slain assassination',
+            'case': 'case matter proceeding suit litigation',
+            'bail': 'bail bond surety release',
+            'appeal': 'appeal revision petition',
+            'conviction': 'conviction sentence judgment verdict',
+            'criminal': 'criminal offence crime',
+            'civil': 'civil dispute matter',
+            'constitutional': 'constitutional fundamental rights',
+            'habeas': 'habeas corpus detention custody'
+        }
+        
+        expanded_terms = []
+        query_lower = query.lower()
+        
+        for term, expansion in expansions.items():
+            if term in query_lower:
+                expanded_terms.extend(expansion.split())
+        
+        # Add original terms
+        expanded_terms.extend(query.split())
+        
+        # Remove duplicates and return
+        return ' '.join(list(set(expanded_terms)))
+    
     def _generate_lexical_snippets(self, case_id: int, query: str, max_snippets: int) -> List[Dict[str, Any]]:
         """Generate snippets from lexical text matches"""
         try:
             snippets = []
             query_terms = self._extract_query_terms(query)
             
-            # Get document text for this case
+            # Get document text for this case through CaseDocument relationship
+            from apps.cases.models import CaseDocument
+            case_documents = CaseDocument.objects.filter(case_id=case_id).values_list('document_id', flat=True)
             document_texts = DocumentText.objects.filter(
-                document__case_id=case_id,
+                document_id__in=case_documents,
                 has_text=True
             ).order_by('page_number')
             
@@ -95,7 +191,7 @@ class SnippetService:
                 if len(snippets) >= max_snippets:
                     break
                 
-                text_content = doc_text.extracted_text
+                text_content = doc_text.clean_text or doc_text.raw_text
                 if not text_content:
                     continue
                 
@@ -136,8 +232,29 @@ class SnippetService:
                 is_embedded=True
             ).order_by('chunk_index')
             
-            # If we have citations, prioritize chunks with those terms
-            if query_info.get('citations'):
+            # Extract query terms for matching
+            original_query = query_info.get('original_query', '')
+            expanded_query = self._expand_query_terms(original_query)
+            query_terms = self._extract_query_terms(expanded_query)
+            
+            # Strategy 1: Find chunks with exact query term matches
+            for chunk in chunks:
+                if len(snippets) >= max_snippets:
+                    break
+                
+                chunk_text = chunk.chunk_text.lower()
+                matched_terms = [term for term in query_terms if term.lower() in chunk_text]
+                
+                if matched_terms:
+                    snippet = self._create_snippet_from_chunk(
+                        chunk, matched_terms[0], 'semantic_exact_match'
+                    )
+                    if snippet:
+                        snippet['relevance_score'] = 0.8  # High relevance for exact matches
+                        snippets.append(snippet)
+            
+            # Strategy 2: If we have citations, prioritize chunks with those terms
+            if len(snippets) < max_snippets and query_info.get('citations'):
                 citation_terms = [citation['canonical'] for citation in query_info['citations']]
                 
                 for chunk in chunks:
@@ -153,18 +270,24 @@ class SnippetService:
                             chunk, citation_matches[0], 'semantic_citation'
                         )
                         if snippet:
+                            snippet['relevance_score'] = 0.7  # High relevance for citations
                             snippets.append(snippet)
             
-            # Add general semantic chunks if we still need more
+            # Strategy 3: Add general semantic chunks if we still need more
             if len(snippets) < max_snippets:
                 for chunk in chunks:
                     if len(snippets) >= max_snippets:
                         break
                     
+                    # Skip chunks that are just metadata
+                    if self._is_metadata_chunk(chunk.chunk_text):
+                        continue
+                    
                     snippet = self._create_snippet_from_chunk(
                         chunk, None, 'semantic_general'
                     )
                     if snippet:
+                        snippet['relevance_score'] = 0.5  # Medium relevance for general content
                         snippets.append(snippet)
             
             return snippets
@@ -172,6 +295,20 @@ class SnippetService:
         except Exception as e:
             logger.error(f"Error generating semantic snippets: {str(e)}")
             return []
+    
+    def _is_metadata_chunk(self, chunk_text: str) -> bool:
+        """Check if a chunk contains only metadata"""
+        metadata_indicators = [
+            'case metadata:', 'basic_info:', 'bench:', 'status:', 'sr_number:',
+            'justice', 'court:', 'pending', 'decided', 'case number:', 'case title:'
+        ]
+        
+        # If chunk is mostly metadata indicators, consider it metadata
+        text_lower = chunk_text.lower()
+        metadata_count = sum(1 for indicator in metadata_indicators if indicator in text_lower)
+        
+        # If more than 3 metadata indicators, likely metadata
+        return metadata_count > 3
     
     def _generate_metadata_snippets(self, case_id: int, query: str, max_snippets: int) -> List[Dict[str, Any]]:
         """Generate snippets from case metadata"""
@@ -322,84 +459,62 @@ class SnippetService:
     def _extract_meaningful_content(self, chunk_text: str) -> str:
         """Extract meaningful legal content from chunk text, removing document metadata"""
         try:
-            # If the text is all on one line (common in chunks), split by sentences
-            if '\n' not in chunk_text or len(chunk_text.split('\n')) == 1:
-                # Split by sentences and find the first substantial legal content
-                sentences = chunk_text.split('. ')
-                
-                for sentence in sentences:
-                    sentence = sentence.strip()
-                    if not sentence:
-                        continue
-                    
-                    # Skip metadata sentences
-                    if any(pattern in sentence for pattern in [
-                        'Document:', 'Type:', 'ORDER SHEET', 'JUDGMENT SHEET',
-                        'DATE OF HEARING:', '====================', '====='
-                    ]):
-                        continue
-                    
-                    # Skip incomplete sentences that start with numbers or fragments
-                    if sentence.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
-                        # Extract the content after the number
-                        parts = sentence.split('.', 1)
-                        if len(parts) > 1:
-                            sentence = parts[1].strip()
-                    
-                    # Skip sentences that start with fragments
-                    if sentence.startswith(('of ', 'and ', 'the ', 'in ', 'at ', 'on ', 'for ', 'with ', 'by ')):
-                        continue
-                    
-                    # Look for substantial legal content that makes sense
-                    if len(sentence) > 100 and any(word in sentence.lower() for word in [
-                        'court', 'judge', 'petitioner', 'respondent', 'order', 'judgment', 
-                        'law', 'legal', 'counsel', 'application', 'petition', 'appeal',
-                        'proceedings', 'hearing', 'argument', 'submits', 'alleged'
-                    ]):
-                        # Ensure the sentence starts with a capital letter and makes sense
-                        if sentence[0].isupper() and not sentence.startswith(('of ', 'and ', 'the ', 'in ', 'at ', 'on ', 'for ', 'with ', 'by ')):
-                            return sentence + '.'
-                
-                # If no substantial legal content found, return the longest complete sentence
-                complete_sentences = [s for s in sentences if len(s) > 50 and s[0].isupper() and not s.startswith(('of ', 'and ', 'the ', 'in ', 'at ', 'on ', 'for ', 'with ', 'by '))]
-                if complete_sentences:
-                    longest_sentence = max(complete_sentences, key=len)
-                    return longest_sentence + '.'
-                
-                # Fallback: return original text if no good sentences found
-                return chunk_text
+            # Remove common metadata patterns
+            text = chunk_text
             
-            else:
-                # Handle multi-line text
-                lines = chunk_text.split('\n')
-                meaningful_lines = []
+            # Remove document metadata
+            metadata_patterns = [
+                r'Document: [^.]*\.',
+                r'Type: [^.]*\.',
+                r'ORDER SHEET[^.]*\.',
+                r'JUDGMENT SHEET[^.]*\.',
+                r'DATE OF HEARING:[^.]*\.',
+                r'====================[^.]*\.',
+                r'=====[^.]*\.',
+                r'Case Number: [^.]*\.',
+                r'Case Title: [^.]*\.',
+                r'Status: [^.]*\.',
+                r'Bench: [^.]*\.',
+                r'Case Metadata: [^.]*\.',
+                r'basic_info: [^.]*\.',
+                r'Justice [^.]*\.',
+                r'Court: [^.]*\.',
+            ]
+            
+            import re
+            for pattern in metadata_patterns:
+                text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+            
+            # Clean up extra whitespace
+            text = re.sub(r'\s+', ' ', text).strip()
+            
+            # If we have substantial content left, return it
+            if len(text) > 50:
+                return text
+            
+            # Fallback: try to extract sentences
+            sentences = chunk_text.split('. ')
+            
+            for sentence in sentences:
+                sentence = sentence.strip()
+                if not sentence or len(sentence) < 20:
+                    continue
                 
-                # Skip document metadata lines
-                skip_patterns = [
+                # Skip metadata sentences
+                if any(pattern in sentence for pattern in [
                     'Document:', 'Type:', 'ORDER SHEET', 'JUDGMENT SHEET',
+                    'DATE OF HEARING:', '====================', '=====',
                     'Case Number:', 'Case Title:', 'Status:', 'Bench:',
-                    'S. No. of order', 'Date of order', 'Order with signature'
-                ]
+                    'Case Metadata:', 'basic_info:', 'Justice', 'Court:'
+                ]):
+                    continue
                 
-                for line in lines:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    
-                    # Skip lines that are mostly metadata
-                    is_metadata = any(pattern in line for pattern in skip_patterns)
-                    if is_metadata and len(line) < 100:  # Short metadata lines
-                        continue
-                    
-                    # Keep lines with substantial legal content
-                    if len(line) > 50:  # Substantial content
-                        meaningful_lines.append(line)
-                
-                # If we have meaningful content, join it
-                if meaningful_lines:
-                    return ' '.join(meaningful_lines)
-                else:
-                    return chunk_text
+                # Return the first meaningful sentence
+                if len(sentence) > 30:
+                    return sentence
+            
+            # If all else fails, return the original text truncated
+            return chunk_text[:200] + "..." if len(chunk_text) > 200 else chunk_text
                 
         except Exception as e:
             logger.error(f"Error extracting meaningful content: {str(e)}")

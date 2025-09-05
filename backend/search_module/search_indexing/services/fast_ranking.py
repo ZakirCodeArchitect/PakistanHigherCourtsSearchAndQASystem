@@ -156,17 +156,19 @@ class FastRankingService:
             # Calculate final score
             final_score = base_score * (1 + total_boost)
             
-            scored_result = {
-                'case_id': case_id,
-                'vector_score': vector_score,
-                'keyword_score': keyword_score,
-                'base_score': base_score,
-                'total_boost': total_boost,
-                'final_score': final_score,
-                'result_data': result['result_data']
-            }
-            
-            scored_results.append(scored_result)
+            # Only include results with meaningful scores
+            if final_score > 0.05 or vector_score > 0.1 or keyword_score > 0.1:
+                scored_result = {
+                    'case_id': case_id,
+                    'vector_score': vector_score,
+                    'keyword_score': keyword_score,
+                    'base_score': base_score,
+                    'total_boost': total_boost,
+                    'final_score': final_score,
+                    'result_data': result['result_data']
+                }
+                
+                scored_results.append(scored_result)
         
         return scored_results
     
