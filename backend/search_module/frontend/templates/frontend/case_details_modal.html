@@ -1,0 +1,1219 @@
+<!-- Case Details Modal -->
+<div id="caseDetailsModal" class="case-modal-overlay" style="display: none;">
+    <div class="case-modal-container">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    Case Details
+                </h2>
+                <p class="modal-subtitle">Comprehensive legal case information</p>
+            </div>
+            <button class="modal-close-btn" onclick="closeCaseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="modal-content">
+            <!-- Horizontal Navigation Bar -->
+            <div class="modal-sidebar">
+                <nav class="modal-nav">
+                    <div class="nav-item active" data-section="overview">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Overview</span>
+                    </div>
+                    <div class="nav-item" data-section="legal">
+                        <i class="fas fa-gavel"></i>
+                        <span>Legal Details</span>
+                    </div>
+                    <div class="nav-item" data-section="proceedings">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Proceedings</span>
+                    </div>
+                    <div class="nav-item" data-section="orders">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Court Orders</span>
+                    </div>
+                    <div class="nav-item" data-section="documents">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Documents</span>
+                    </div>
+                    <div class="nav-item" data-section="fir" style="display: none;">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>FIR Information</span>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="modal-main-content">
+                <!-- Loading State -->
+                <div id="modalLoadingState" class="modal-loading">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p>Loading case details...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="modalErrorState" class="modal-error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load case details. Please try again.</p>
+                </div>
+
+                <!-- Content Sections -->
+                <div id="modalContent" class="modal-content-sections" style="display: none;">
+                    <!-- Overview Section -->
+                    <div id="overviewSection" class="content-section active">
+                        <div class="section-header">
+                            <h3>Case Overview</h3>
+                        </div>
+                        
+                        <!-- Case Title at the top -->
+                        <div class="case-title-section">
+                            <h4>Case Title</h4>
+                            <p id="caseTitle" class="case-title-text">-</p>
+                        </div>
+                        
+                        <div class="case-info-table">
+                            <div class="info-row">
+                                <div class="info-label">Case Number</div>
+                                <div class="info-value" id="caseNumber">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">SR Number</div>
+                                <div class="info-value" id="srNumber">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Court</div>
+                                <div class="info-value" id="court">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Status</div>
+                                <div class="info-value" id="status">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Institution Date</div>
+                                <div class="info-value" id="institutionDate">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Hearing Date</div>
+                                <div class="info-value" id="hearingDate">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Bench</div>
+                                <div class="info-value" id="bench">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Details Section -->
+                    <div id="legalSection" class="content-section">
+                        <div class="section-header">
+                            <h3>Legal Details</h3>
+                        </div>
+                        <div class="case-info-table">
+                            <div class="info-row">
+                                <div class="info-label">Case Stage</div>
+                                <div class="info-value" id="caseStage">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Short Order</div>
+                                <div class="info-value" id="shortOrder">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Disposal Date</div>
+                                <div class="info-value" id="disposalDate">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Case Description</div>
+                                <div class="info-value" id="caseDescription">-</div>
+                            </div>
+                        </div>
+                        <div class="representation-section">
+                            <h4>Legal Representation</h4>
+                            <div class="case-info-table">
+                                <div class="info-row">
+                                    <div class="info-label">Petitioner's Advocates</div>
+                                    <div class="info-value" id="petitionerAdvocates">-</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Respondent's Advocates</div>
+                                    <div class="info-value" id="respondentAdvocates">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Proceedings Section -->
+                    <div id="proceedingsSection" class="content-section">
+                        <div class="section-header">
+                            <h3>Civil Miscellaneous Applications</h3>
+                        </div>
+                        <div class="proceedings-table-container">
+                            <table class="proceedings-table">
+                                <thead>
+                                    <tr>
+                                        <th>SR Number</th>
+                                        <th>Application Type</th>
+                                        <th>Institution Date</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="proceedingsTableBody">
+                                    <tr>
+                                        <td colspan="4" class="no-data">No proceedings data available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Orders Section -->
+                    <div id="ordersSection" class="content-section">
+                        <div class="section-header">
+                            <h3>Court Orders</h3>
+                        </div>
+                        <div class="orders-list" id="ordersList">
+                            <div class="no-data">No orders data available</div>
+                        </div>
+                    </div>
+
+                    <!-- Documents Section -->
+                    <div id="documentsSection" class="content-section">
+                        <div class="section-header">
+                            <h3>Case Documents</h3>
+                        </div>
+                        <div class="documents-actions">
+                            <button class="action-btn primary" onclick="downloadAllDocuments()">
+                                <i class="fas fa-download me-2"></i>
+                                Download All Documents
+                            </button>
+                            <button class="action-btn secondary" onclick="viewCaseHistory()">
+                                <i class="fas fa-history me-2"></i>
+                                View Case History
+                            </button>
+                        </div>
+                        <div class="documents-list" id="documentsList">
+                            <div class="no-data">No documents available</div>
+                        </div>
+                    </div>
+
+                    <!-- FIR Information Section -->
+                    <div id="firSection" class="content-section">
+                        <div class="section-header">
+                            <h3>FIR Information</h3>
+                        </div>
+                        <div class="case-info-table">
+                            <div class="info-row">
+                                <div class="info-label">FIR Number</div>
+                                <div class="info-value" id="firNumber">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">FIR Date</div>
+                                <div class="info-value" id="firDate">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Police Station</div>
+                                <div class="info-value" id="policeStation">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Under Section</div>
+                                <div class="info-value" id="underSection">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Accused Name</div>
+                                <div class="info-value" id="accusedName">-</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Incident Description</div>
+                                <div class="info-value" id="incidentDescription">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Overlay */
+.case-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* Modal Container */
+.case-modal-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.modal-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0 0;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* Modal Content - Horizontal Layout */
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Horizontal Navigation Bar */
+.modal-sidebar {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+    flex-shrink: 0;
+}
+
+.modal-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 6px;
+}
+
+.nav-item:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.nav-item.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-bottom-color: #1d4ed8;
+    font-weight: 600;
+}
+
+.nav-item i {
+    width: 16px;
+    margin-right: 0.5rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.nav-item span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Main Content Area */
+.modal-main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    background: white;
+}
+
+/* Loading and Error States */
+.modal-loading, .modal-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6b7280;
+}
+
+.loading-spinner {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.modal-error i {
+    font-size: 2rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    position: relative;
+}
+
+.section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.section-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.section-header h3::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    border-radius: 2px;
+}
+
+/* Case Info Table */
+.case-info-table {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.info-row {
+    display: flex;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row:hover {
+    background-color: #f9fafb;
+}
+
+.info-row:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.info-row:nth-child(even):hover {
+    background-color: #f3f4f6;
+}
+
+.info-label {
+    width: 220px;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.info-value {
+    flex: 1;
+    padding: 1.25rem 1.5rem;
+    font-size: 1.1rem;
+    color: #111827;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    line-height: 1.6;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Case Title Section */
+.case-title-section {
+    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.case-title-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+
+.case-title-section h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #dbeafe;
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.case-title-section h4::before {
+    content: '⚖️';
+    font-size: 1.2rem;
+}
+
+.case-title-text {
+    font-size: 1.4rem;
+    color: white;
+    line-height: 1.5;
+    margin: 0;
+    font-weight: 600;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Representation Section */
+.representation-section {
+    margin-top: 2rem;
+}
+
+.representation-section h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    position: relative;
+}
+
+.representation-section h4::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+/* Proceedings Table */
+.proceedings-table-container {
+    overflow-x: auto;
+}
+
+.proceedings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.proceedings-table th {
+    background-color: #f9fafb;
+    color: #374151;
+    font-weight: 600;
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid #e5e7eb;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+.proceedings-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.proceedings-table tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.order-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #f9fafb;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.order-number {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.order-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.order-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.order-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.order-detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-value {
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+}
+
+.order-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.document-status {
+    flex: 1;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Documents Section */
+.documents-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    text-decoration: none;
+}
+
+.action-btn.primary {
+    background: #1d4ed8;
+    color: white;
+    border-color: #1d4ed8;
+}
+
+.action-btn.primary:hover {
+    background: #1e40af;
+    border-color: #1e40af;
+}
+
+.action-btn.secondary {
+    background: #6b7280;
+    color: white;
+    border-color: #6b7280;
+}
+
+.action-btn.secondary:hover {
+    background: #4b5563;
+    border-color: #4b5563;
+}
+
+
+/* No Data State */
+.no-data {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-decided {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-unknown {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .case-modal-overlay {
+        padding: 1rem;
+    }
+    
+    .case-modal-container {
+        height: 95vh;
+    }
+    
+    .modal-sidebar {
+        padding: 0.75rem;
+    }
+    
+    .modal-nav {
+        gap: 0.25rem;
+    }
+    
+    .nav-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .nav-item i {
+        width: 14px;
+        margin-right: 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .nav-item span {
+        font-size: 0.8rem;
+    }
+    
+    .modal-main-content {
+        padding: 1.5rem;
+    }
+    
+    .case-info-table {
+        border-radius: 8px;
+    }
+    
+    .info-label {
+        width: 150px;
+        padding: 1rem;
+        font-size: 0.75rem;
+    }
+    
+    .info-value {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    
+    .case-title-section {
+        padding: 1.5rem;
+    }
+    
+    .case-title-text {
+        font-size: 1.2rem;
+    }
+    
+    .section-header h3 {
+        font-size: 1.3rem;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .documents-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Modal functionality
+let currentCaseId = null;
+
+function openCaseModal(caseId) {
+    currentCaseId = caseId;
+    const modal = document.getElementById('caseDetailsModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Reset modal state
+    showModalLoading();
+    resetModalContent();
+    
+    // Load case data
+    loadCaseData(caseId);
+}
+
+function closeCaseModal() {
+    const modal = document.getElementById('caseDetailsModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentCaseId = null;
+}
+
+function showModalLoading() {
+    document.getElementById('modalLoadingState').style.display = 'flex';
+    document.getElementById('modalErrorState').style.display = 'none';
+    document.getElementById('modalContent').style.display = 'none';
+}
+
+function showModalError() {
+    document.getElementById('modalLoadingState').style.display = 'none';
+    document.getElementById('modalErrorState').style.display = 'flex';
+    document.getElementById('modalContent').style.display = 'none';
+}
+
+function showModalContent() {
+    document.getElementById('modalLoadingState').style.display = 'none';
+    document.getElementById('modalErrorState').style.display = 'none';
+    document.getElementById('modalContent').style.display = 'block';
+}
+
+function resetModalContent() {
+    // Reset all form fields and content
+    const fields = [
+        'caseNumber', 'srNumber', 'court', 'status', 'institutionDate', 
+        'hearingDate', 'bench', 'caseTitle', 'caseStage', 'shortOrder',
+        'disposalDate', 'caseDescription', 'petitionerAdvocates', 'respondentAdvocates',
+        'firNumber', 'firDate', 'policeStation', 'underSection', 'accusedName', 'incidentDescription'
+    ];
+    
+    fields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element) element.textContent = '-';
+    });
+    
+    // Reset tables and lists
+    document.getElementById('proceedingsTableBody').innerHTML = '<tr><td colspan="4" class="no-data">No proceedings data available</td></tr>';
+    document.getElementById('ordersList').innerHTML = '<div class="no-data">No orders data available</div>';
+    document.getElementById('documentsList').innerHTML = '<div class="no-data">No documents available</div>';
+}
+
+async function loadCaseData(caseId) {
+    try {
+        const response = await fetch('/api/search/case/' + caseId + '/');
+        if (response.ok) {
+            const caseData = await response.json();
+            populateModalData(caseData);
+            showModalContent();
+        } else {
+            showModalError();
+        }
+    } catch (error) {
+        console.error('Error loading case data:', error);
+        showModalError();
+    }
+}
+
+function populateModalData(caseData) {
+    // Populate overview data
+    document.getElementById('caseNumber').textContent = caseData.case_number || 'Not available';
+    document.getElementById('srNumber').textContent = caseData.sr_number || 'Not available';
+    document.getElementById('court').textContent = caseData.court || 'Not available';
+    document.getElementById('institutionDate').textContent = caseData.institution_date || 'Not available';
+    document.getElementById('hearingDate').textContent = caseData.hearing_date || 'Not available';
+    document.getElementById('bench').textContent = caseData.bench || 'Not available';
+    document.getElementById('caseTitle').textContent = caseData.case_title || 'No title available';
+    
+    // Status with badge
+    const statusElement = document.getElementById('status');
+    if (caseData.status) {
+        const statusClass = 'status-' + caseData.status.toLowerCase();
+        statusElement.innerHTML = '<span class="status-badge ' + statusClass + '">' + caseData.status + '</span>';
+    } else {
+        statusElement.textContent = 'Unknown';
+    }
+    
+    // Populate legal details if available
+    if (caseData.case_detail) {
+        document.getElementById('caseStage').textContent = caseData.case_detail.case_stage || 'Not available';
+        document.getElementById('shortOrder').textContent = caseData.case_detail.short_order || 'Not available';
+        document.getElementById('disposalDate').textContent = caseData.case_detail.case_disposal_date || 'Not available';
+        document.getElementById('caseDescription').textContent = caseData.case_detail.case_description || 'Not available';
+        document.getElementById('petitionerAdvocates').textContent = caseData.case_detail.advocates_petitioner || 'Not available';
+        document.getElementById('respondentAdvocates').textContent = caseData.case_detail.advocates_respondent || 'Not available';
+        
+        // Show FIR section if FIR data exists
+        if (caseData.case_detail.fir_number) {
+            document.querySelector('[data-section="fir"]').style.display = 'block';
+            document.getElementById('firNumber').textContent = caseData.case_detail.fir_number;
+            document.getElementById('firDate').textContent = caseData.case_detail.fir_date || 'Not available';
+            document.getElementById('policeStation').textContent = caseData.case_detail.police_station || 'Not available';
+            document.getElementById('underSection').textContent = caseData.case_detail.under_section || 'Not available';
+            document.getElementById('accusedName').textContent = caseData.case_detail.name_of_accused || 'Not available';
+            document.getElementById('incidentDescription').textContent = caseData.case_detail.incident || 'Not available';
+        }
+    }
+    
+    // Populate proceedings data
+    if (caseData.case_cms_data && caseData.case_cms_data.length > 0) {
+        const tbody = document.getElementById('proceedingsTableBody');
+        tbody.innerHTML = '';
+        caseData.case_cms_data.forEach(cm => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${cm.sr_number || 'N/A'}</td>
+                <td>${cm.cm || 'N/A'}</td>
+                <td>${cm.institution || 'N/A'}</td>
+                <td><span class="source-badge">${cm.source_type || 'main'}</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Populate orders data
+    if (caseData.orders_data && caseData.orders_data.length > 0) {
+        const ordersList = document.getElementById('ordersList');
+        ordersList.innerHTML = '';
+        caseData.orders_data.forEach(order => {
+            const orderItem = document.createElement('div');
+            orderItem.className = 'order-item';
+            orderItem.innerHTML = `
+                <div class="order-header">
+                    <div class="order-number">Order #${order.sr_number || 'N/A'}</div>
+                    <div class="order-date">${order.hearing_date || 'Not available'}</div>
+                </div>
+                <div class="order-details">
+                    <div class="order-detail-item">
+                        <div class="detail-label">Bench</div>
+                        <div class="detail-value">${order.bench || 'Not available'}</div>
+                    </div>
+                    <div class="order-detail-item">
+                        <div class="detail-label">Stage</div>
+                        <div class="detail-value">${order.case_stage || 'Not available'}</div>
+                    </div>
+                    ${order.short_order ? `
+                    <div class="order-detail-item full-width">
+                        <div class="detail-label">Order</div>
+                        <div class="detail-value">${order.short_order}</div>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="order-actions">
+                    <div class="document-status">
+                        <small class="text-muted">
+                            <i class="fas fa-file-pdf me-1"></i>
+                            <span id="doc-info-${order.id}">Loading document info...</span>
+                        </small>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="viewOrderDocument(${currentCaseId}, ${order.id})">
+                            <i class="fas fa-eye me-1"></i>View Document
+                        </button>
+                        <button class="action-btn secondary" onclick="downloadOrderDocument(${currentCaseId}, ${order.id})">
+                            <i class="fas fa-download me-1"></i>Download
+                        </button>
+                    </div>
+                </div>
+            `;
+            ordersList.appendChild(orderItem);
+        });
+        
+        // Load document info for orders
+        setTimeout(() => loadOrderDocumentInfo(), 100);
+    }
+}
+
+// Navigation functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const section = this.getAttribute('data-section');
+            
+            // Update active nav item
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding content section
+            contentSections.forEach(content => content.classList.remove('active'));
+            document.getElementById(section + 'Section').classList.add('active');
+        });
+    });
+    
+    // Close modal when clicking outside
+    document.getElementById('caseDetailsModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCaseModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCaseModal();
+        }
+    });
+});
+
+// Document functions (reuse existing functions)
+function downloadAllDocuments() {
+    if (currentCaseId) {
+        downloadCase(currentCaseId);
+    }
+}
+
+function viewCaseHistory() {
+    if (currentCaseId) {
+        viewCaseHistory(currentCaseId);
+    }
+}
+
+// Reuse existing order document functions
+async function viewOrderDocument(caseId, orderId) {
+    // Implementation from existing code
+    try {
+        console.log('Viewing order document for case ' + caseId + ', order ' + orderId + '...');
+        const response = await fetch('/api/search/order/' + caseId + '/' + orderId + '/document/');
+        console.log('API response status:', response.status);
+        
+        if (response.ok) {
+            const orderDocData = await response.json();
+            console.log('Order document data:', orderDocData);
+            
+            if (orderDocData.document_id) {
+                const viewUrl = orderDocData.download_url;
+                console.log('Opening document for viewing:', viewUrl);
+                window.open(viewUrl, '_blank');
+            } else {
+                alert('No document available for this order');
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('API error:', errorData);
+            alert('Error: ' + (errorData.error || 'Failed to load order document'));
+        }
+    } catch (error) {
+        console.error('Error viewing order document:', error);
+        alert('Failed to load order document. Please try again.');
+    }
+}
+
+async function downloadOrderDocument(caseId, orderId) {
+    // Implementation from existing code
+    try {
+        console.log('Downloading order document for case ' + caseId + ', order ' + orderId + '...');
+        const response = await fetch('/api/search/order/' + caseId + '/' + orderId + '/document/');
+        console.log('API response status:', response.status);
+        
+        if (response.ok) {
+            const orderDocData = await response.json();
+            console.log('Order document data:', orderDocData);
+            
+            if (orderDocData.document_id) {
+                const link = document.createElement('a');
+                link.href = orderDocData.download_url + '?download=true';
+                link.download = orderDocData.document_name || 'order_document.pdf';
+                link.target = '_blank';
+                link.style.display = 'none';
+                console.log('Downloading document:', orderDocData.download_url + '?download=true');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert('No document available for this order');
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('API error:', errorData);
+            alert('Error: ' + (errorData.error || 'Failed to load order document'));
+        }
+    } catch (error) {
+        console.error('Error downloading order document:', error);
+        alert('Failed to download order document. Please try again.');
+    }
+}
+
+// Function to load document information for all orders
+async function loadOrderDocumentInfo() {
+    if (!currentCaseId) return;
+    
+    const orders = document.querySelectorAll('.order-item');
+    console.log('Found ' + orders.length + ' order elements');
+    
+    for (const order of orders) {
+        const viewButton = order.querySelector('button[onclick*="viewOrderDocument"]');
+        if (!viewButton) {
+            console.warn('No view button found for order:', order);
+            continue;
+        }
+        
+        const onclickAttr = viewButton.getAttribute('onclick');
+        console.log('Button onclick attribute:', onclickAttr);
+        
+        const orderIdMatch = onclickAttr.match(/viewOrderDocument\([^,]+,\s*(\d+)\)/);
+        if (!orderIdMatch) {
+            console.warn('Could not extract order ID from onclick:', onclickAttr);
+            continue;
+        }
+        
+        const orderId = orderIdMatch[1];
+        console.log('Processing order ID: ' + orderId);
+        
+        const docInfoSpan = order.querySelector('#doc-info-' + orderId);
+        if (!docInfoSpan) {
+            console.warn('No doc-info span found for order ' + orderId);
+            continue;
+        }
+        
+        try {
+            console.log('Loading document info for order ' + orderId + '...');
+            const response = await fetch('/api/search/order/' + currentCaseId + '/' + orderId + '/document/');
+            if (response.ok) {
+                const orderDocData = await response.json();
+                const documentName = orderDocData.document_name || 'Unknown Document';
+                const mappingMethod = orderDocData.mapping_method || 'unknown';
+                
+                let infoText = documentName.substring(0, 40) + '...';
+                if (mappingMethod === 'smart_match') {
+                    infoText += ' (Smart Match)';
+                } else if (mappingMethod === 'fallback') {
+                    infoText += ' (Fallback)';
+                }
+                
+                docInfoSpan.textContent = infoText;
+                docInfoSpan.className = 'text-success';
+                console.log('Document info loaded for order ' + orderId + ':', infoText);
+            } else {
+                const errorData = await response.json();
+                console.error('API error for order ' + orderId + ':', errorData);
+                docInfoSpan.textContent = 'Document not available';
+                docInfoSpan.className = 'text-danger';
+            }
+        } catch (error) {
+            console.error('Error loading document info for order ' + orderId + ':', error);
+            docInfoSpan.textContent = 'Error loading info';
+            docInfoSpan.className = 'text-warning';
+        }
+    }
+}
+</script>

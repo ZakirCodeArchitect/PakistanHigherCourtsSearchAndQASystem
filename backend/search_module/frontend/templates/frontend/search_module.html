@@ -105,6 +105,7 @@
                         </div>
                     </div>
                     
+                    
                     <!-- Results Configuration -->
                     <div class="results-config">
                         <div class="config-item">
@@ -660,6 +661,426 @@
     gap: 0.5rem;
     }
 }
+
+/* Modal Styles */
+.case-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.case-modal-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 1000;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.modal-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0 0;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+
+.modal-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 6px;
+}
+
+.nav-item:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.nav-item.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-bottom-color: #1d4ed8;
+    font-weight: 600;
+}
+
+.nav-item i {
+    width: 16px;
+    margin-right: 0.5rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.nav-item span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.modal-main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 0;
+    background: white;
+    min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.modal-content-sections {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: white;
+}
+
+.modal-loading, .modal-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6b7280;
+}
+
+.loading-spinner {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.modal-error i {
+    font-size: 2rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+}
+
+.content-section {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: white;
+}
+
+.content-section.active {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: white;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    position: relative;
+}
+
+.section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.section-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-header h3::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    border-radius: 2px;
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.overview-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.overview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.overview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-label::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: #3b82f6;
+    border-radius: 50%;
+}
+
+.card-value {
+    font-size: 1rem;
+    color: #1e293b;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.case-title-section {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+}
+
+.case-title-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 12px 12px 0 0;
+}
+
+.case-title-section h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #475569;
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.case-title-section h4::before {
+    content: '📋';
+    font-size: 1.2rem;
+}
+
+.case-title-text {
+    font-size: 1.25rem;
+    color: #1e293b;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.status-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+    border-radius: 25px;
+}
+
+.status-decided {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.status-pending {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+.status-unknown {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+}
+
+/* Horizontal Navigation Layout */
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+}
+
+.modal-sidebar {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+    position: relative;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.modal-main-content {
+    overflow-y: auto;
+    padding: 2rem;
+    position: relative;
+    background: white;
+    flex: 1;
+    height: 100%;
+}
+
+/* Modal Responsive Design */
+@media (max-width: 768px) {
+    .case-modal-overlay {
+        padding: 1rem;
+    }
+    
+    .case-modal-container {
+        height: 95vh;
+    }
+    
+    .modal-sidebar {
+        padding: 0.75rem;
+    }
+    
+    .modal-nav {
+        gap: 0.25rem;
+    }
+    
+    .nav-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .nav-item i {
+        width: 14px;
+        margin-right: 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .nav-item span {
+        font-size: 0.8rem;
+    }
+    
+    .modal-main-content {
+        padding: 1.5rem;
+    }
+    
+    .overview-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 <script>
@@ -960,7 +1381,7 @@ function createResultCard(result, queryInfo) {
         </div>
         
         <div class="result-actions">
-            <button class="btn btn-view-details" onclick="viewCaseDetails(${caseId})" data-case-id="${caseId}">
+            <button class="btn btn-view-details" onclick="openCaseModal(${caseId})" data-case-id="${caseId}">
                 <i class="fas fa-eye me-2"></i>View Details
             </button>
             <button class="btn btn-history" onclick="viewCaseHistory(${caseId})">
@@ -1094,17 +1515,186 @@ function goToClientPage(pageNumber) {
     document.getElementById('searchResults').scrollIntoView({ behavior: 'smooth' });
 }
 
-// View case details
-function viewCaseDetails(caseId) {
-    console.log('View Details clicked for case ID:', caseId);
+// Open case details modal
+function openCaseModal(caseId) {
+    console.log('Opening case modal for case ID:', caseId);
+    console.log('Modal element exists:', document.getElementById('caseDetailsModal') !== null);
+    console.log('Window openCaseModal function exists:', typeof window.openCaseModal === 'function');
     
     if (caseId && caseId !== 'N/A' && caseId !== 'undefined' && caseId !== 'null') {
-        const url = `/case/${caseId}/`;
-        console.log('Navigating to:', url);
-        window.location.href = url;
+        // Check if modal element exists
+        const modal = document.getElementById('caseDetailsModal');
+        if (modal) {
+            console.log('Modal found, opening...');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Show loading state
+            const loadingState = document.getElementById('modalLoadingState');
+            const errorState = document.getElementById('modalErrorState');
+            const content = document.getElementById('modalContent');
+            
+            if (loadingState) loadingState.style.display = 'flex';
+            if (errorState) errorState.style.display = 'none';
+            if (content) content.style.display = 'none';
+            
+            // Load case data
+            loadCaseData(caseId);
+        } else {
+            console.error('Modal element not found');
+            alert('Case details modal is not available. Please refresh the page.');
+        }
     } else {
         console.error('Invalid case ID:', caseId);
-        alert(`Case ID not available: ${caseId}`);
+        alert('Case ID not available: ' + caseId);
+    }
+}
+
+// Load case data for modal
+async function loadCaseData(caseId) {
+    try {
+        console.log('Loading case data for ID:', caseId);
+        const apiUrl = '/api/search/case/' + caseId + '/';
+        console.log('API URL:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (response.ok) {
+            const caseData = await response.json();
+            console.log('Case data loaded:', caseData);
+            console.log('Case data keys:', Object.keys(caseData));
+            
+            // Check if we have the expected data structure
+            if (caseData.case_detail) {
+                console.log('Case detail keys:', Object.keys(caseData.case_detail));
+            }
+            
+            populateModalData(caseData);
+            showModalContent();
+        } else {
+            const errorText = await response.text();
+            console.error('Failed to load case data:', response.status, errorText);
+            showModalError();
+        }
+    } catch (error) {
+        console.error('Error loading case data:', error);
+        showModalError();
+    }
+}
+
+// Show modal content
+function showModalContent() {
+    const loadingState = document.getElementById('modalLoadingState');
+    const errorState = document.getElementById('modalErrorState');
+    const content = document.getElementById('modalContent');
+    
+    if (loadingState) loadingState.style.display = 'none';
+    if (errorState) errorState.style.display = 'none';
+    if (content) content.style.display = 'block';
+}
+
+// Show modal error
+function showModalError() {
+    const loadingState = document.getElementById('modalLoadingState');
+    const errorState = document.getElementById('modalErrorState');
+    const content = document.getElementById('modalContent');
+    
+    if (loadingState) loadingState.style.display = 'none';
+    if (errorState) errorState.style.display = 'flex';
+    if (content) content.style.display = 'none';
+}
+
+// Close modal
+function closeCaseModal() {
+    const modal = document.getElementById('caseDetailsModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Populate modal data
+function populateModalData(caseData) {
+    console.log('Populating modal with data:', caseData);
+    
+    // Populate overview data
+    const fields = {
+        'caseNumber': caseData.case_number || 'Not available',
+        'srNumber': caseData.sr_number || 'Not available',
+        'court': caseData.court || 'Not available',
+        'institutionDate': caseData.institution_date || 'Not available',
+        'hearingDate': caseData.hearing_date || 'Not available',
+        'bench': caseData.bench || 'Not available',
+        'caseTitle': caseData.case_title || 'No title available'
+    };
+    
+    Object.entries(fields).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+            console.log('Set ' + id + ' to:', value);
+        } else {
+            console.log('Element not found:', id);
+        }
+    });
+    
+    // Status with badge
+    const statusElement = document.getElementById('status');
+    if (statusElement && caseData.status) {
+        const statusClass = 'status-' + caseData.status.toLowerCase();
+        statusElement.innerHTML = '<span class="status-badge ' + statusClass + '">' + caseData.status + '</span>';
+    }
+    
+    // Populate legal details if available
+    if (caseData.case_detail) {
+        console.log('Populating legal details:', caseData.case_detail);
+        const legalFields = {
+            'caseStage': caseData.case_detail.case_stage || 'Not available',
+            'shortOrder': caseData.case_detail.short_order || 'Not available',
+            'disposalDate': caseData.case_detail.case_disposal_date || 'Not available',
+            'caseDescription': caseData.case_detail.case_description || 'Not available',
+            'petitionerAdvocates': caseData.case_detail.advocates_petitioner || 'Not available',
+            'respondentAdvocates': caseData.case_detail.advocates_respondent || 'Not available'
+        };
+        
+        Object.entries(legalFields).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+                console.log('Set legal ' + id + ' to:', value);
+            } else {
+                console.log('Legal element not found:', id);
+            }
+        });
+        
+        // Show FIR section if FIR data exists
+        if (caseData.case_detail.fir_number) {
+            const firNavItem = document.querySelector('[data-section="fir"]');
+            if (firNavItem) {
+                firNavItem.style.display = 'block';
+            }
+            
+            const firFields = {
+                'firNumber': caseData.case_detail.fir_number,
+                'firDate': caseData.case_detail.fir_date || 'Not available',
+                'policeStation': caseData.case_detail.police_station || 'Not available',
+                'underSection': caseData.case_detail.under_section || 'Not available',
+                'accusedName': caseData.case_detail.name_of_accused || 'Not available',
+                'incidentDescription': caseData.case_detail.incident || 'Not available'
+            };
+            
+            Object.entries(firFields).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                    console.log('Set FIR ' + id + ' to:', value);
+                } else {
+                    console.log('FIR element not found:', id);
+                }
+            });
+        }
     }
 }
 
@@ -1113,6 +1703,50 @@ function viewCaseHistory(caseId) {
     // Placeholder for case history functionality
     alert('Case history feature coming soon!');
 }
+
+// Modal navigation functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add navigation functionality for modal
+    const navItems = document.querySelectorAll('.nav-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const section = this.getAttribute('data-section');
+            
+            // Update active nav item
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding content section
+            contentSections.forEach(content => content.classList.remove('active'));
+            const targetSection = document.getElementById(section + 'Section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        });
+    });
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('caseDetailsModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCaseModal();
+            }
+        });
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCaseModal();
+        }
+    });
+});
 </script>
+
+<!-- Include Case Details Modal -->
+{% include 'frontend/case_details_modal.html' %}
 
 {% endblock %}

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Details Modal Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .demo-button {
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px;
+        }
+        .demo-button:hover {
+            background: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <h1>Case Details Modal Demo</h1>
+    <p>Click the button below to see the new modal-based case details interface:</p>
+    
+    <button class="demo-button" onclick="openCaseModal(26)">
+        <i class="fas fa-eye me-2"></i>View Case Details (Modal)
+    </button>
+    
+    <p><strong>Key Features of the New Modal Design:</strong></p>
+    <ul>
+        <li>✅ <strong>Modal Overlay:</strong> Opens as a popup instead of navigating to a new page</li>
+        <li>✅ <strong>Sidebar Navigation:</strong> Left sidebar with organized sections (Overview, Legal Details, Proceedings, etc.)</li>
+        <li>✅ <strong>Professional Layout:</strong> Clean, lawyer-friendly design with consistent styling</li>
+        <li>✅ <strong>Better UX:</strong> Users stay on the search page and can quickly view case details</li>
+        <li>✅ <strong>Responsive Design:</strong> Works well on different screen sizes</li>
+        <li>✅ <strong>Keyboard Support:</strong> ESC key closes the modal</li>
+        <li>✅ <strong>Click Outside to Close:</strong> Click outside the modal to close it</li>
+    </ul>
+    
+    <p><strong>Navigation Sections:</strong></p>
+    <ul>
+        <li><strong>Overview:</strong> Basic case information (case number, court, status, dates)</li>
+        <li><strong>Legal Details:</strong> Case stage, orders, disposal information, advocates</li>
+        <li><strong>Proceedings:</strong> Civil Miscellaneous Applications table</li>
+        <li><strong>Court Orders:</strong> Detailed orders with document access</li>
+        <li><strong>Documents:</strong> Document management and downloads</li>
+        <li><strong>FIR Information:</strong> Criminal case details (when applicable)</li>
+    </ul>
+
+    <!-- Include the modal template -->
+    <div id="caseDetailsModal" class="case-modal-overlay" style="display: none;">
+        <div class="case-modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h2 class="modal-title">
+                        <i class="fas fa-balance-scale me-2"></i>
+                        Case Details
+                    </h2>
+                    <p class="modal-subtitle">Comprehensive legal case information</p>
+                </div>
+                <button class="modal-close-btn" onclick="closeCaseModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="modal-content">
+                <!-- Left Sidebar Navigation -->
+                <div class="modal-sidebar">
+                    <nav class="modal-nav">
+                        <div class="nav-item active" data-section="overview">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Overview</span>
+                        </div>
+                        <div class="nav-item" data-section="legal">
+                            <i class="fas fa-gavel"></i>
+                            <span>Legal Details</span>
+                        </div>
+                        <div class="nav-item" data-section="proceedings">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Proceedings</span>
+                        </div>
+                        <div class="nav-item" data-section="orders">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Court Orders</span>
+                        </div>
+                        <div class="nav-item" data-section="documents">
+                            <i class="fas fa-folder-open"></i>
+                            <span>Documents</span>
+                        </div>
+                    </nav>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="modal-main-content">
+                    <!-- Loading State -->
+                    <div id="modalLoadingState" class="modal-loading">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <p>Loading case details...</p>
+                    </div>
+
+                    <!-- Content Sections -->
+                    <div id="modalContent" class="modal-content-sections" style="display: none;">
+                        <!-- Overview Section -->
+                        <div id="overviewSection" class="content-section active">
+                            <div class="section-header">
+                                <h3>Case Overview</h3>
+                            </div>
+                            <div class="overview-grid">
+                                <div class="overview-card">
+                                    <div class="card-label">Case Number</div>
+                                    <div class="card-value">CM Ind. 1/2025 Civil (SB)</div>
+                                </div>
+                                <div class="overview-card">
+                                    <div class="card-label">SR Number</div>
+                                    <div class="card-value">2</div>
+                                </div>
+                                <div class="overview-card">
+                                    <div class="card-label">Court</div>
+                                    <div class="card-value">Islamabad High Court</div>
+                                </div>
+                                <div class="overview-card">
+                                    <div class="card-label">Status</div>
+                                    <div class="card-value">
+                                        <span class="status-badge status-decided">Decided</span>
+                                    </div>
+                                </div>
+                                <div class="overview-card">
+                                    <div class="card-label">Institution Date</div>
+                                    <div class="card-value">16-07-2025</div>
+                                </div>
+                                <div class="overview-card">
+                                    <div class="card-label">Hearing Date</div>
+                                    <div class="card-value">THU 31-07-2025 URGENT CASES</div>
+                                </div>
+                                <div class="overview-card">
+                                    <div class="card-label">Bench</div>
+                                    <div class="card-value">Honourable Ms. Justice Saman Rafat Imtiaz</div>
+                                </div>
+                            </div>
+                            <div class="case-title-section">
+                                <h4>Case Title</h4>
+                                <p class="case-title-text">AWAIS AHMED SATTI VS SHFQAT NAEEM JANJUA</p>
+                            </div>
+                        </div>
+
+                        <!-- Legal Details Section -->
+                        <div id="legalSection" class="content-section">
+                            <div class="section-header">
+                                <h3>Legal Details</h3>
+                            </div>
+                            <div class="legal-details-grid">
+                                <div class="legal-card">
+                                    <div class="card-label">Case Stage</div>
+                                    <div class="card-value">Not available</div>
+                                </div>
+                                <div class="legal-card">
+                                    <div class="card-label">Short Order</div>
+                                    <div class="card-value">Dismissed In limine</div>
+                                </div>
+                                <div class="legal-card">
+                                    <div class="card-label">Disposal Date</div>
+                                    <div class="card-value">31-07-2025</div>
+                                </div>
+                                <div class="legal-card full-width">
+                                    <div class="card-label">Case Description</div>
+                                    <div class="card-value">12(2) against Judgement decree.</div>
+                                </div>
+                            </div>
+                            <div class="representation-section">
+                                <h4>Legal Representation</h4>
+                                <div class="representation-grid">
+                                    <div class="representation-card">
+                                        <div class="card-label">Petitioner's Advocates</div>
+                                        <div class="card-value">Jan Muhammad Khan, Khushal Ahmad Khan, Amir Muhammad</div>
+                                    </div>
+                                    <div class="representation-card">
+                                        <div class="card-label">Respondent's Advocates</div>
+                                        <div class="card-value">Not available</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other sections would be here... -->
+                        <div id="proceedingsSection" class="content-section">
+                            <div class="section-header">
+                                <h3>Civil Miscellaneous Applications</h3>
+                            </div>
+                            <div class="no-data">No proceedings data available</div>
+                        </div>
+
+                        <div id="ordersSection" class="content-section">
+                            <div class="section-header">
+                                <h3>Court Orders</h3>
+                            </div>
+                            <div class="no-data">No orders data available</div>
+                        </div>
+
+                        <div id="documentsSection" class="content-section">
+                            <div class="section-header">
+                                <h3>Case Documents</h3>
+                            </div>
+                            <div class="no-data">No documents available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simplified modal functionality for demo
+        function openCaseModal(caseId) {
+            const modal = document.getElementById('caseDetailsModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Hide loading, show content
+            document.getElementById('modalLoadingState').style.display = 'none';
+            document.getElementById('modalContent').style.display = 'block';
+        }
+
+        function closeCaseModal() {
+            const modal = document.getElementById('caseDetailsModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentSections = document.querySelectorAll('.content-section');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.getAttribute('data-section');
+                    
+                    // Update active nav item
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding content section
+                    contentSections.forEach(content => content.classList.remove('active'));
+                    document.getElementById(section + 'Section').classList.add('active');
+                });
+            });
+            
+            // Close modal when clicking outside
+            document.getElementById('caseDetailsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCaseModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeCaseModal();
+                }
+            });
+        });
+    </script>
+
+    <!-- Include the modal styles -->
+    <style>
+        /* Modal Overlay */
+        .case-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Modal Container */
+        .case-modal-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Modal Header */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+
+        .modal-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0.25rem 0 0 0;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .modal-sidebar {
+            width: 250px;
+            background: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+            padding: 1rem 0;
+        }
+
+        .modal-nav {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .nav-item.active {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-left-color: #1d4ed8;
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .nav-item span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Main Content Area */
+        .modal-main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        /* Loading State */
+        .modal-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6b7280;
+        }
+
+        .loading-spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+
+        /* Overview Grid */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .overview-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-size: 0.875rem;
+            color: #111827;
+            font-weight: 500;
+        }
+
+        /* Case Title Section */
+        .case-title-section {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .case-title-section h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .case-title-text {
+            font-size: 1.125rem;
+            color: #374151;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Legal Details Grid */
+        .legal-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .legal-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .legal-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Representation Section */
+        .representation-section {
+            margin-top: 2rem;
+        }
+
+        .representation-section h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 1rem 0;
+        }
+
+        .representation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .representation-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-decided {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        /* No Data State */
+        .no-data {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .case-modal-overlay {
+                padding: 1rem;
+            }
+            
+            .case-modal-container {
+                height: 95vh;
+            }
+            
+            .modal-content {
+                flex-direction: column;
+            }
+            
+            .modal-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            .modal-nav {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .nav-item {
+                white-space: nowrap;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+            
+            .nav-item.active {
+                border-left: none;
+                border-bottom-color: #1d4ed8;
+            }
+            
+            .overview-grid,
+            .legal-details-grid,
+            .representation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>
