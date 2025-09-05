@@ -82,15 +82,35 @@
                 <!-- Search Input Section -->
                 <div class="search-input-section">
                     <div class="search-form">
-                        <div class="input-group">
+                        <div class="input-group search-input-container">
                                 <input type="text" 
                                        id="searchQuery" 
                                    class="form-control search-input" 
                                    placeholder="Enter case number, legal citation, or search terms..."
-                                       autocomplete="off">
+                                       autocomplete="off"
+                                       onkeyup="handleSearchInput(event)"
+                                       onfocus="showSuggestions()"
+                                       onblur="hideSuggestions()">
                             <button class="btn btn-primary search-btn" type="button" onclick="performSearch()">
                                 <i class="fas fa-search me-2"></i>Search
                                 </button>
+                            </div>
+                            
+                            <!-- Suggestions Dropdown -->
+                            <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;">
+                                <div class="suggestions-header">
+                                    <span class="suggestions-title">Suggestions</span>
+                                    <span id="suggestionsType" class="suggestions-type"></span>
+                                </div>
+                                <div id="suggestionsList" class="suggestions-list">
+                                    <!-- Suggestions will be populated here -->
+                                </div>
+                                <div class="suggestions-footer">
+                                    <small class="text-muted">
+                                        <i class="fas fa-keyboard me-1"></i>
+                                        Use ↑↓ to navigate, Enter to select, Esc to close
+                                    </small>
+                                </div>
                             </div>
                         </div>
                         
@@ -104,6 +124,7 @@
                             <a href="#" onclick="setQueryAndSearch('habeas corpus')" class="example-link">Habeas Corpus</a>
                         </div>
                     </div>
+                    
                     
                     
                     <!-- Results Configuration -->
@@ -308,6 +329,10 @@
     margin-bottom: 2rem;
 }
 
+.search-form {
+    position: relative;
+}
+
 .search-form .input-group {
     margin-bottom: 1.5rem;
 }
@@ -338,6 +363,121 @@
     background: var(--primary-light);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+/* Search Input Container */
+.search-input-container {
+    position: relative;
+    z-index: 1000;
+    width: 100%;
+}
+
+/* Suggestions Dropdown */
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.suggestions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.suggestions-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.suggestions-type {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.suggestions-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item.highlighted {
+    background: var(--primary-color);
+    color: white;
+}
+
+.suggestion-item.highlighted .suggestion-type-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.suggestion-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.suggestion-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: inherit;
+}
+
+.suggestion-info {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    color: inherit;
+}
+
+.suggestion-type-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    background: var(--background-light);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-left: 0.5rem;
+}
+
+.suggestions-footer {
+    padding: 0.5rem 1rem;
+    background: var(--background-light);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
 }
 
 /* Search Examples */
@@ -1088,6 +1228,11 @@
 window.allSearchResults = null;
 window.currentPage = 1;
 
+// Global variables for suggestions
+window.suggestions = [];
+window.selectedSuggestionIndex = -1;
+window.suggestionsTimeout = null;
+
 // Search type selection
 document.addEventListener('DOMContentLoaded', function() {
     const searchTypeOptions = document.querySelectorAll('.search-type-option');
@@ -1744,6 +1889,317 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// ===== SUGGESTIONS FUNCTIONALITY =====
+
+// Handle search input for suggestions
+function handleSearchInput(event) {
+    const query = event.target.value.trim();
+    
+    // Clear previous timeout
+    if (window.suggestionsTimeout) {
+        clearTimeout(window.suggestionsTimeout);
+    }
+    
+    // Handle keyboard navigation
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        navigateSuggestions(1);
+        return;
+    }
+    
+    if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        navigateSuggestions(-1);
+        return;
+    }
+    
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (window.selectedSuggestionIndex >= 0 && window.suggestions[window.selectedSuggestionIndex]) {
+            selectSuggestion(window.suggestions[window.selectedSuggestionIndex]);
+        } else {
+            performSearch();
+        }
+        return;
+    }
+    
+    if (event.key === 'Escape') {
+        hideSuggestions();
+        return;
+    }
+    
+    // Fetch suggestions after a short delay
+    if (query.length >= 2) {
+        window.suggestionsTimeout = setTimeout(() => {
+            fetchSuggestions(query);
+        }, 300);
+    } else {
+        hideSuggestions();
+    }
+}
+
+// Fetch suggestions from API
+async function fetchSuggestions(query) {
+    try {
+        console.log('🔍 Fetching suggestions for query:', query);
+        const apiUrl = `/api/search/suggest/?q=${encodeURIComponent(query)}&type=auto`;
+        console.log('🔍 API URL:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        
+        console.log('🔍 Response status:', response.status);
+        console.log('🔍 Response headers:', response.headers);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('🔍 Suggestions data:', data);
+            window.suggestions = data.suggestions || [];
+            console.log('🔍 Processed suggestions:', window.suggestions);
+            displaySuggestions(window.suggestions);
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Failed to fetch suggestions:', response.status, errorText);
+            hideSuggestions();
+        }
+    } catch (error) {
+        console.error('❌ Error fetching suggestions:', error);
+        hideSuggestions();
+    }
+}
+
+// Display suggestions in dropdown
+function displaySuggestions(suggestions) {
+    console.log('🎯 Displaying suggestions:', suggestions);
+    const dropdown = document.getElementById('suggestionsDropdown');
+    const suggestionsList = document.getElementById('suggestionsList');
+    const suggestionsType = document.getElementById('suggestionsType');
+    
+    console.log('🎯 Dropdown element:', dropdown);
+    console.log('🎯 Suggestions list element:', suggestionsList);
+    console.log('🎯 Suggestions type element:', suggestionsType);
+    
+    if (!suggestions || suggestions.length === 0) {
+        console.log('🎯 No suggestions to display, hiding dropdown');
+        hideSuggestions();
+        return;
+    }
+    
+    // Reset selection
+    window.selectedSuggestionIndex = -1;
+    
+    // Update suggestions type
+    const detectedType = detectSuggestionType(suggestions);
+    console.log('🎯 Detected type:', detectedType);
+    if (suggestionsType) {
+        suggestionsType.textContent = detectedType;
+    }
+    
+    // Clear and populate suggestions list
+    if (suggestionsList) {
+        suggestionsList.innerHTML = '';
+        
+        suggestions.forEach((suggestion, index) => {
+            const suggestionItem = createSuggestionItem(suggestion, index);
+            suggestionsList.appendChild(suggestionItem);
+        });
+    }
+    
+    // Show dropdown
+    if (dropdown) {
+        dropdown.style.display = 'block';
+        console.log('🎯 Dropdown should now be visible');
+    } else {
+        console.error('❌ Dropdown element not found!');
+    }
+}
+
+// Create suggestion item element
+function createSuggestionItem(suggestion, index) {
+    const item = document.createElement('div');
+    item.className = 'suggestion-item';
+    item.setAttribute('data-index', index);
+    
+    const typeIcon = getSuggestionTypeIcon(suggestion.type);
+    const typeBadge = getSuggestionTypeBadge(suggestion.type);
+    
+    item.innerHTML = `
+        <div class="suggestion-content">
+            <div class="suggestion-value">${suggestion.value}</div>
+            ${suggestion.additional_info ? `<div class="suggestion-info">${suggestion.additional_info}</div>` : ''}
+        </div>
+        <span class="suggestion-type-badge">${typeBadge}</span>
+    `;
+    
+    // Add click handler
+    item.addEventListener('click', () => selectSuggestion(suggestion));
+    
+    return item;
+}
+
+// Get icon for suggestion type
+function getSuggestionTypeIcon(type) {
+    const icons = {
+        'case': 'fas fa-gavel',
+        'citation': 'fas fa-book',
+        'section': 'fas fa-paragraph',
+        'judge': 'fas fa-user-tie',
+        'auto': 'fas fa-magic'
+    };
+    return icons[type] || 'fas fa-search';
+}
+
+// Get badge text for suggestion type
+function getSuggestionTypeBadge(type) {
+    const badges = {
+        'case': 'Case',
+        'citation': 'Citation',
+        'section': 'Section',
+        'judge': 'Judge',
+        'auto': 'Auto'
+    };
+    return badges[type] || 'Search';
+}
+
+// Detect suggestion type from suggestions
+function detectSuggestionType(suggestions) {
+    if (!suggestions || suggestions.length === 0) return 'Auto';
+    
+    const types = suggestions.map(s => s.type).filter(Boolean);
+    if (types.length === 0) return 'Auto';
+    
+    // Return the most common type
+    const typeCounts = {};
+    types.forEach(type => {
+        typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+    
+    const mostCommonType = Object.keys(typeCounts).reduce((a, b) => 
+        typeCounts[a] > typeCounts[b] ? a : b
+    );
+    
+    return mostCommonType.charAt(0).toUpperCase() + mostCommonType.slice(1);
+}
+
+// Navigate suggestions with keyboard
+function navigateSuggestions(direction) {
+    if (window.suggestions.length === 0) return;
+    
+    // Remove previous highlight
+    const previousItem = document.querySelector('.suggestion-item.highlighted');
+    if (previousItem) {
+        previousItem.classList.remove('highlighted');
+    }
+    
+    // Calculate new index
+    window.selectedSuggestionIndex += direction;
+    
+    // Wrap around
+    if (window.selectedSuggestionIndex < 0) {
+        window.selectedSuggestionIndex = window.suggestions.length - 1;
+    } else if (window.selectedSuggestionIndex >= window.suggestions.length) {
+        window.selectedSuggestionIndex = 0;
+    }
+    
+    // Highlight new item
+    const newItem = document.querySelector(`[data-index="${window.selectedSuggestionIndex}"]`);
+    if (newItem) {
+        newItem.classList.add('highlighted');
+        newItem.scrollIntoView({ block: 'nearest' });
+    }
+}
+
+// Select a suggestion
+function selectSuggestion(suggestion) {
+    const searchInput = document.getElementById('searchQuery');
+    searchInput.value = suggestion.value;
+    hideSuggestions();
+    
+    // Optionally perform search immediately
+    // performSearch();
+}
+
+// Show suggestions dropdown
+function showSuggestions() {
+    const searchInput = document.getElementById('searchQuery');
+    const query = searchInput.value.trim();
+    
+    if (query.length >= 2 && window.suggestions.length > 0) {
+        const dropdown = document.getElementById('suggestionsDropdown');
+        dropdown.style.display = 'block';
+    }
+}
+
+// Hide suggestions dropdown
+function hideSuggestions() {
+    const dropdown = document.getElementById('suggestionsDropdown');
+    dropdown.style.display = 'none';
+    window.selectedSuggestionIndex = -1;
+    
+    // Remove highlights
+    const highlightedItems = document.querySelectorAll('.suggestion-item.highlighted');
+    highlightedItems.forEach(item => item.classList.remove('highlighted'));
+}
+
+// Test suggestions API function
+async function testSuggestionsAPI() {
+    console.log('🧪 Testing suggestions API...');
+    
+    // Test direct backend API
+    try {
+        console.log('🧪 Testing backend API directly...');
+        const backendResponse = await fetch('/api/search/suggest/?q=ppc&type=auto', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        console.log('🧪 Backend API Status:', backendResponse.status);
+        if (backendResponse.ok) {
+            const backendData = await backendResponse.json();
+            console.log('🧪 Backend API Response:', backendData);
+        } else {
+            const errorText = await backendResponse.text();
+            console.error('🧪 Backend API Error:', errorText);
+        }
+    } catch (error) {
+        console.error('🧪 Backend API Exception:', error);
+    }
+    
+    // Test frontend API
+    try {
+        console.log('🧪 Testing frontend API...');
+        const frontendResponse = await fetch('/api/search/suggest/?q=ppc&type=auto', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        
+        console.log('🧪 Frontend API Status:', frontendResponse.status);
+        if (frontendResponse.ok) {
+            const frontendData = await frontendResponse.json();
+            console.log('🧪 Frontend API Response:', frontendData);
+        } else {
+            const errorText = await frontendResponse.text();
+            console.error('🧪 Frontend API Error:', errorText);
+        }
+    } catch (error) {
+        console.error('🧪 Frontend API Exception:', error);
+    }
+    
+    // Test the fetchSuggestions function
+    console.log('🧪 Testing fetchSuggestions function...');
+    await fetchSuggestions('ppc');
+}
 </script>
 
 <!-- Include Case Details Modal -->
