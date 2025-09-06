@@ -320,10 +320,15 @@
                     return;
                 }
                 
+                // Get CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 getCookie('csrftoken');
+                
                 const response = await fetch('/api/search/benchmarking/api/executions/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
                     },
                     body: JSON.stringify({
                         query_set_id: querySetId,
@@ -346,6 +351,22 @@
                 console.error('Error starting benchmark:', error);
                 alert('Error starting benchmark: ' + error.message);
             }
+        }
+        
+        // Utility function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
         
         // Show error message

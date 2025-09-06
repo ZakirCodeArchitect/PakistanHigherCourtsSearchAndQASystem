@@ -8,6 +8,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 from django.http import JsonResponse, FileResponse, Http404
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -639,7 +640,7 @@ class BenchmarkStatisticsAPIView(APIView):
             
             # Get recent activity
             recent_executions = BenchmarkExecution.objects.filter(
-                started_at__gte=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                started_at__gte=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
             ).count()
             
             # Get average performance metrics
