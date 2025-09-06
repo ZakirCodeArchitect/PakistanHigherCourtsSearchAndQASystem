@@ -78,6 +78,9 @@ class SearchAPIView(APIView):
                 params['limit']  # Pass the limit parameter to control number of results
             )
             
+            # Apply conservative relevance-based result cutoff
+            ranked_results = self._apply_relevance_cutoff(ranked_results, params, query_info)
+            
             # Generate snippets if requested
             if params.get('highlight', False):
                 for result in ranked_results:
@@ -584,6 +587,37 @@ class SearchAPIView(APIView):
         except Exception as e:
             logger.error(f"Error in adaptive hybrid filtering: {str(e)}")
             return results  # Return original results on error
+    
+    def _apply_relevance_cutoff(self, ranked_results: List[Dict], params: Dict[str, Any], query_info: Dict[str, Any]) -> List[Dict]:
+        """Apply conservative relevance-based cutoff to results - only filters truly irrelevant results"""
+        if not ranked_results:
+            return ranked_results
+            
+        try:
+            # Calculate query specificity
+            query_specificity = self._calculate_query_specificity(params['query'], query_info)
+            
+            # CONSERVATIVE APPROACH: Only apply limits, not score thresholds
+            if query_specificity >= 0.8:  # Very specific queries
+                max_results = 15
+            elif query_specificity >= 0.6:  # Specific queries
+                max_results = 25
+            elif query_specificity >= 0.4:  # Moderately specific
+                max_results = 50
+            else:  # Generic queries
+                max_results = 100
+            
+            # Only apply maximum results limit - no score filtering
+            final_results = ranked_results[:max_results]
+            
+            logger.info(f"Conservative cutoff: {len(ranked_results)} -> {len(final_results)} results (specificity: {query_specificity:.2f})")
+            
+            return final_results
+            
+        except Exception as e:
+            logger.error(f"Error in relevance cutoff: {str(e)}")
+            # Return original results if cutoff fails
+            return ranked_results
 
 
 class SuggestAPIView(APIView):

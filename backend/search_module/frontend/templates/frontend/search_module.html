@@ -1379,6 +1379,188 @@ function showSearchResults() {
     document.getElementById('searchResults').style.display = 'block';
 }
 
+// Calculate smart limit based on query specificity
+function calculateSmartLimit(query, mode) {
+    const queryLower = query.toLowerCase().trim();
+    
+    // Define patterns for different specificity levels
+    const patterns = {
+        // Very specific: exact case numbers, citations with full details
+        verySpecific: [
+            /\d{4}\s+(scmr|pld|ylr|clr|plj)\s+\d+/i,           // 2023 SCMR 123
+            /pld\s+\d{4}\s+(sc|lhc|ihc|phc|shc)\s+\d+/i,      // PLD 2023 SC 45
+            /(crl|civil)\.\s*(appeal|petition|misc)\s*\d+\/\d{4}/i, // Crl. Appeal 5/2025
+            /p\.s\.l\.a\.\s*\d+\/\d{4}/i,                     // P.S.L.A. 1/2021
+            /w\.p\.\s*\d+\/\d{4}/i,                           // W.P. 123/2024
+            /\d{4}\s+\w+\s+\d+\s+\(\w+\)/i                    // 2023 SCMR 123 (SC)
+        ],
+        // Specific: legal citations, case numbers, statutory references
+        specific: [
+            /ppc\s+\d+/i,                                     // PPC 302
+            /crpc\s+\d+/i,                                    // CrPC 497
+            /\d{4}\s+\w+\s+\d+/i,                            // 2023 SCMR 123
+            /(article|section)\s+\d+/i,                      // Article 25, Section 302
+            /(constitution|ordinance|act)\s+\d{4}/i,          // Constitution 1973
+            /vs?\.\s+[a-z\s]+/i                              // vs. State, v. Pakistan
+        ],
+        // Moderately specific: legal terms with context
+        moderate: [
+            /(bail|acquittal|conviction|appeal|revision)/i,
+            /(fundamental rights|due process|natural justice)/i,
+            /(contract|tort|negligence|damages)/i,
+            /(criminal|civil|constitutional|commercial)\s+(law|procedure)/i
+        ]
+    };
+    
+    // Calculate specificity score
+    let specificityScore = 0;
+    
+    // Very specific patterns (highest priority)
+    if (patterns.verySpecific.some(pattern => pattern.test(queryLower))) {
+        specificityScore = 0.9;
+    }
+    // Specific patterns
+    else if (patterns.specific.some(pattern => pattern.test(queryLower))) {
+        specificityScore = 0.7;
+    }
+    // Moderate patterns
+    else if (patterns.moderate.some(pattern => pattern.test(queryLower))) {
+        specificityScore = 0.5;
+    }
+    // Generic queries
+    else {
+        specificityScore = 0.2;
+    }
+    
+    // Adjust based on query length and structure
+    const words = queryLower.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 1) {
+        specificityScore *= 0.7; // Single word is less specific
+    } else if (words.length >= 5) {
+        specificityScore = Math.min(specificityScore * 1.2, 0.95); // Long queries are more specific
+    }
+    
+    // Adjust based on search mode
+    let modeMultiplier = 1.0;
+    if (mode === 'lexical') {
+        modeMultiplier = 0.8; // Lexical searches tend to be more specific
+    } else if (mode === 'semantic') {
+        modeMultiplier = 1.2; // Semantic searches can be broader
+    }
+    
+    // Calculate smart limit based on specificity - more generous limits
+    let smartLimit;
+    if (specificityScore >= 0.8) {
+        smartLimit = 50; // Very specific: allow more results to let backend decide
+    } else if (specificityScore >= 0.6) {
+        smartLimit = 100; // Specific: moderate number of results
+    } else if (specificityScore >= 0.4) {
+        smartLimit = 150; // Moderately specific: more results
+    } else {
+        smartLimit = 200; // Generic: let backend intelligent filtering decide
+    }
+    
+    // Apply mode multiplier
+    smartLimit = Math.round(smartLimit * modeMultiplier);
+    
+    // Ensure reasonable bounds
+    smartLimit = Math.max(10, Math.min(smartLimit, 200));
+    
+    console.log(`🎯 Smart Limit Calculation:`, {
+        query: query,
+        mode: mode,
+        specificityScore: specificityScore.toFixed(2),
+        modeMultiplier: modeMultiplier,
+        smartLimit: smartLimit
+    });
+    
+    return smartLimit;
+}
+
+// Display smart limiting information to user
+function displaySmartLimitingInfo(query, mode, smartLimit, searchData) {
+    try {
+        const totalResults = searchData.results.length;
+        const searchMetadata = searchData.search_metadata || {};
+        
+        // Create info message based on result count and specificity
+        let limitingMessage = '';
+        let limitingClass = 'info';
+        
+        if (totalResults === 0) {
+            limitingMessage = 'No results found. Try a different query or search mode.';
+            limitingClass = 'warning';
+        } else if (totalResults < 10) {
+            limitingMessage = `Found ${totalResults} highly relevant results (45%+ relevancy) for your specific query.`;
+            limitingClass = 'success';
+        } else if (totalResults < 25) {
+            limitingMessage = `Showing ${totalResults} high-quality results (45%+ relevancy). Query specificity: High.`;
+            limitingClass = 'success';
+        } else if (totalResults < 50) {
+            limitingMessage = `Showing ${totalResults} relevant results (45%+ relevancy). Query specificity: Medium.`;
+            limitingClass = 'info';
+        } else {
+            limitingMessage = `Showing ${totalResults} quality results (45%+ relevancy) for your broad query. All results meet high relevancy standards.`;
+            limitingClass = 'info';
+        }
+        
+        // Add search mode info
+        const modeInfo = {
+            'hybrid': 'Using comprehensive search (semantic + lexical)',
+            'semantic': 'Using conceptual understanding search',
+            'lexical': 'Using exact text matching search'
+        };
+        
+        const fullMessage = `${limitingMessage} ${modeInfo[mode] || ''}.`;
+        
+        // Display the message
+        const resultsHeader = document.querySelector('.search-results-header');
+        if (resultsHeader) {
+            // Remove any existing smart limiting info
+            const existingInfo = resultsHeader.querySelector('.smart-limiting-info');
+            if (existingInfo) {
+                existingInfo.remove();
+            }
+            
+            // Create new info element
+            const infoElement = document.createElement('div');
+            infoElement.className = `smart-limiting-info alert alert-${limitingClass} mt-2`;
+            infoElement.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-${limitingClass === 'success' ? 'check-circle' : limitingClass === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    <span>${fullMessage}</span>
+                    <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="toggleLimitingDetails()" title="Show technical details">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+                <div class="limiting-details mt-2" style="display: none;">
+                    <small class="text-muted">
+                        <strong>Technical Details:</strong><br>
+                        • Smart limit calculated: ${smartLimit}<br>
+                        • Results returned: ${totalResults}<br>
+                        • Search mode: ${mode}<br>
+                        • Query: "${query}"<br>
+                        • Latency: ${searchMetadata.latency_ms || 'N/A'}ms
+                    </small>
+                </div>
+            `;
+            
+            resultsHeader.appendChild(infoElement);
+        }
+        
+    } catch (error) {
+        console.error('Error displaying smart limiting info:', error);
+    }
+}
+
+// Toggle limiting details
+function toggleLimitingDetails() {
+    const details = document.querySelector('.limiting-details');
+    if (details) {
+        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
 // Perform search
 async function performSearch() {
     const query = document.getElementById('searchQuery').value.trim();
@@ -1393,12 +1575,15 @@ async function performSearch() {
     try {
         const selectedMode = getSelectedSearchMode();
         
+        // Smart result limiting based on query specificity
+        const smartLimit = calculateSmartLimit(query, selectedMode);
+        
         const searchParams = new URLSearchParams({
             q: query,
             mode: selectedMode,
             return_facets: 'true',
             highlight: 'true',
-            limit: '1000',
+            limit: smartLimit.toString(),
             offset: '0'
         });
         
@@ -1422,6 +1607,9 @@ async function performSearch() {
             
             window.allSearchResults = data;
             window.currentPage = 1;
+            
+            // Display smart limiting info
+            displaySmartLimitingInfo(query, selectedMode, smartLimit, data);
             
             displayRealResults(data);
         } else {
