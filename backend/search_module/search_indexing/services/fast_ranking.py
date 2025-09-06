@@ -69,7 +69,10 @@ class FastRankingService:
                 result['rank'] = i + 1
                 result['ranking_method'] = 'fast_ranking'
             
-            logger.info(f"Fast ranking completed. Top result score: {final_results[0]['final_score']:.4f}")
+            if final_results:
+                logger.info(f"Fast ranking completed. Top result score: {final_results[0]['final_score']:.4f}")
+            else:
+                logger.warning("Fast ranking completed with no results")
             return final_results
             
         except Exception as e:

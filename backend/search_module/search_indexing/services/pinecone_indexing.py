@@ -65,12 +65,35 @@ class PineconeIndexingService:
         """Initialize the sentence transformer model"""
         try:
             logger.info(f"Loading sentence transformer model: {model_name}")
-            self.model = SentenceTransformer(model_name)
+            # Set device explicitly to avoid meta tensor issues
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            logger.info(f"Using device: {device}")
+            
+            # Load model with explicit device handling and cache directory
+            from django.conf import settings
+            cache_folder = getattr(settings, 'MODEL_CACHE_DIR', None)
+            if cache_folder:
+                self.model = SentenceTransformer(model_name, device=device, cache_folder=str(cache_folder))
+            else:
+                self.model = SentenceTransformer(model_name, device=device)
             logger.info(f"Model loaded successfully. Dimension: {self.model.get_sentence_embedding_dimension()}")
             return True
         except Exception as e:
             logger.error(f"Error loading model {model_name}: {str(e)}")
-            return False
+            # Try fallback model
+            try:
+                logger.info("Attempting to load fallback model...")
+                fallback_model = "paraphrase-MiniLM-L6-v2"
+                if cache_folder:
+                    self.model = SentenceTransformer(fallback_model, device="cpu", cache_folder=str(cache_folder))
+                else:
+                    self.model = SentenceTransformer(fallback_model, device="cpu")
+                logger.info(f"Fallback model loaded successfully: {fallback_model}")
+                return True
+            except Exception as fallback_error:
+                logger.error(f"Fallback model also failed: {str(fallback_error)}")
+                return False
     
     def create_or_get_index(self, dimension: int = 384, metric: str = "cosine"):
         """Create or get Pinecone index"""

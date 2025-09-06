@@ -139,6 +139,17 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Model cache directory to reduce Hugging Face API calls
+MODEL_CACHE_DIR = BASE_DIR / "model_cache"
+MODEL_CACHE_DIR.mkdir(exist_ok=True)
+
+# Sentence Transformer settings
+SENTENCE_TRANSFORMERS_HOME = str(MODEL_CACHE_DIR)
+
+# Suppress Hugging Face symlinks warning on Windows
+import os
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
+
 # Django REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
