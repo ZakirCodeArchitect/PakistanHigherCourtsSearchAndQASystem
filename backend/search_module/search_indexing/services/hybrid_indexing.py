@@ -21,6 +21,10 @@ except ImportError:
     PineconeIndexingService = None
     PINECONE_AVAILABLE = False
 from .keyword_indexing import KeywordIndexingService
+from .precision_optimizer import PrecisionOptimizerService
+from .query_expansion import QueryExpansionService
+from .legal_semantic_matcher import LegalSemanticMatcher
+from .advanced_reranker import AdvancedReranker
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +51,14 @@ class HybridIndexingService:
         
         # Initialize keyword service
         self.keyword_service = KeywordIndexingService()
+        
+        # Initialize precision optimizer
+        self.precision_optimizer = PrecisionOptimizerService(config)
+        
+        # Initialize advanced components
+        self.query_expander = QueryExpansionService()
+        self.semantic_matcher = LegalSemanticMatcher()
+        self.advanced_reranker = AdvancedReranker(config)
         
         logger.info("Hybrid indexing service initialized")
     
@@ -168,14 +180,24 @@ class HybridIndexingService:
             stats['errors'].append(error_msg)
             return stats
     
-    def hybrid_search(self, query: str, filters: Dict[str, any] = None, top_k: int = 10) -> List[Dict[str, any]]:
+    def hybrid_search(self, query: str, filters: Dict[str, any] = None, top_k: int = 10, enable_advanced_features: bool = True) -> List[Dict[str, any]]:
         """Perform hybrid search combining vector and keyword results with exact matching boost - OPTIMIZED VERSION"""
         try:
-            logger.info(f"Performing hybrid search for: {query}")
+            logger.info(f"Performing hybrid search for: {query} (advanced: {enable_advanced_features})")
             
-            # OPTIMIZATION: Reduce the multiplier for better performance
-            # Instead of fetching top_k * 2, use a smaller multiplier
-            fetch_multiplier = min(2, max(1, 20 // top_k))  # Adaptive multiplier
+            # Step 1: Query expansion and analysis (if advanced features enabled)
+            query_analysis = None
+            expanded_query_info = None
+            if enable_advanced_features:
+                expanded_query_info = self.query_expander.enhance_query_with_legal_knowledge(query)
+                query_analysis = expanded_query_info['query_analysis']
+                logger.info(f"Query type detected: {query_analysis.get('type', 'general')}")
+            
+            # OPTIMIZATION: Adaptive fetch size based on query complexity
+            if query_analysis and query_analysis.get('query_complexity') == 'high':
+                fetch_multiplier = 3  # More results for complex queries
+            else:
+                fetch_multiplier = min(2, max(1, 20 // top_k))  # Standard multiplier
             fetch_size = top_k * fetch_multiplier
             
             # Check for exact case number match first (highest priority)
@@ -214,8 +236,30 @@ class HybridIndexingService:
                 exact_case_match
             )
             
-            logger.info(f"Hybrid search returned {len(combined_results)} results")
-            return combined_results
+            # Apply precision optimization for better relevance
+            optimized_results = self.precision_optimizer.optimize_search_results(
+                combined_results, 
+                query, 
+                search_mode='hybrid', 
+                filters=filters
+            )
+            
+            # Apply advanced re-ranking (if enabled)
+            if enable_advanced_features and len(optimized_results) > 1:
+                final_results = self.advanced_reranker.rerank_results(
+                    optimized_results,
+                    query,
+                    query_analysis=query_analysis
+                )
+                logger.info(f"Advanced re-ranking applied: {len(optimized_results)} -> {len(final_results)} results")
+            else:
+                final_results = optimized_results
+            
+            # Limit to requested top_k
+            final_results = final_results[:top_k]
+            
+            logger.info(f"Hybrid search completed: {len(combined_results)} -> {len(final_results)} results")
+            return final_results
             
         except Exception as e:
             logger.error(f"Error in hybrid search: {str(e)}")
