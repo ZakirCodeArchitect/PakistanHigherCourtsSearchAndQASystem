@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "corsheaders",  # CORS headers
     "apps.cases",  # Cases app for your scraper
     "search_indexing",  # Search indexing app
+    "search_benchmarking",  # Search benchmarking app
     "frontend",  # Frontend app
 ]
 

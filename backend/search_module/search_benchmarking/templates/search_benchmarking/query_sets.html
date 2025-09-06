@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Sets - Search Benchmarking</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .query-sets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .query-set-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .query-set-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .query-set-header {
+            margin-bottom: 20px;
+        }
+        
+        .query-set-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+        }
+        
+        .query-set-description {
+            color: #6c757d;
+            line-height: 1.5;
+            margin: 0 0 15px 0;
+        }
+        
+        .query-set-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .meta-item {
+            text-align: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .meta-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .meta-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .query-set-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .category-legal_citations {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .category-semantic_queries {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .category-complex_queries {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .category-edge_cases {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .query-sets-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .query-set-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/search/benchmarking/" class="back-btn">← Back to Dashboard</a>
+        
+        <div class="header">
+            <h1>Benchmark Query Sets</h1>
+            <p>Manage and explore benchmark query sets for testing search performance</p>
+        </div>
+        
+        <div id="querySetsContainer">
+            <div class="loading">Loading query sets...</div>
+        </div>
+    </div>
+    
+    <script>
+        let querySetsData = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadQuerySets();
+        });
+        
+        // Load query sets
+        async function loadQuerySets() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/query-sets/');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                querySetsData = data;
+                updateQuerySetsDisplay(data.query_sets);
+            } catch (error) {
+                console.error('Error loading query sets:', error);
+                showError('Error loading query sets: ' + error.message);
+            }
+        }
+        
+        // Update query sets display
+        function updateQuerySetsDisplay(querySets) {
+            const container = document.getElementById('querySetsContainer');
+            
+            if (querySets.length === 0) {
+                container.innerHTML = '<p>No query sets found. Create some query sets first.</p>';
+                return;
+            }
+            
+            let html = '<div class="query-sets-grid">';
+            
+            querySets.forEach(querySet => {
+                html += `
+                    <div class="query-set-card">
+                        <div class="query-set-header">
+                            <span class="category-badge category-${querySet.category}">${querySet.category.replace('_', ' ')}</span>
+                            <h3 class="query-set-name">${querySet.name}</h3>
+                            <p class="query-set-description">${querySet.description || 'No description available'}</p>
+                        </div>
+                        
+                        <div class="query-set-meta">
+                            <div class="meta-item">
+                                <div class="meta-label">Queries</div>
+                                <div class="meta-value">${querySet.query_count}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Executions</div>
+                                <div class="meta-value">${querySet.execution_count || 0}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="query-set-actions">
+                            <button class="btn btn-success" onclick="runBenchmark(${querySet.id})">Run Benchmark</button>
+                            <a href="/search/benchmarking/query-sets/${querySet.id}/" class="btn btn-secondary">View Details</a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Run benchmark for a query set
+        async function runBenchmark(querySetId) {
+            try {
+                const querySet = querySetsData.query_sets.find(qs => qs.id === querySetId);
+                if (!querySet) {
+                    alert('Query set not found');
+                    return;
+                }
+                
+                const response = await fetch('/api/search/benchmarking/api/executions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query_set_id: querySetId,
+                        execution_name: `Benchmark for ${querySet.name}`,
+                        search_mode: 'hybrid',
+                        ranking_algorithm: 'advanced_ranking'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Benchmark started successfully! Execution ID: ${data.id}`);
+                    // Redirect to dashboard to see the execution
+                    window.location.href = '/search/benchmarking/dashboard/';
+                } else {
+                    const errorData = await response.json();
+                    alert('Failed to start benchmark: ' + (errorData.error || errorData.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error starting benchmark:', error);
+                alert('Error starting benchmark: ' + error.message);
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            const container = document.getElementById('querySetsContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

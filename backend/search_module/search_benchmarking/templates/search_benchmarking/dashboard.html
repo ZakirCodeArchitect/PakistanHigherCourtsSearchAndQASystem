@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Benchmarking Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .status.completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status.running {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        .metric {
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Search Benchmarking Dashboard</h1>
+            <p>Monitor and analyze search system performance</p>
+        </div>
+        
+        <!-- Statistics Overview -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalQuerySets">-</div>
+                <div class="stat-label">Query Sets</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalExecutions">-</div>
+                <div class="stat-label">Executions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgLatency">-</div>
+                <div class="stat-label">Avg Latency (ms)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgPrecision">-</div>
+                <div class="stat-label">Avg Precision@10</div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="section">
+            <h2>Quick Actions</h2>
+            <a href="#" class="btn btn-success" onclick="runQuickBenchmark()">Run Quick Benchmark</a>
+            <a href="#" class="btn" onclick="createQuerySet()">Create Query Set</a>
+            <a href="#" class="btn" onclick="viewReports()">View Reports</a>
+            <a href="#" class="btn btn-secondary" onclick="refreshData()">Refresh Data</a>
+        </div>
+        
+        <!-- Recent Executions -->
+        <div class="section">
+            <h2>Recent Executions</h2>
+            <div id="executionsContainer">
+                <div class="loading">Loading executions...</div>
+            </div>
+        </div>
+        
+        <!-- Query Sets Overview -->
+        <div class="section">
+            <h2>Query Sets</h2>
+            <div id="querySetsContainer">
+                <div class="loading">Loading query sets...</div>
+            </div>
+        </div>
+        
+        <!-- Performance Trends -->
+        <div class="section">
+            <h2>Performance Trends</h2>
+            <div id="trendsContainer">
+                <div class="loading">Loading performance trends...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let statsData = null;
+        let executionsData = null;
+        let querySetsData = null;
+        
+        // Utility function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            loadRecentExecutions();
+            loadQuerySets();
+            loadPerformanceTrends();
+        });
+        
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/statistics/');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                statsData = data;
+                updateStatisticsDisplay(data);
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showError('Error loading statistics: ' + error.message);
+            }
+        }
+        
+        // Update statistics display
+        function updateStatisticsDisplay(data) {
+            document.getElementById('totalQuerySets').textContent = data.overview.total_query_sets;
+            document.getElementById('totalExecutions').textContent = data.overview.total_executions;
+            document.getElementById('avgLatency').textContent = data.performance_metrics.average_latency_ms.toFixed(1);
+            document.getElementById('avgPrecision').textContent = data.performance_metrics.average_precision_at_10.toFixed(3);
+        }
+        
+        // Load recent executions
+        async function loadRecentExecutions() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/executions/?page_size=5');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                executionsData = data;
+                updateExecutionsDisplay(data.executions);
+            } catch (error) {
+                console.error('Error loading executions:', error);
+                showError('Error loading executions: ' + error.message);
+            }
+        }
+        
+        // Update executions display
+        function updateExecutionsDisplay(executions) {
+            const container = document.getElementById('executionsContainer');
+            
+            if (executions.length === 0) {
+                container.innerHTML = '<p>No executions found.</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Query Set</th>
+                            <th>Mode</th>
+                            <th>Status</th>
+                            <th>Success Rate</th>
+                            <th>Avg Latency</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            executions.forEach(execution => {
+                html += `
+                    <tr>
+                        <td>${execution.execution_name}</td>
+                        <td>${execution.query_set.name}</td>
+                        <td>${execution.search_mode}/${execution.ranking_algorithm}</td>
+                        <td><span class="status ${execution.status}">${execution.status}</span></td>
+                        <td>${execution.success_rate.toFixed(1)}%</td>
+                        <td>${execution.average_latency_ms.toFixed(1)}ms</td>
+                        <td>
+                            <a href="#" class="btn" onclick="viewExecution(${execution.id})">View</a>
+                            ${execution.status === 'completed' ? `<a href="#" class="btn btn-secondary" onclick="generateReport(${execution.id})">Report</a>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        // Load query sets
+        async function loadQuerySets() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/query-sets/');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                querySetsData = data;
+                updateQuerySetsDisplay(data.query_sets);
+            } catch (error) {
+                console.error('Error loading query sets:', error);
+                showError('Error loading query sets: ' + error.message);
+            }
+        }
+        
+        // Update query sets display
+        function updateQuerySetsDisplay(querySets) {
+            const container = document.getElementById('querySetsContainer');
+            
+            if (querySets.length === 0) {
+                container.innerHTML = '<p>No query sets found.</p>';
+                return;
+            }
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+            
+            querySets.forEach(querySet => {
+                html += `
+                    <div style="border: 1px solid #ddd; border-radius: 5px; padding: 20px;">
+                        <h3>${querySet.name}</h3>
+                        <p style="color: #666; margin: 10px 0;">${querySet.description}</p>
+                        <div class="metric">Category: ${querySet.category}</div>
+                        <div class="metric">Queries: ${querySet.query_count}</div>
+                        <div class="metric">Executions: ${querySet.execution_count}</div>
+                        <div style="margin-top: 15px;">
+                            <a href="#" class="btn" onclick="runBenchmark(${querySet.id})">Run Benchmark</a>
+                            <a href="#" class="btn btn-secondary" onclick="viewQuerySet(${querySet.id})">View Details</a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Load performance trends
+        async function loadPerformanceTrends() {
+            const container = document.getElementById('trendsContainer');
+            container.innerHTML = '<p>Performance trends visualization would go here (requires chart library).</p>';
+        }
+        
+        // Action functions
+        function runQuickBenchmark() {
+            console.log('runQuickBenchmark called');
+            console.log('querySetsData:', querySetsData);
+            
+            if (querySetsData && querySetsData.query_sets && querySetsData.query_sets.length > 0) {
+                const firstQuerySet = querySetsData.query_sets[0];
+                showInfo(`Starting quick benchmark with "${firstQuerySet.name}" (${firstQuerySet.query_count} queries)...`);
+                runBenchmark(firstQuerySet.id);
+            } else {
+                showError('No query sets available for benchmarking. Please create query sets first.');
+            }
+        }
+        
+        async function runBenchmark(querySetId) {
+            try {
+                // Get CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 getCookie('csrftoken');
+                
+                const response = await fetch('/api/search/benchmarking/api/executions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        query_set_id: querySetId,
+                        execution_name: `Quick Benchmark ${new Date().toLocaleString()}`
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Response:', response.status, data);
+                
+                if (response.ok) {
+                    showSuccess(`Benchmark execution started: ${data.execution_name}`);
+                    setTimeout(() => {
+                        loadRecentExecutions();
+                    }, 2000);
+                } else {
+                    const errorMsg = data.error || data.message || 'Unknown error';
+                    showError('Failed to start benchmark: ' + errorMsg);
+                }
+            } catch (error) {
+                console.error('Benchmark error:', error);
+                showError('Error starting benchmark: ' + error.message);
+            }
+        }
+        
+        async function generateReport(executionId) {
+            try {
+                // Ensure executionId is a number
+                const id = parseInt(executionId);
+                console.log('Generating report for execution ID:', id, 'Type:', typeof id);
+                
+                // Get CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 getCookie('csrftoken');
+                console.log('CSRF token:', csrftoken ? 'Found' : 'Not found');
+                
+                const response = await fetch('/api/search/benchmarking/api/reports/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        execution_id: id,
+                        report_type: 'detailed',
+                        format: 'html'
+                    })
+                });
+                
+                console.log('Response status:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch (e) {
+                        errorData = { error: errorText };
+                    }
+                    const errorMsg = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+                    showError('Failed to generate report: ' + errorMsg);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Report generation response:', data);
+                
+                showSuccess(`Report generated successfully: ${data.report_name}`);
+                // Automatically download the report
+                const downloadLink = document.createElement('a');
+                downloadLink.href = `/search/benchmarking/reports/view/${data.report_name}.html`;
+                downloadLink.download = `${data.report_name}.html`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            } catch (error) {
+                console.error('Report generation error:', error);
+                showError('Error generating report: ' + error.message);
+            }
+        }
+        
+        function viewExecution(executionId) {
+            // Navigate to execution detail page
+            window.location.href = `/search/benchmarking/executions/${executionId}/`;
+        }
+        
+        function viewQuerySet(querySetId) {
+            // Navigate to query set detail page
+            window.location.href = `/search/benchmarking/query-sets/${querySetId}/`;
+        }
+        
+        function createQuerySet() {
+            console.log('createQuerySet called');
+            // For now, show a modal or alert with instructions
+            showInfo('Create Query Set functionality: Use the Django admin interface at /admin/ or create via management command for now.');
+        }
+        
+        function viewReports() {
+            console.log('viewReports called');
+            // For now, show available reports
+            showReportsModal();
+        }
+        
+        async function showReportsModal() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/executions/');
+                const data = await response.json();
+                
+                if (response.ok && data.executions && data.executions.length > 0) {
+                    let reportsList = '<h3>Available Benchmark Reports:</h3><ul style="list-style-type: none; padding-left: 0;">';
+                    data.executions.forEach(exec => {
+                        if (exec.status === 'completed') {
+                            reportsList += `<li style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <strong>${exec.execution_name}</strong><br>
+                                <small>Status: ${exec.status} | Queries: ${exec.total_queries} | Latency: ${exec.average_latency_ms.toFixed(1)}ms</small><br>
+                                <button onclick="generateAndViewReport(${exec.id})" class="btn" style="margin-top: 5px;">Generate & Download Report</button>
+                            </li>`;
+                        }
+                    });
+                    reportsList += '</ul><p><strong>Note:</strong> Only completed executions have reports available.</p>';
+                    showInfo(reportsList);
+                } else {
+                    showInfo('No completed executions found. Run a benchmark first to generate reports.');
+                }
+            } catch (error) {
+                showError('Error loading reports: ' + error.message);
+            }
+        }
+        
+        async function generateAndViewReport(executionId) {
+            try {
+                // Generate the report first
+                const response = await fetch('/api/search/benchmarking/api/reports/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        execution_id: executionId,
+                        report_type: 'detailed',
+                        format: 'html'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Automatically download the report
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = `/search/benchmarking/reports/view/${data.report_name}.html`;
+                    downloadLink.download = `${data.report_name}.html`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                } else {
+                    const errorData = await response.json();
+                    showError('Failed to generate report: ' + (errorData.error || errorData.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error generating report:', error);
+                showError('Error generating report: ' + error.message);
+            }
+        }
+        
+        function refreshData() {
+            console.log('refreshData called');
+            showInfo('Refreshing dashboard data...');
+            loadStatistics();
+            loadRecentExecutions();
+            loadQuerySets();
+            loadPerformanceTrends();
+        }
+        
+        // Utility functions
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        function showSuccess(message) {
+            const container = document.querySelector('.container');
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            container.insertBefore(successDiv, container.firstChild);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 5000);
+        }
+        
+        function showError(message) {
+            const container = document.querySelector('.container');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            container.insertBefore(errorDiv, container.firstChild);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        function showInfo(message) {
+            const container = document.querySelector('.container');
+            const infoDiv = document.createElement('div');
+            infoDiv.style.cssText = 'background-color: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #bee5eb;';
+            infoDiv.innerHTML = message;
+            container.insertBefore(infoDiv, container.firstChild);
+            
+            setTimeout(() => {
+                infoDiv.remove();
+            }, 10000);
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                refreshData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
+

@@ -114,6 +114,38 @@
                     </div>
                 </div>
                 
+                <!-- Query Benchmark Console Module -->
+                <div class="col-lg-6">
+                    <div class="module-card active-module">
+                        <div class="module-header">
+                            <div class="module-icon bg-success">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="module-info">
+                                <h4 class="module-title">Query Benchmark Console</h4>
+                                <p class="module-description">
+                                    Comprehensive search performance testing and analysis
+                                </p>
+                            </div>
+                        </div>
+                        <div class="module-features">
+                            <div class="feature-tag">Performance Testing</div>
+                            <div class="feature-tag">Query Analysis</div>
+                            <div class="feature-tag">Benchmark Reports</div>
+                        </div>
+                        <div class="module-actions">
+                            <a href="/search/benchmarking/" class="btn btn-success">
+                                <i class="fas fa-arrow-right me-2"></i>
+                                Access Console
+                            </a>
+                            <span class="module-status">
+                                <i class="fas fa-check-circle text-success me-1"></i>
+                                Available
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Question Answering Module -->
                 <div class="col-lg-6">
                     <div class="module-card disabled-module">
@@ -243,6 +275,17 @@
                 </div>
                 
                 <div class="activity-item">
+                    <div class="activity-icon bg-success">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>Query Benchmark Console Available</h6>
+                        <p class="text-muted mb-1">Performance testing and analysis tools are ready</p>
+                        <small class="text-muted">3 minutes ago</small>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
                     <div class="activity-icon bg-warning">
                         <i class="fas fa-database"></i>
                     </div>
@@ -263,19 +306,25 @@
             </h2>
             
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="{% url 'frontend:search_module' %}" class="quick-action-card">
                         <i class="fas fa-search"></i>
                         <span>Start Searching</span>
                     </a>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <a href="/search/benchmarking/" class="quick-action-card">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Benchmark Console</span>
+                    </a>
+                </div>
+                <div class="col-md-3">
                     <a href="#" class="quick-action-card">
                         <i class="fas fa-bookmark"></i>
                         <span>Saved Searches</span>
                     </a>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <a href="#" class="quick-action-card">
                         <i class="fas fa-download"></i>
                         <span>Export Results</span>
