@@ -640,6 +640,7 @@ class PineconeIndexingService:
                     # FIXED: Additional validation - check if result actually contains query terms
                     case_number = metadata.get('case_number', '').lower()
                     case_title = metadata.get('case_title', '').lower()
+                    case_status = metadata.get('status', '').lower()
                     chunk_text = metadata.get('chunk_text_preview', '').lower()
                     query_lower = query.lower()
                     
@@ -647,6 +648,7 @@ class PineconeIndexingService:
                     contains_query = (
                         query_lower in case_number or
                         query_lower in case_title or
+                        query_lower in case_status or  # FIXED: Added status field validation
                         query_lower in chunk_text
                     )
                     
