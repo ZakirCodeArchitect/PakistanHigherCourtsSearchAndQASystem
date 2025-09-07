@@ -644,7 +644,8 @@ class KeywordIndexingService:
                 Q(case_number_normalized__icontains=normalized_query) |
                 Q(case_title_normalized__icontains=normalized_query) |
                 Q(parties_normalized__icontains=normalized_query) |
-                Q(court_normalized__icontains=normalized_query)
+                Q(court_normalized__icontains=normalized_query) |
+                Q(status_normalized__icontains=normalized_query)  # FIXED: Added status field search
             )[:top_k * 2]  # Get more results for better scoring
             
             # Add a dummy rank field for compatibility
@@ -665,7 +666,8 @@ class KeywordIndexingService:
                         term_results = queryset.filter(
                             Q(case_number_normalized__icontains=term) |
                             Q(case_title_normalized__icontains=term) |
-                            Q(parties_normalized__icontains=term)
+                            Q(parties_normalized__icontains=term) |
+                            Q(status_normalized__icontains=term)  # FIXED: Added status field to fallback search
                         )[:top_k]
                         
                         for result in term_results:
@@ -677,6 +679,8 @@ class KeywordIndexingService:
                                 score += 5   # Medium score for title match
                             if term.lower() in result.parties_normalized.lower():
                                 score += 3   # Lower score for parties match
+                            if term.lower() in result.status_normalized.lower():
+                                score += 4   # Medium-high score for status match
                             
                             if score > 0:
                                 partial_results.append({
