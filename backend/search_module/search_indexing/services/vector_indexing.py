@@ -51,17 +51,26 @@ class VectorIndexingService:
                 logger.info(f"Loading sentence transformer model: {model_name}")
                 # Set device explicitly to avoid meta tensor issues
                 import torch
-                device = "cuda" if torch.cuda.is_available() else "cpu"
+                device = "cpu"  # Force CPU to avoid tensor issues
                 logger.info(f"Using device: {device}")
                 
                 # Load model with explicit device handling and cache directory
                 from django.conf import settings
                 cache_folder = getattr(settings, 'MODEL_CACHE_DIR', None)
-                if cache_folder:
-                    self.model = SentenceTransformer(model_name, device=device, cache_folder=str(cache_folder))
-                else:
-                    self.model = SentenceTransformer(model_name, device=device)
-                logger.info(f"Model loaded successfully. Dimension: {self.model.get_sentence_embedding_dimension()}")
+                
+                # Try loading with different configurations
+                try:
+                    if cache_folder:
+                        self.model = SentenceTransformer(model_name, device=device, cache_folder=str(cache_folder))
+                    else:
+                        self.model = SentenceTransformer(model_name, device=device)
+                    logger.info(f"Model loaded successfully. Dimension: {self.model.get_sentence_embedding_dimension()}")
+                except Exception as tensor_error:
+                    logger.warning(f"Tensor error with {model_name}: {str(tensor_error)}")
+                    # Try loading without device specification
+                    self.model = SentenceTransformer(model_name)
+                    logger.info(f"Model loaded without device specification. Dimension: {self.model.get_sentence_embedding_dimension()}")
+                    
             return True
         except Exception as e:
             logger.error(f"Error loading model {model_name}: {str(e)}")

@@ -68,14 +68,15 @@ class FacetingService:
             queryset = Court.objects.all()
             
             if case_ids:
-                queryset = queryset.filter(cases__id__in=case_ids)
+                # Use the correct relationship: Case.court -> Court
+                queryset = queryset.filter(case__id__in=case_ids)
             
             if filters and 'court' in filters:
                 # Exclude currently selected court
                 queryset = queryset.exclude(id=filters['court'])
             
             court_facets = queryset.annotate(
-                count=Count('cases')
+                count=Count('case')  # Use 'case' not 'cases'
             ).filter(
                 count__gte=self.default_config['min_facet_count']
             ).order_by('-count')[:self.default_config['max_facet_values']]
@@ -144,7 +145,7 @@ class FacetingService:
             
             return [
                 {
-                    'value': str(year['institution_date'].year) if year['institution_date'] else 'Unknown',
+                    'value': self._extract_year_from_date(year['institution_date']),
                     'count': year['count'],
                     'selected': False
                 }
@@ -155,10 +156,42 @@ class FacetingService:
             logger.error(f"Error getting year facets: {str(e)}")
             return []
     
-    def _get_case_type_facets(self, case_ids: List[int] = None, filters: Dict = None) -> List[Dict]:
-        """Get case type facets"""
+    def _extract_year_from_date(self, date_value) -> str:
+        """Extract year from date value, handling both datetime and string formats"""
+        if not date_value:
+            return 'Unknown'
+        
         try:
-            queryset = Case.objects.values('case_type').annotate(
+            # If it's already a datetime object
+            if hasattr(date_value, 'year'):
+                return str(date_value.year)
+            
+            # If it's a string, try to parse it
+            if isinstance(date_value, str):
+                from datetime import datetime
+                # Try different date formats
+                for fmt in ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y', '%m/%d/%Y']:
+                    try:
+                        parsed_date = datetime.strptime(date_value, fmt)
+                        return str(parsed_date.year)
+                    except ValueError:
+                        continue
+                
+                # If all parsing fails, try to extract year from string
+                import re
+                year_match = re.search(r'\b(19|20)\d{2}\b', date_value)
+                if year_match:
+                    return year_match.group()
+            
+            return 'Unknown'
+        except Exception:
+            return 'Unknown'
+    
+    def _get_case_type_facets(self, case_ids: List[int] = None, filters: Dict = None) -> List[Dict]:
+        """Get case type facets - using status field since case_type doesn't exist"""
+        try:
+            # Use status field instead of case_type since it doesn't exist in the model
+            queryset = Case.objects.values('status').annotate(
                 count=Count('id')
             ).filter(
                 count__gte=self.default_config['min_facet_count']
@@ -169,13 +202,13 @@ class FacetingService:
             
             if filters and 'case_type' in filters:
                 # Exclude currently selected case type
-                queryset = queryset.exclude(case_type=filters['case_type'])
+                queryset = queryset.exclude(status=filters['case_type'])
             
             type_facets = queryset.order_by('-count')[:self.default_config['max_facet_values']]
             
             return [
                 {
-                    'value': case_type['case_type'] or 'Unknown',
+                    'value': case_type['status'] or 'Unknown',
                     'count': case_type['count'],
                     'selected': False
                 }
