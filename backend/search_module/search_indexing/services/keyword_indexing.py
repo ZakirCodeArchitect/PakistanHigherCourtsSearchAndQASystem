@@ -637,12 +637,21 @@ class KeywordIndexingService:
                 if 'date_to' in filters:
                     queryset = queryset.filter(institution_date__lte=filters['date_to'])
             
-            # Perform search with more flexible matching
-            results = queryset.annotate(
-                rank=SearchRank(search_vector, search_query)
-            ).order_by('-rank')[:top_k * 2]  # Get more results for better scoring
+            # FIXED: Disable broken PostgreSQL full-text search and use reliable icontains search
+            # PostgreSQL full-text search is returning incorrect results (same results for all queries)
+            # Use simple icontains search which works correctly
+            results = queryset.filter(
+                Q(case_number_normalized__icontains=normalized_query) |
+                Q(case_title_normalized__icontains=normalized_query) |
+                Q(parties_normalized__icontains=normalized_query) |
+                Q(court_normalized__icontains=normalized_query)
+            )[:top_k * 2]  # Get more results for better scoring
             
-            # IMPROVED: Handle PostgreSQL's very small ranks properly
+            # Add a dummy rank field for compatibility
+            for result in results:
+                result.rank = 1.0  # Give all results a high rank since they actually match
+            
+            # FIXED: Handle PostgreSQL's very small ranks properly
             # PostgreSQL ranks can be very small (like 1e-20), but they're still meaningful
             # Only try partial matching if we have NO results at all
             if not results:
@@ -652,7 +661,7 @@ class KeywordIndexingService:
                 
                 for term in query_terms:
                     if len(term) >= 2:  # Only search for terms with 2+ characters
-                        # First try metadata matching
+                        # First try metadata matching - this is more reliable
                         term_results = queryset.filter(
                             Q(case_number_normalized__icontains=term) |
                             Q(case_title_normalized__icontains=term) |
@@ -676,36 +685,48 @@ class KeywordIndexingService:
                                     'matched_term': term
                                 })
                         
-                        # Always try content search in DocumentChunks for additional matches
-                        from ..models import DocumentChunk
-                        content_matches = DocumentChunk.objects.filter(
-                            chunk_text__icontains=term,
-                            is_embedded=True
-                        ).values('case_id').distinct()[:top_k]
-                        
-                        for match in content_matches:
-                            case_id = match['case_id']
-                            # Get the SearchMetadata for this case
-                            try:
-                                case_metadata = queryset.filter(case_id=case_id).first()
-                                if case_metadata:
-                                    # Calculate content relevance score
-                                    content_score = 2  # Base score for content match
-                                    
-                                    # Check if this case is already in partial_results
-                                    existing_result = next((item for item in partial_results if item['result'].case_id == case_id), None)
-                                    if existing_result:
-                                        # Boost existing score
-                                        existing_result['score'] += content_score
-                                    else:
-                                        # Add new result
-                                        partial_results.append({
-                                            'result': case_metadata,
-                                            'score': content_score,
-                                            'matched_term': term
-                                        })
-                            except:
-                                continue
+                        # FIXED: Disable document chunk search for single-term queries to prevent irrelevant results
+                        # Document chunk search should only be used for multi-term queries where we need to find
+                        # cases that contain multiple terms in their content
+                        if len(query_terms) > 1 and len(partial_results) == 0:  # Only for multi-term queries with no metadata results
+                            from ..models import DocumentChunk
+                            content_matches = DocumentChunk.objects.filter(
+                                chunk_text__icontains=term,
+                                is_embedded=True
+                            ).values('case_id').distinct()[:top_k]
+                            
+                            for match in content_matches:
+                                case_id = match['case_id']
+                                # Get the SearchMetadata for this case
+                                try:
+                                    case_metadata = queryset.filter(case_id=case_id).first()
+                                    if case_metadata:
+                                        # FIXED: Only add if the case metadata actually contains the term
+                                        # This prevents adding cases that only have the term in document content
+                                        case_contains_term = (
+                                            term.lower() in case_metadata.case_number_normalized.lower() or
+                                            term.lower() in case_metadata.case_title_normalized.lower() or
+                                            term.lower() in case_metadata.parties_normalized.lower()
+                                        )
+                                        
+                                        if case_contains_term:
+                                            # Calculate content relevance score
+                                            content_score = 2  # Base score for content match
+                                            
+                                            # Check if this case is already in partial_results
+                                            existing_result = next((item for item in partial_results if item['result'].case_id == case_id), None)
+                                            if existing_result:
+                                                # Boost existing score
+                                                existing_result['score'] += content_score
+                                            else:
+                                                # Add new result
+                                                partial_results.append({
+                                                    'result': case_metadata,
+                                                    'score': content_score,
+                                                    'matched_term': term
+                                                })
+                                except:
+                                    continue
                 
                 # Sort by score and take top results
                 partial_results.sort(key=lambda x: x['score'], reverse=True)

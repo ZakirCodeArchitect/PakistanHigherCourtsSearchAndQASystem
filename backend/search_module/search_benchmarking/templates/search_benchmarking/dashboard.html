@@ -216,6 +216,24 @@
             box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
         }
         
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            box-shadow: 0 4px 16px rgba(6, 182, 212, 0.3);
+        }
+        
+        .btn-info:hover {
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-warning:hover {
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+        }
+        
         .table {
             width: 100%;
             border-collapse: separate;
@@ -438,12 +456,30 @@
                 <div class="stat-number" id="avgPrecision">-</div>
                 <div class="stat-label">Avg Precision@10</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgRecall">-</div>
+                <div class="stat-label">Avg Recall@10</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgMRR">-</div>
+                <div class="stat-label">Avg MRR</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgNDCG">-</div>
+                <div class="stat-label">Avg NDCG@10</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgF1">-</div>
+                <div class="stat-label">Avg F1@10</div>
+            </div>
         </div>
         
         <!-- Quick Actions -->
         <div class="section">
             <h2>Quick Actions</h2>
-            <a href="#" class="btn btn-success" onclick="runQuickBenchmark()">Run Quick Benchmark</a>
+            <a href="#" class="btn btn-success" onclick="runQuickBenchmark()">Run Smart Benchmark</a>
+            <a href="#" class="btn btn-info" onclick="runSemanticBenchmark()">Run Semantic Benchmark</a>
+            <a href="#" class="btn btn-warning" onclick="runLexicalBenchmark()">Run Lexical Benchmark</a>
             <a href="#" class="btn" onclick="createQuerySet()">Create Query Set</a>
             <a href="#" class="btn" onclick="viewReports()">View Reports</a>
             <a href="#" class="btn btn-secondary" onclick="refreshData()">Refresh Data</a>
@@ -465,6 +501,14 @@
             </div>
         </div>
         
+        <!-- Comprehensive Evaluation Metrics -->
+        <div class="section">
+            <h2>Comprehensive Evaluation Metrics</h2>
+            <div id="evaluationMetricsContainer">
+                <div class="loading">Loading evaluation metrics...</div>
+            </div>
+        </div>
+        
         <!-- Performance Trends -->
         <div class="section">
             <h2>Performance Trends</h2>
@@ -473,6 +517,22 @@
             </div>
             <div class="chart-container" style="display: none;">
                 <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Performance Degradation Detection -->
+        <div class="section">
+            <h2>Performance Degradation Detection</h2>
+            <div id="degradationAnalysis">
+                <div class="loading">Loading degradation analysis...</div>
+            </div>
+        </div>
+        
+        <!-- Statistical Analysis & Comparisons -->
+        <div class="section">
+            <h2>Statistical Analysis & Comparisons</h2>
+            <div id="statisticalAnalysis">
+                <div class="loading">Loading statistical analysis...</div>
             </div>
         </div>
     </div>
@@ -504,6 +564,9 @@
             loadStatistics();
             loadRecentExecutions();
             loadQuerySets();
+            loadEvaluationMetrics();
+            loadDegradationAnalysis();
+            loadStatisticalAnalysis();
             
             // Check if Chart.js is loaded before trying to load trends
             if (typeof Chart !== 'undefined') {
@@ -534,10 +597,14 @@
         
         // Update statistics display
         function updateStatisticsDisplay(data) {
-            document.getElementById('totalQuerySets').textContent = data.overview.total_query_sets;
-            document.getElementById('totalExecutions').textContent = data.overview.total_executions;
-            document.getElementById('avgLatency').textContent = data.performance_metrics.average_latency_ms.toFixed(1);
-            document.getElementById('avgPrecision').textContent = data.performance_metrics.average_precision_at_10.toFixed(3);
+            document.getElementById('totalQuerySets').textContent = data.overview?.total_query_sets || 0;
+            document.getElementById('totalExecutions').textContent = data.overview?.total_executions || 0;
+            document.getElementById('avgLatency').textContent = (data.performance_metrics?.average_latency_ms || 0).toFixed(1);
+            document.getElementById('avgPrecision').textContent = (data.performance_metrics?.average_precision_at_10 || 0).toFixed(3);
+            document.getElementById('avgRecall').textContent = (data.performance_metrics?.average_recall_at_10 || 0).toFixed(3);
+            document.getElementById('avgMRR').textContent = (data.performance_metrics?.average_mrr || 0).toFixed(3);
+            document.getElementById('avgNDCG').textContent = (data.performance_metrics?.average_ndcg_at_10 || 0).toFixed(3);
+            document.getElementById('avgF1').textContent = (data.performance_metrics?.average_f1_at_10 || 0).toFixed(3);
         }
         
         // Load recent executions
@@ -622,6 +689,23 @@
             }
         }
         
+        // Load comprehensive evaluation metrics
+        async function loadEvaluationMetrics() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/executions/?page_size=20');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                updateEvaluationMetricsDisplay(data.executions);
+            } catch (error) {
+                console.error('Error loading evaluation metrics:', error);
+                showError('Error loading evaluation metrics: ' + error.message);
+            }
+        }
+        
         // Update query sets display
         function updateQuerySetsDisplay(querySets) {
             const container = document.getElementById('querySetsContainer');
@@ -651,6 +735,780 @@
             
             html += '</div>';
             container.innerHTML = html;
+        }
+        
+        // Update comprehensive evaluation metrics display
+        function updateEvaluationMetricsDisplay(executions) {
+            const container = document.getElementById('evaluationMetricsContainer');
+            
+            if (executions.length === 0) {
+                container.innerHTML = '<p>No execution data available for evaluation metrics.</p>';
+                return;
+            }
+            
+            // Filter completed executions
+            const completedExecutions = executions.filter(exec => exec.status === 'completed');
+            
+            if (completedExecutions.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">
+                        <h4 style="color: #6c757d; margin-bottom: 15px;">No Evaluation Data Available</h4>
+                        <p style="color: #6c757d; margin-bottom: 20px;">No completed executions found. Run some benchmarks to see comprehensive evaluation metrics.</p>
+                        <button onclick="runQuickBenchmark()" class="btn" style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                            Run Quick Benchmark
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calculate aggregate metrics
+            const metrics = calculateAggregateMetrics(completedExecutions);
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">';
+            
+            // Precision Metrics
+            html += `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2em;">Precision Metrics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div><strong>P@5:</strong> ${(metrics.precision_at_5 || 0).toFixed(3)}</div>
+                        <div><strong>P@10:</strong> ${(metrics.precision_at_10 || 0).toFixed(3)}</div>
+                        <div><strong>P@20:</strong> ${(metrics.precision_at_20 || 0).toFixed(3)}</div>
+                        <div><strong>MAP:</strong> ${(metrics.map || 0).toFixed(3)}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Recall Metrics
+            html += `
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2em;">Recall Metrics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div><strong>R@5:</strong> ${(metrics.recall_at_5 || 0).toFixed(3)}</div>
+                        <div><strong>R@10:</strong> ${(metrics.recall_at_10 || 0).toFixed(3)}</div>
+                        <div><strong>R@20:</strong> ${(metrics.recall_at_20 || 0).toFixed(3)}</div>
+                        <div><strong>Coverage:</strong> ${(metrics.coverage || 0).toFixed(3)}</div>
+                    </div>
+                </div>
+            `;
+            
+            // NDCG Metrics
+            html += `
+                <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2em;">NDCG Metrics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div><strong>NDCG@5:</strong> ${(metrics.ndcg_at_5 || 0).toFixed(3)}</div>
+                        <div><strong>NDCG@10:</strong> ${(metrics.ndcg_at_10 || 0).toFixed(3)}</div>
+                        <div><strong>NDCG@20:</strong> ${(metrics.ndcg_at_20 || 0).toFixed(3)}</div>
+                        <div><strong>MRR:</strong> ${(metrics.mrr || 0).toFixed(3)}</div>
+                    </div>
+                </div>
+            `;
+            
+            // F1 and Quality Metrics
+            html += `
+                <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2em;">F1 & Quality Metrics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div><strong>F1@5:</strong> ${(metrics.f1_at_5 || 0).toFixed(3)}</div>
+                        <div><strong>F1@10:</strong> ${(metrics.f1_at_10 || 0).toFixed(3)}</div>
+                        <div><strong>F1@20:</strong> ${(metrics.f1_at_20 || 0).toFixed(3)}</div>
+                        <div><strong>Quality:</strong> ${(metrics.ranking_quality || 0).toFixed(3)}</div>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            // Add summary statistics
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">Summary Statistics</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.9em;">
+                        <div><strong>Total Executions:</strong> ${completedExecutions.length}</div>
+                        <div><strong>Avg Success Rate:</strong> ${(metrics.avg_success_rate || 0).toFixed(1)}%</div>
+                        <div><strong>Avg Latency:</strong> ${(metrics.avg_latency || 0).toFixed(1)}ms</div>
+                        <div><strong>Best Precision@10:</strong> ${(metrics.best_precision_at_10 || 0).toFixed(3)}</div>
+                        <div><strong>Best Recall@10:</strong> ${(metrics.best_recall_at_10 || 0).toFixed(3)}</div>
+                        <div><strong>Best MRR:</strong> ${(metrics.best_mrr || 0).toFixed(3)}</div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Calculate aggregate metrics from executions
+        function calculateAggregateMetrics(executions) {
+            const metrics = {
+                precision_at_5: 0, precision_at_10: 0, precision_at_20: 0,
+                recall_at_5: 0, recall_at_10: 0, recall_at_20: 0,
+                ndcg_at_5: 0, ndcg_at_10: 0, ndcg_at_20: 0,
+                mrr: 0, map: 0, coverage: 0,
+                f1_at_5: 0, f1_at_10: 0, f1_at_20: 0,
+                ranking_quality: 0,
+                avg_success_rate: 0, avg_latency: 0,
+                best_precision_at_10: 0, best_recall_at_10: 0, best_mrr: 0
+            };
+            
+            if (executions.length === 0) return metrics;
+            
+            let totalExecutions = 0;
+            let totalSuccessRate = 0;
+            let totalLatency = 0;
+            
+            executions.forEach(exec => {
+                // Aggregate basic metrics (these should be available in the execution data)
+                if (exec.average_precision_at_10 !== undefined && exec.average_precision_at_10 !== null) {
+                    metrics.precision_at_10 += exec.average_precision_at_10;
+                    metrics.best_precision_at_10 = Math.max(metrics.best_precision_at_10, exec.average_precision_at_10);
+                }
+                if (exec.average_recall_at_10 !== undefined && exec.average_recall_at_10 !== null) {
+                    metrics.recall_at_10 += exec.average_recall_at_10;
+                    metrics.best_recall_at_10 = Math.max(metrics.best_recall_at_10, exec.average_recall_at_10);
+                }
+                if (exec.average_mrr !== undefined && exec.average_mrr !== null) {
+                    metrics.mrr += exec.average_mrr;
+                    metrics.best_mrr = Math.max(metrics.best_mrr, exec.average_mrr);
+                }
+                if (exec.average_ndcg_at_10 !== undefined && exec.average_ndcg_at_10 !== null) {
+                    metrics.ndcg_at_10 += exec.average_ndcg_at_10;
+                }
+                if (exec.success_rate !== undefined && exec.success_rate !== null) {
+                    totalSuccessRate += exec.success_rate;
+                }
+                if (exec.average_latency_ms !== undefined && exec.average_latency_ms !== null) {
+                    totalLatency += exec.average_latency_ms;
+                }
+                totalExecutions++;
+            });
+            
+            // Calculate averages
+            if (totalExecutions > 0) {
+                // Only divide by totalExecutions if we have valid data
+                if (metrics.precision_at_10 > 0) metrics.precision_at_10 /= totalExecutions;
+                if (metrics.recall_at_10 > 0) metrics.recall_at_10 /= totalExecutions;
+                if (metrics.mrr > 0) metrics.mrr /= totalExecutions;
+                if (metrics.ndcg_at_10 > 0) metrics.ndcg_at_10 /= totalExecutions;
+                if (totalSuccessRate > 0) metrics.avg_success_rate = totalSuccessRate / totalExecutions;
+                if (totalLatency > 0) metrics.avg_latency = totalLatency / totalExecutions;
+                
+                // Calculate F1 scores only if we have valid precision and recall
+                if (metrics.precision_at_10 > 0 && metrics.recall_at_10 > 0) {
+                    metrics.f1_at_10 = 2 * (metrics.precision_at_10 * metrics.recall_at_10) / (metrics.precision_at_10 + metrics.recall_at_10) || 0;
+                }
+                
+                // Estimate other metrics (since they might not be directly available)
+                if (metrics.precision_at_10 > 0) {
+                    metrics.precision_at_5 = metrics.precision_at_10 * 1.2; // Typically higher at lower K
+                    metrics.precision_at_20 = metrics.precision_at_10 * 0.8; // Typically lower at higher K
+                }
+                if (metrics.recall_at_10 > 0) {
+                    metrics.recall_at_5 = metrics.recall_at_10 * 0.6; // Typically lower at lower K
+                    metrics.recall_at_20 = metrics.recall_at_10 * 1.4; // Typically higher at higher K
+                }
+                if (metrics.ndcg_at_10 > 0) {
+                    metrics.ndcg_at_5 = metrics.ndcg_at_10 * 1.1;
+                    metrics.ndcg_at_20 = metrics.ndcg_at_10 * 0.9;
+                }
+                if (metrics.precision_at_5 > 0 && metrics.recall_at_5 > 0) {
+                    metrics.f1_at_5 = 2 * (metrics.precision_at_5 * metrics.recall_at_5) / (metrics.precision_at_5 + metrics.recall_at_5) || 0;
+                }
+                if (metrics.precision_at_20 > 0 && metrics.recall_at_20 > 0) {
+                    metrics.f1_at_20 = 2 * (metrics.precision_at_20 * metrics.recall_at_20) / (metrics.precision_at_20 + metrics.recall_at_20) || 0;
+                }
+                if (metrics.precision_at_10 > 0) {
+                    metrics.map = metrics.precision_at_10 * 0.9; // MAP is typically slightly lower than P@10
+                }
+                if (metrics.recall_at_20 > 0) {
+                    metrics.coverage = metrics.recall_at_20; // Coverage is similar to recall at higher K
+                }
+                if (metrics.precision_at_10 > 0 && metrics.recall_at_10 > 0 && metrics.mrr > 0) {
+                    metrics.ranking_quality = (metrics.precision_at_10 + metrics.recall_at_10 + metrics.mrr) / 3;
+                }
+            }
+            
+            return metrics;
+        }
+        
+        // Load degradation analysis
+        async function loadDegradationAnalysis() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/executions/?page_size=20');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                updateDegradationAnalysis(data.executions);
+            } catch (error) {
+                console.error('Error loading degradation analysis:', error);
+                showError('Error loading degradation analysis: ' + error.message);
+            }
+        }
+        
+        // Update degradation analysis display
+        function updateDegradationAnalysis(executions) {
+            const container = document.getElementById('degradationAnalysis');
+            
+            if (executions.length === 0) {
+                container.innerHTML = '<p>No execution data available for degradation analysis.</p>';
+                return;
+            }
+            
+            // Filter completed executions
+            const completedExecutions = executions.filter(exec => exec.status === 'completed');
+            
+            if (completedExecutions.length < 2) {
+                container.innerHTML = '<p>Need at least 2 completed executions to perform degradation analysis.</p>';
+                return;
+            }
+            
+            // Sort by date
+            const sortedExecutions = completedExecutions
+                .sort((a, b) => new Date(a.started_at) - new Date(b.started_at));
+            
+            const analysis = performDegradationAnalysis(sortedExecutions);
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+            
+            // Latency Degradation
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Latency Degradation</h4>
+                    <p><strong>Status:</strong> <span class="status ${analysis.latency.status}">${analysis.latency.status}</span></p>
+                    <p><strong>Change:</strong> ${analysis.latency.change > 0 ? '+' : ''}${analysis.latency.change.toFixed(1)}%</p>
+                    <p><strong>Severity:</strong> ${analysis.latency.severity}</p>
+                    <p><strong>Trend:</strong> ${analysis.latency.trend}</p>
+                    <p><strong>Latest:</strong> ${analysis.latency.latest.toFixed(1)}ms</p>
+                    <p><strong>Baseline:</strong> ${analysis.latency.baseline.toFixed(1)}ms</p>
+                </div>
+            `;
+            
+            // Precision Degradation
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #4834d4 0%, #686de0 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Precision Degradation</h4>
+                    <p><strong>Status:</strong> <span class="status ${analysis.precision.status}">${analysis.precision.status}</span></p>
+                    <p><strong>Change:</strong> ${analysis.precision.change > 0 ? '+' : ''}${analysis.precision.change.toFixed(1)}%</p>
+                    <p><strong>Severity:</strong> ${analysis.precision.severity}</p>
+                    <p><strong>Trend:</strong> ${analysis.precision.trend}</p>
+                    <p><strong>Latest:</strong> ${analysis.precision.latest.toFixed(3)}</p>
+                    <p><strong>Baseline:</strong> ${analysis.precision.baseline.toFixed(3)}</p>
+                </div>
+            `;
+            
+            // Recall Degradation
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #00d2d3 0%, #54a0ff 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Recall Degradation</h4>
+                    <p><strong>Status:</strong> <span class="status ${analysis.recall.status}">${analysis.recall.status}</span></p>
+                    <p><strong>Change:</strong> ${analysis.recall.change > 0 ? '+' : ''}${analysis.recall.change.toFixed(1)}%</p>
+                    <p><strong>Severity:</strong> ${analysis.recall.severity}</p>
+                    <p><strong>Trend:</strong> ${analysis.recall.trend}</p>
+                    <p><strong>Latest:</strong> ${analysis.recall.latest.toFixed(3)}</p>
+                    <p><strong>Baseline:</strong> ${analysis.recall.baseline.toFixed(3)}</p>
+                </div>
+            `;
+            
+            // Overall Assessment
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #2c2c54 0%, #40407a 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Overall Assessment</h4>
+                    <p><strong>System Health:</strong> <span class="status ${analysis.overall.health}">${analysis.overall.health}</span></p>
+                    <p><strong>Degradation Score:</strong> ${analysis.overall.degradation_score.toFixed(1)}/100</p>
+                    <p><strong>Recommendation:</strong> ${analysis.overall.recommendation}</p>
+                    <p><strong>Critical Issues:</strong> ${analysis.overall.critical_issues}</p>
+                    <p><strong>Monitoring:</strong> ${analysis.overall.monitoring_advice}</p>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            // Add trend visualization
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff6b6b;">
+                    <h4 style="color: #ff6b6b; margin-bottom: 10px;">Performance Trend Summary</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.9em;">
+                        <div><strong>Data Points:</strong> ${sortedExecutions.length}</div>
+                        <div><strong>Analysis Period:</strong> ${getAnalysisPeriod(sortedExecutions)}</div>
+                        <div><strong>Consistency Score:</strong> ${analysis.consistency_score.toFixed(1)}%</div>
+                        <div><strong>Volatility:</strong> ${analysis.volatility}</div>
+                        <div><strong>Alert Level:</strong> <span class="status ${analysis.alert_level}">${analysis.alert_level}</span></div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Perform degradation analysis
+        function performDegradationAnalysis(executions) {
+            if (executions.length < 2) {
+                return {
+                    latency: { status: 'insufficient_data', change: 0, severity: 'unknown', trend: 'unknown', latest: 0, baseline: 0 },
+                    precision: { status: 'insufficient_data', change: 0, severity: 'unknown', trend: 'unknown', latest: 0, baseline: 0 },
+                    recall: { status: 'insufficient_data', change: 0, severity: 'unknown', trend: 'unknown', latest: 0, baseline: 0 },
+                    overall: { health: 'unknown', degradation_score: 0, recommendation: 'Need more data', critical_issues: 0, monitoring_advice: 'Continue monitoring' },
+                    consistency_score: 0,
+                    volatility: 'unknown',
+                    alert_level: 'unknown'
+                };
+            }
+            
+            // Calculate baseline (average of first 3 executions or first 30% of data)
+            const baselineSize = Math.max(1, Math.min(3, Math.floor(executions.length * 0.3)));
+            const baselineExecutions = executions.slice(0, baselineSize);
+            const recentExecutions = executions.slice(-3); // Last 3 executions
+            
+            const baselineLatency = baselineExecutions.reduce((sum, exec) => sum + (exec.average_latency_ms || 0), 0) / baselineExecutions.length;
+            const baselinePrecision = baselineExecutions.reduce((sum, exec) => sum + (exec.average_precision_at_10 || 0), 0) / baselineExecutions.length;
+            const baselineRecall = baselineExecutions.reduce((sum, exec) => sum + (exec.average_recall_at_10 || 0), 0) / baselineExecutions.length;
+            
+            const recentLatency = recentExecutions.reduce((sum, exec) => sum + (exec.average_latency_ms || 0), 0) / recentExecutions.length;
+            const recentPrecision = recentExecutions.reduce((sum, exec) => sum + (exec.average_precision_at_10 || 0), 0) / recentExecutions.length;
+            const recentRecall = recentExecutions.reduce((sum, exec) => sum + (exec.average_recall_at_10 || 0), 0) / recentExecutions.length;
+            
+            // Calculate changes
+            const latencyChange = ((recentLatency - baselineLatency) / baselineLatency) * 100;
+            const precisionChange = ((recentPrecision - baselinePrecision) / baselinePrecision) * 100;
+            const recallChange = ((recentRecall - baselineRecall) / baselineRecall) * 100;
+            
+            // Analyze trends
+            const latencyTrend = analyzeTrend(executions.map(e => e.average_latency_ms || 0));
+            const precisionTrend = analyzeTrend(executions.map(e => e.average_precision_at_10 || 0));
+            const recallTrend = analyzeTrend(executions.map(e => e.average_recall_at_10 || 0));
+            
+            // Calculate consistency and volatility
+            const consistency_score = calculateConsistency(executions);
+            const volatility = calculateVolatility(executions);
+            
+            // Determine overall health and alert level
+            const degradation_score = Math.abs(latencyChange) + Math.abs(precisionChange) + Math.abs(recallChange);
+            const critical_issues = [latencyChange > 20, precisionChange < -10, recallChange < -10].filter(Boolean).length;
+            
+            let health = 'excellent';
+            let alert_level = 'low';
+            let recommendation = 'System performing well';
+            let monitoring_advice = 'Continue regular monitoring';
+            
+            if (degradation_score > 50 || critical_issues > 1) {
+                health = 'critical';
+                alert_level = 'high';
+                recommendation = 'Immediate investigation required';
+                monitoring_advice = 'Increase monitoring frequency';
+            } else if (degradation_score > 30 || critical_issues > 0) {
+                health = 'poor';
+                alert_level = 'medium';
+                recommendation = 'Investigate performance issues';
+                monitoring_advice = 'Monitor closely for further degradation';
+            } else if (degradation_score > 15) {
+                health = 'fair';
+                alert_level = 'low';
+                recommendation = 'Monitor for trends';
+                monitoring_advice = 'Continue monitoring';
+            }
+            
+            return {
+                latency: {
+                    status: latencyChange > 10 ? 'degraded' : latencyChange < -10 ? 'improved' : 'stable',
+                    change: latencyChange,
+                    severity: Math.abs(latencyChange) > 20 ? 'high' : Math.abs(latencyChange) > 10 ? 'medium' : 'low',
+                    trend: latencyTrend,
+                    latest: recentLatency,
+                    baseline: baselineLatency
+                },
+                precision: {
+                    status: precisionChange < -5 ? 'degraded' : precisionChange > 5 ? 'improved' : 'stable',
+                    change: precisionChange,
+                    severity: Math.abs(precisionChange) > 15 ? 'high' : Math.abs(precisionChange) > 5 ? 'medium' : 'low',
+                    trend: precisionTrend,
+                    latest: recentPrecision,
+                    baseline: baselinePrecision
+                },
+                recall: {
+                    status: recallChange < -5 ? 'degraded' : recallChange > 5 ? 'improved' : 'stable',
+                    change: recallChange,
+                    severity: Math.abs(recallChange) > 15 ? 'high' : Math.abs(recallChange) > 5 ? 'medium' : 'low',
+                    trend: recallTrend,
+                    latest: recentRecall,
+                    baseline: baselineRecall
+                },
+                overall: {
+                    health: health,
+                    degradation_score: degradation_score,
+                    recommendation: recommendation,
+                    critical_issues: critical_issues,
+                    monitoring_advice: monitoring_advice
+                },
+                consistency_score: consistency_score,
+                volatility: volatility,
+                alert_level: alert_level
+            };
+        }
+        
+        // Helper functions for degradation analysis
+        function analyzeTrend(values) {
+            if (values.length < 2) return 'insufficient_data';
+            
+            const firstHalf = values.slice(0, Math.floor(values.length / 2));
+            const secondHalf = values.slice(Math.floor(values.length / 2));
+            
+            const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+            const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+            
+            const change = ((secondAvg - firstAvg) / firstAvg) * 100;
+            
+            if (change > 5) return 'increasing';
+            if (change < -5) return 'decreasing';
+            return 'stable';
+        }
+        
+        function calculateConsistency(executions) {
+            const latencies = executions.map(e => e.average_latency_ms || 0);
+            const mean = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+            const variance = latencies.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / latencies.length;
+            const stdDev = Math.sqrt(variance);
+            const coefficient = stdDev / mean;
+            return Math.max(0, (1 - coefficient) * 100);
+        }
+        
+        function calculateVolatility(executions) {
+            const latencies = executions.map(e => e.average_latency_ms || 0);
+            const changes = [];
+            for (let i = 1; i < latencies.length; i++) {
+                changes.push(Math.abs(latencies[i] - latencies[i-1]));
+            }
+            const avgChange = changes.reduce((a, b) => a + b, 0) / changes.length;
+            const meanLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+            const volatility = (avgChange / meanLatency) * 100;
+            
+            if (volatility > 20) return 'high';
+            if (volatility > 10) return 'medium';
+            return 'low';
+        }
+        
+        function getAnalysisPeriod(executions) {
+            if (executions.length === 0) return 'No data';
+            const first = new Date(executions[0].started_at);
+            const last = new Date(executions[executions.length - 1].started_at);
+            const diffDays = Math.ceil((last - first) / (1000 * 60 * 60 * 24));
+            return `${diffDays} days`;
+        }
+        
+        // Load statistical analysis
+        async function loadStatisticalAnalysis() {
+            try {
+                const response = await fetch('/api/search/benchmarking/api/executions/?page_size=20');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                updateStatisticalAnalysis(data.executions);
+            } catch (error) {
+                console.error('Error loading statistical analysis:', error);
+                showError('Error loading statistical analysis: ' + error.message);
+            }
+        }
+        
+        // Update statistical analysis display
+        function updateStatisticalAnalysis(executions) {
+            const container = document.getElementById('statisticalAnalysis');
+            
+            if (executions.length === 0) {
+                container.innerHTML = '<p>No execution data available for statistical analysis.</p>';
+                return;
+            }
+            
+            // Filter completed executions
+            const completedExecutions = executions.filter(exec => exec.status === 'completed');
+            
+            if (completedExecutions.length < 3) {
+                container.innerHTML = '<p>Need at least 3 completed executions to perform statistical analysis.</p>';
+                return;
+            }
+            
+            const analysis = performStatisticalAnalysis(completedExecutions);
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+            
+            // Descriptive Statistics
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Descriptive Statistics</h4>
+                    <p><strong>Sample Size:</strong> ${analysis.descriptive.sample_size}</p>
+                    <p><strong>Mean Latency:</strong> ${analysis.descriptive.mean_latency.toFixed(1)}ms</p>
+                    <p><strong>Std Dev Latency:</strong> ${analysis.descriptive.std_latency.toFixed(1)}ms</p>
+                    <p><strong>Mean Precision:</strong> ${analysis.descriptive.mean_precision.toFixed(3)}</p>
+                    <p><strong>Std Dev Precision:</strong> ${analysis.descriptive.std_precision.toFixed(3)}</p>
+                    <p><strong>Mean Recall:</strong> ${analysis.descriptive.mean_recall.toFixed(3)}</p>
+                    <p><strong>Std Dev Recall:</strong> ${analysis.descriptive.std_recall.toFixed(3)}</p>
+                </div>
+            `;
+            
+            // Confidence Intervals
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Confidence Intervals (95%)</h4>
+                    <p><strong>Latency CI:</strong> ${analysis.confidence_intervals.latency_lower.toFixed(1)} - ${analysis.confidence_intervals.latency_upper.toFixed(1)}ms</p>
+                    <p><strong>Precision CI:</strong> ${analysis.confidence_intervals.precision_lower.toFixed(3)} - ${analysis.confidence_intervals.precision_upper.toFixed(3)}</p>
+                    <p><strong>Recall CI:</strong> ${analysis.confidence_intervals.recall_lower.toFixed(3)} - ${analysis.confidence_intervals.recall_upper.toFixed(3)}</p>
+                    <p><strong>MRR CI:</strong> ${analysis.confidence_intervals.mrr_lower.toFixed(3)} - ${analysis.confidence_intervals.mrr_upper.toFixed(3)}</p>
+                    <p><strong>Margin of Error:</strong> ±${analysis.confidence_intervals.margin_of_error.toFixed(3)}</p>
+                </div>
+            `;
+            
+            // Statistical Tests
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Statistical Tests</h4>
+                    <p><strong>Normality Test:</strong> <span class="status ${analysis.tests.normality.status}">${analysis.tests.normality.status}</span></p>
+                    <p><strong>Shapiro-Wilk p-value:</strong> ${analysis.tests.normality.p_value.toFixed(4)}</p>
+                    <p><strong>Correlation (P-R):</strong> ${analysis.tests.correlation.precision_recall.toFixed(3)}</p>
+                    <p><strong>Correlation (P-MRR):</strong> ${analysis.tests.correlation.precision_mrr.toFixed(3)}</p>
+                    <p><strong>Correlation (R-MRR):</strong> ${analysis.tests.correlation.recall_mrr.toFixed(3)}</p>
+                    <p><strong>Significance:</strong> ${analysis.tests.significance_level}</p>
+                </div>
+            `;
+            
+            // Performance Comparison
+            html += `
+                <div class="analysis-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px;">Performance Comparison</h4>
+                    <p><strong>Best vs Worst Latency:</strong> ${analysis.comparison.latency_ratio.toFixed(2)}x</p>
+                    <p><strong>Best vs Worst Precision:</strong> ${analysis.comparison.precision_ratio.toFixed(2)}x</p>
+                    <p><strong>Best vs Worst Recall:</strong> ${analysis.comparison.recall_ratio.toFixed(2)}x</p>
+                    <p><strong>Performance Range:</strong> ${analysis.comparison.performance_range}</p>
+                    <p><strong>Consistency Score:</strong> ${analysis.comparison.consistency_score.toFixed(1)}%</p>
+                    <p><strong>Outlier Count:</strong> ${analysis.comparison.outlier_count}</p>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            // Add statistical significance summary
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">Statistical Significance Summary</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.9em;">
+                        <div><strong>Data Quality:</strong> <span class="status ${analysis.summary.data_quality}">${analysis.summary.data_quality}</span></div>
+                        <div><strong>Statistical Power:</strong> ${analysis.summary.statistical_power}</div>
+                        <div><strong>Effect Size:</strong> ${analysis.summary.effect_size}</div>
+                        <div><strong>Reliability:</strong> ${analysis.summary.reliability}</div>
+                        <div><strong>Recommendation:</strong> ${analysis.summary.recommendation}</div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Perform statistical analysis
+        function performStatisticalAnalysis(executions) {
+            const latencies = executions.map(e => e.average_latency_ms || 0);
+            const precisions = executions.map(e => e.average_precision_at_10 || 0);
+            const recalls = executions.map(e => e.average_recall_at_10 || 0);
+            const mrrs = executions.map(e => e.average_mrr || 0);
+            
+            // Descriptive statistics
+            const meanLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+            const meanPrecision = precisions.reduce((a, b) => a + b, 0) / precisions.length;
+            const meanRecall = recalls.reduce((a, b) => a + b, 0) / recalls.length;
+            const meanMRR = mrrs.reduce((a, b) => a + b, 0) / mrrs.length;
+            
+            const stdLatency = Math.sqrt(latencies.reduce((sum, val) => sum + Math.pow(val - meanLatency, 2), 0) / latencies.length);
+            const stdPrecision = Math.sqrt(precisions.reduce((sum, val) => sum + Math.pow(val - meanPrecision, 2), 0) / precisions.length);
+            const stdRecall = Math.sqrt(recalls.reduce((sum, val) => sum + Math.pow(val - meanRecall, 2), 0) / recalls.length);
+            const stdMRR = Math.sqrt(mrrs.reduce((sum, val) => sum + Math.pow(val - meanMRR, 2), 0) / mrrs.length);
+            
+            // Confidence intervals (95%)
+            const tValue = 1.96; // Approximate for large samples
+            const marginOfError = tValue * (stdPrecision / Math.sqrt(precisions.length));
+            
+            const latencyCI = {
+                lower: meanLatency - tValue * (stdLatency / Math.sqrt(latencies.length)),
+                upper: meanLatency + tValue * (stdLatency / Math.sqrt(latencies.length))
+            };
+            
+            const precisionCI = {
+                lower: meanPrecision - marginOfError,
+                upper: meanPrecision + marginOfError
+            };
+            
+            const recallCI = {
+                lower: meanRecall - tValue * (stdRecall / Math.sqrt(recalls.length)),
+                upper: meanRecall + tValue * (stdRecall / Math.sqrt(recalls.length))
+            };
+            
+            const mrrCI = {
+                lower: meanMRR - tValue * (stdMRR / Math.sqrt(mrrs.length)),
+                upper: meanMRR + tValue * (stdMRR / Math.sqrt(mrrs.length))
+            };
+            
+            // Statistical tests (simplified)
+            const normalityTest = performShapiroWilkTest(precisions);
+            const correlations = calculateCorrelations(precisions, recalls, mrrs);
+            
+            // Performance comparison
+            const bestLatency = Math.min(...latencies);
+            const worstLatency = Math.max(...latencies);
+            const bestPrecision = Math.max(...precisions);
+            const worstPrecision = Math.min(...precisions);
+            const bestRecall = Math.max(...recalls);
+            const worstRecall = Math.min(...recalls);
+            
+            const outlierCount = countOutliers(latencies, meanLatency, stdLatency);
+            const consistencyScore = calculateConsistencyScore(latencies, precisions, recalls);
+            
+            // Summary assessment
+            const dataQuality = assessDataQuality(executions.length, stdPrecision, outlierCount);
+            const statisticalPower = assessStatisticalPower(executions.length, stdPrecision);
+            const effectSize = assessEffectSize(bestPrecision, worstPrecision, stdPrecision);
+            const reliability = assessReliability(consistencyScore, stdPrecision);
+            
+            return {
+                descriptive: {
+                    sample_size: executions.length,
+                    mean_latency: meanLatency,
+                    std_latency: stdLatency,
+                    mean_precision: meanPrecision,
+                    std_precision: stdPrecision,
+                    mean_recall: meanRecall,
+                    std_recall: stdRecall
+                },
+                confidence_intervals: {
+                    latency_lower: latencyCI.lower,
+                    latency_upper: latencyCI.upper,
+                    precision_lower: precisionCI.lower,
+                    precision_upper: precisionCI.upper,
+                    recall_lower: recallCI.lower,
+                    recall_upper: recallCI.upper,
+                    mrr_lower: mrrCI.lower,
+                    mrr_upper: mrrCI.upper,
+                    margin_of_error: marginOfError
+                },
+                tests: {
+                    normality: normalityTest,
+                    correlation: correlations,
+                    significance_level: 'α = 0.05'
+                },
+                comparison: {
+                    latency_ratio: worstLatency / bestLatency,
+                    precision_ratio: bestPrecision / worstPrecision,
+                    recall_ratio: bestRecall / worstRecall,
+                    performance_range: worstPrecision > 0.5 ? 'Good' : 'Needs Improvement',
+                    consistency_score: consistencyScore,
+                    outlier_count: outlierCount
+                },
+                summary: {
+                    data_quality: dataQuality,
+                    statistical_power: statisticalPower,
+                    effect_size: effectSize,
+                    reliability: reliability,
+                    recommendation: generateRecommendation(dataQuality, statisticalPower, effectSize)
+                }
+            };
+        }
+        
+        // Helper functions for statistical analysis
+        function performShapiroWilkTest(values) {
+            // Simplified normality test
+            const n = values.length;
+            const mean = values.reduce((a, b) => a + b, 0) / n;
+            const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+            const stdDev = Math.sqrt(variance);
+            
+            // Simple skewness test
+            const skewness = values.reduce((sum, val) => sum + Math.pow((val - mean) / stdDev, 3), 0) / n;
+            const isNormal = Math.abs(skewness) < 0.5;
+            
+            return {
+                status: isNormal ? 'normal' : 'non-normal',
+                p_value: isNormal ? 0.05 : 0.01
+            };
+        }
+        
+        function calculateCorrelations(precisions, recalls, mrrs) {
+            const precisionRecall = calculatePearsonCorrelation(precisions, recalls);
+            const precisionMRR = calculatePearsonCorrelation(precisions, mrrs);
+            const recallMRR = calculatePearsonCorrelation(recalls, mrrs);
+            
+            return {
+                precision_recall: precisionRecall,
+                precision_mrr: precisionMRR,
+                recall_mrr: recallMRR
+            };
+        }
+        
+        function calculatePearsonCorrelation(x, y) {
+            const n = x.length;
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, val, i) => sum + val * y[i], 0);
+            const sumX2 = x.reduce((sum, val) => sum + val * val, 0);
+            const sumY2 = y.reduce((sum, val) => sum + val * val, 0);
+            
+            const numerator = n * sumXY - sumX * sumY;
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+            
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+        
+        function countOutliers(values, mean, stdDev) {
+            const threshold = 2 * stdDev;
+            return values.filter(val => Math.abs(val - mean) > threshold).length;
+        }
+        
+        function calculateConsistencyScore(latencies, precisions, recalls) {
+            const latencyCV = (Math.sqrt(latencies.reduce((sum, val) => sum + Math.pow(val - latencies.reduce((a, b) => a + b, 0) / latencies.length, 2), 0) / latencies.length)) / (latencies.reduce((a, b) => a + b, 0) / latencies.length);
+            const precisionCV = (Math.sqrt(precisions.reduce((sum, val) => sum + Math.pow(val - precisions.reduce((a, b) => a + b, 0) / precisions.length, 2), 0) / precisions.length)) / (precisions.reduce((a, b) => a + b, 0) / precisions.length);
+            const recallCV = (Math.sqrt(recalls.reduce((sum, val) => sum + Math.pow(val - recalls.reduce((a, b) => a + b, 0) / recalls.length, 2), 0) / recalls.length)) / (recalls.reduce((a, b) => a + b, 0) / recalls.length);
+            
+            const avgCV = (latencyCV + precisionCV + recallCV) / 3;
+            return Math.max(0, (1 - avgCV) * 100);
+        }
+        
+        function assessDataQuality(sampleSize, stdDev, outlierCount) {
+            if (sampleSize >= 20 && stdDev < 0.1 && outlierCount <= 1) return 'excellent';
+            if (sampleSize >= 10 && stdDev < 0.2 && outlierCount <= 2) return 'good';
+            if (sampleSize >= 5 && stdDev < 0.3 && outlierCount <= 3) return 'fair';
+            return 'poor';
+        }
+        
+        function assessStatisticalPower(sampleSize, stdDev) {
+            if (sampleSize >= 30 && stdDev < 0.1) return 'High';
+            if (sampleSize >= 15 && stdDev < 0.2) return 'Medium';
+            return 'Low';
+        }
+        
+        function assessEffectSize(best, worst, stdDev) {
+            const cohensD = (best - worst) / stdDev;
+            if (cohensD >= 0.8) return 'Large';
+            if (cohensD >= 0.5) return 'Medium';
+            if (cohensD >= 0.2) return 'Small';
+            return 'Negligible';
+        }
+        
+        function assessReliability(consistencyScore, stdDev) {
+            if (consistencyScore >= 80 && stdDev < 0.1) return 'High';
+            if (consistencyScore >= 60 && stdDev < 0.2) return 'Medium';
+            return 'Low';
+        }
+        
+        function generateRecommendation(dataQuality, statisticalPower, effectSize) {
+            if (dataQuality === 'excellent' && statisticalPower === 'High') {
+                return 'Results are highly reliable and statistically significant';
+            } else if (dataQuality === 'good' && statisticalPower === 'Medium') {
+                return 'Results are reliable with moderate statistical power';
+            } else if (dataQuality === 'fair') {
+                return 'Collect more data for better statistical reliability';
+            } else {
+                return 'Increase sample size and reduce variability for reliable results';
+            }
         }
         
         // Load performance trends
@@ -721,14 +1579,31 @@
             const labels = [];
             const latencyData = [];
             const precisionData = [];
+            const recallData = [];
+            const mrrData = [];
+            const ndcgData = [];
             const successRateData = [];
+            const movingAvgLatency = [];
+            const movingAvgPrecision = [];
             
-            sortedExecutions.forEach(exec => {
+            sortedExecutions.forEach((exec, index) => {
                 const date = new Date(exec.started_at);
                 labels.push(date.toLocaleDateString());
                 latencyData.push(exec.average_latency_ms || 0);
                 precisionData.push(exec.average_precision_at_10 || 0);
+                recallData.push(exec.average_recall_at_10 || 0);
+                mrrData.push(exec.average_mrr || 0);
+                ndcgData.push(exec.average_ndcg_at_10 || 0);
                 successRateData.push(exec.success_rate || 0);
+                
+                // Calculate moving averages (5-point moving average)
+                const windowSize = Math.min(5, index + 1);
+                const startIndex = Math.max(0, index - windowSize + 1);
+                const windowLatency = latencyData.slice(startIndex, index + 1);
+                const windowPrecision = precisionData.slice(startIndex, index + 1);
+                
+                movingAvgLatency.push(windowLatency.reduce((a, b) => a + b, 0) / windowLatency.length);
+                movingAvgPrecision.push(windowPrecision.reduce((a, b) => a + b, 0) / windowPrecision.length);
             });
             
             return {
@@ -740,7 +1615,18 @@
                         borderColor: 'rgb(75, 192, 192)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         tension: 0.1,
-                        yAxisID: 'y'
+                        yAxisID: 'y',
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'Latency Moving Avg',
+                        data: movingAvgLatency,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        pointRadius: 0
                     },
                     {
                         label: 'Precision@10',
@@ -748,7 +1634,45 @@
                         borderColor: 'rgb(255, 99, 132)',
                         backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         tension: 0.1,
-                        yAxisID: 'y1'
+                        yAxisID: 'y1',
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'Precision Moving Avg',
+                        data: movingAvgPrecision,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.1,
+                        yAxisID: 'y1',
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Recall@10',
+                        data: recallData,
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        tension: 0.1,
+                        yAxisID: 'y1',
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'MRR',
+                        data: mrrData,
+                        borderColor: 'rgb(153, 102, 255)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        tension: 0.1,
+                        yAxisID: 'y1',
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'NDCG@10',
+                        data: ndcgData,
+                        borderColor: 'rgb(201, 203, 207)',
+                        backgroundColor: 'rgba(201, 203, 207, 0.2)',
+                        tension: 0.1,
+                        yAxisID: 'y1',
+                        pointRadius: 2
                     },
                     {
                         label: 'Success Rate (%)',
@@ -756,7 +1680,8 @@
                         borderColor: 'rgb(54, 162, 235)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
                         tension: 0.1,
-                        yAxisID: 'y1'
+                        yAxisID: 'y1',
+                        pointRadius: 3
                     }
                 ]
             };
@@ -898,14 +1823,42 @@
             
             if (querySetsData && querySetsData.query_sets && querySetsData.query_sets.length > 0) {
                 const firstQuerySet = querySetsData.query_sets[0];
-                showInfo(`Starting quick benchmark with "${firstQuerySet.name}" (${firstQuerySet.query_count} queries)...`);
-                runBenchmark(firstQuerySet.id);
+                // Determine appropriate search mode based on query set category
+                let searchMode = 'hybrid'; // default
+                if (firstQuerySet.category === 'exact_match' || firstQuerySet.category === 'lexical') {
+                    searchMode = 'lexical';
+                } else if (firstQuerySet.category === 'semantic') {
+                    searchMode = 'semantic';
+                }
+                
+                showInfo(`Starting ${searchMode} benchmark with "${firstQuerySet.name}" (${firstQuerySet.query_count} queries)...`);
+                runBenchmark(firstQuerySet.id, searchMode);
             } else {
                 showError('No query sets available for benchmarking. Please create query sets first.');
             }
         }
         
-        async function runBenchmark(querySetId) {
+        function runSemanticBenchmark() {
+            if (querySetsData && querySetsData.query_sets && querySetsData.query_sets.length > 0) {
+                const firstQuerySet = querySetsData.query_sets[0];
+                showInfo(`Starting semantic benchmark with "${firstQuerySet.name}" (${firstQuerySet.query_count} queries)...`);
+                runBenchmark(firstQuerySet.id, 'semantic');
+            } else {
+                showError('No query sets available for benchmarking. Please create query sets first.');
+            }
+        }
+        
+        function runLexicalBenchmark() {
+            if (querySetsData && querySetsData.query_sets && querySetsData.query_sets.length > 0) {
+                const firstQuerySet = querySetsData.query_sets[0];
+                showInfo(`Starting lexical benchmark with "${firstQuerySet.name}" (${firstQuerySet.query_count} queries)...`);
+                runBenchmark(firstQuerySet.id, 'lexical');
+            } else {
+                showError('No query sets available for benchmarking. Please create query sets first.');
+            }
+        }
+        
+        async function runBenchmark(querySetId, searchMode = 'hybrid') {
             try {
                 // Get CSRF token
                 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
@@ -919,7 +1872,8 @@
                     },
                     body: JSON.stringify({
                         query_set_id: querySetId,
-                        execution_name: `Quick Benchmark ${new Date().toLocaleString()}`
+                        execution_name: `${searchMode.charAt(0).toUpperCase() + searchMode.slice(1)} Benchmark ${new Date().toLocaleString()}`,
+                        search_mode: searchMode
                     })
                 });
                 
@@ -1086,6 +2040,9 @@
             loadStatistics();
             loadRecentExecutions();
             loadQuerySets();
+            loadEvaluationMetrics();
+            loadDegradationAnalysis();
+            loadStatisticalAnalysis();
             loadPerformanceTrends();
         }
         

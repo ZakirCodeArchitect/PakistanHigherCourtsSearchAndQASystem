@@ -7,6 +7,7 @@ import os
 import hashlib
 import numpy as np
 import logging
+import threading
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime
 import time
@@ -24,11 +25,26 @@ logger = logging.getLogger(__name__)
 class PineconeIndexingService:
     """Service for creating and managing Pinecone vector indexes"""
     
+    _instance = None
+    _initialized = False
+    _lock = threading.Lock()
+    
+    def __new__(cls, config_name: str = "default"):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(PineconeIndexingService, cls).__new__(cls)
+        return cls._instance
+    
     def __init__(self, config_name: str = "default"):
-        self.config_name = config_name
-        self.model = None
-        self.index = None
-        self.index_name = "legal-cases-index"
+        if not self._initialized:
+            with self._lock:
+                if not self._initialized:
+                    self.config_name = config_name
+                    self.model = None
+                    self.index = None
+                    self.index_name = "legal-cases-index"
+                    self._initialized = True
         self.config = {
             'chunk_size': 512,
             'chunk_overlap': 50,
@@ -569,21 +585,25 @@ class PineconeIndexingService:
     def search(self, query: str, top_k: int = 10, filters: Dict = None) -> List[Dict[str, any]]:
         """Search for similar documents using Pinecone"""
         try:
-            # Initialize Pinecone if not already done
-            if not self.index:
-                if not self.initialize_pinecone():
-                    logger.error("Failed to initialize Pinecone")
-                    return []
+            # FIXED: Thread-safe initialization with better error handling
+            with self._lock:
+                # Initialize Pinecone if not already done
+                if not self.index:
+                    logger.info("Initializing Pinecone connection...")
+                    if not self.initialize_pinecone():
+                        logger.error("Failed to initialize Pinecone")
+                        return []
+                    
+                    if not self.create_or_get_index():
+                        logger.error("Failed to get Pinecone index")
+                        return []
                 
-                if not self.create_or_get_index():
-                    logger.error("Failed to get Pinecone index")
-                    return []
-            
-            # Initialize model if not already done
-            if not self.model:
-                if not self.initialize_model():
-                    logger.error("Failed to initialize model")
-                    return []
+                # Initialize model if not already done
+                if not self.model:
+                    logger.info("Loading sentence transformer model...")
+                    if not self.initialize_model():
+                        logger.error("Failed to initialize model")
+                        return []
             
             # Create query embedding
             query_embedding = self.model.encode([query])
@@ -609,27 +629,50 @@ class PineconeIndexingService:
                 filter=pinecone_filter
             )
             
-            # Format results
+            # FIXED: Format results with intelligent filtering to prevent irrelevant results
             search_results = []
+            min_similarity_threshold = 0.2  # Basic similarity threshold
+            
             for i, match in enumerate(results.matches):
-                metadata = match.metadata
-                
-                search_results.append({
-                    'rank': i + 1,
-                    'similarity': match.score,
-                    'case_id': metadata.get('case_id'),
-                    'chunk_id': metadata.get('chunk_id'),
-                    'chunk_text': metadata.get('chunk_text_preview', ''),
-                    'chunk_index': metadata.get('chunk_index'),
-                    'case_number': metadata.get('case_number', ''),
-                    'case_title': metadata.get('case_title', ''),
-                    'court': metadata.get('court', ''),
-                    'status': metadata.get('status', ''),
-                    'bench': metadata.get('bench', ''),
-                    'institution_date': metadata.get('institution_date'),
-                    'hearing_date': metadata.get('hearing_date'),
-                    'search_type': 'pinecone'
-                })
+                if match.score >= min_similarity_threshold:
+                    metadata = match.metadata
+                    
+                    # FIXED: Additional validation - check if result actually contains query terms
+                    case_number = metadata.get('case_number', '').lower()
+                    case_title = metadata.get('case_title', '').lower()
+                    chunk_text = metadata.get('chunk_text_preview', '').lower()
+                    query_lower = query.lower()
+                    
+                    # Check if the result actually contains the query terms
+                    contains_query = (
+                        query_lower in case_number or
+                        query_lower in case_title or
+                        query_lower in chunk_text
+                    )
+                    
+                    # For single-word queries (like years), be more strict
+                    if len(query.split()) == 1 and query.isdigit():
+                        # For year queries, only return if it's in case number or title
+                        contains_query = query_lower in case_number or query_lower in case_title
+                    
+                    # Only include results that actually contain the query
+                    if contains_query:
+                        search_results.append({
+                            'rank': i + 1,
+                            'similarity': match.score,
+                            'case_id': metadata.get('case_id'),
+                            'chunk_id': metadata.get('chunk_id'),
+                            'chunk_text': metadata.get('chunk_text_preview', ''),
+                            'chunk_index': metadata.get('chunk_index'),
+                            'case_number': metadata.get('case_number', ''),
+                            'case_title': metadata.get('case_title', ''),
+                            'court': metadata.get('court', ''),
+                            'status': metadata.get('status', ''),
+                            'bench': metadata.get('bench', ''),
+                            'institution_date': metadata.get('institution_date'),
+                            'hearing_date': metadata.get('hearing_date'),
+                            'search_type': 'pinecone'
+                        })
             
             logger.info(f"Pinecone search returned {len(search_results)} results")
             return search_results

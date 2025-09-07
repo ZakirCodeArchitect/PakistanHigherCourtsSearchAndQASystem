@@ -120,13 +120,22 @@ class BenchmarkCollector:
         if not execution_name:
             execution_name = f"{query_set.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # Use configuration or defaults
+        # Use configuration or intelligent defaults based on query set category
         if configuration:
             search_mode = configuration.search_mode
             ranking_algorithm = configuration.ranking_algorithm
             ranking_config = configuration.ranking_config
         else:
-            search_mode = 'hybrid'
+            # Intelligent mode selection based on query set category
+            if query_set.category == 'exact_match':
+                search_mode = 'lexical'  # Exact matches should use lexical search
+            elif query_set.category == 'semantic':
+                search_mode = 'semantic'  # Semantic queries should use semantic search
+            elif query_set.category == 'lexical':
+                search_mode = 'lexical'  # Lexical queries should use lexical search
+            else:
+                search_mode = 'hybrid'  # Complex and other queries use hybrid
+            
             ranking_algorithm = 'fast_ranking'
             ranking_config = {}
         
