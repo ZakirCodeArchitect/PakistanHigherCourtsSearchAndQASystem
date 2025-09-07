@@ -16,6 +16,7 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, F
 
 from ..models import KeywordIndex, FacetIndex, SearchMetadata, IndexingLog
+from .enhanced_metadata_service import EnhancedMetadataService
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,9 @@ class KeywordIndexingService:
             'rev': 'Revision',
             'misc': 'Miscellaneous',
         }
+        
+        # TIER 1 INTEGRATION: Initialize enhanced metadata service
+        self.enhanced_metadata_service = EnhancedMetadataService()
     
     def normalize_text(self, text: str) -> str:
         """Normalize text for indexing"""
@@ -56,9 +60,37 @@ class KeywordIndexingService:
         
         return text.strip()
     
-    def create_search_metadata(self, case_id: int, case_data: Dict) -> Optional[SearchMetadata]:
+    def create_search_metadata(self, case_id_or_case, case_data: Dict = None) -> Optional[SearchMetadata]:
         """Create search metadata for a case"""
         try:
+            # Handle both Case object and case_id + case_data
+            if case_data is None:
+                # Assume case_id_or_case is a Case object
+                from apps.cases.models import Case
+                if isinstance(case_id_or_case, Case):
+                    case_obj = case_id_or_case
+                    case_id = case_obj.id
+                    # Convert Case object to case_data dict
+                    case_data = {
+                        'case_number': case_obj.case_number or '',
+                        'case_title': case_obj.case_title or '',
+                        'court': getattr(case_obj.court, 'name', '') if case_obj.court else '',
+                        'status': case_obj.status or '',
+                        'institution_date': case_obj.institution_date,
+                        'hearing_date': getattr(case_obj, 'hearing_date', None),
+                    }
+                else:
+                    raise ValueError("Invalid arguments: expected Case object or case_id + case_data")
+            else:
+                # Traditional case_id + case_data approach
+                case_id = case_id_or_case
+                case_obj = None
+                try:
+                    from apps.cases.models import Case
+                    case_obj = Case.objects.get(id=case_id)
+                except Case.DoesNotExist:
+                    logger.warning(f"Case {case_id} not found for metadata extraction")
+            
             # Normalize case data
             case_number_normalized = self.normalize_text(case_data.get('case_number', ''))
             case_title_normalized = self.normalize_text(case_data.get('case_title', ''))
@@ -94,6 +126,18 @@ class KeywordIndexingService:
             except:
                 pass
             
+            # TIER 1 INTEGRATION: Extract enhanced metadata from case
+            from apps.cases.models import Case
+            try:
+                case_obj = Case.objects.get(id=case_id)
+                enhanced_metadata = self.enhanced_metadata_service.extract_enhanced_metadata(case_obj)
+            except Case.DoesNotExist:
+                logger.warning(f"Case {case_id} not found for enhanced metadata extraction")
+                enhanced_metadata = {}
+            except Exception as e:
+                logger.error(f"Error extracting enhanced metadata for case {case_id}: {str(e)}")
+                enhanced_metadata = {}
+            
             # Calculate content hashes
             content_text = f"{case_number_normalized} {case_title_normalized} {parties_normalized} {court_normalized} {status_normalized}"
             content_hash = hashlib.sha256(content_text.encode()).hexdigest()
@@ -106,16 +150,48 @@ class KeywordIndexingService:
             metadata_text = f"{case_number_normalized}|{case_title_normalized}|{parties_normalized}|{court_normalized}|{status_normalized}"
             metadata_hash = hashlib.sha256(metadata_text.encode()).hexdigest()
             
+            # Enhanced metadata hash
+            enhanced_metadata_text = str(enhanced_metadata)
+            enhanced_metadata_hash = hashlib.sha256(enhanced_metadata_text.encode()).hexdigest()
+            
             # Count chunks and terms
             from ..models import DocumentChunk
             total_chunks = DocumentChunk.objects.filter(case_id=case_id).count()
-            total_terms = 0  # Will be calculated when vocabulary is available
+            
+            # Calculate total terms from basic case information if no documents
+            if total_chunks == 0:
+                # Use basic case information as searchable content
+                basic_content = f"{case_number_normalized} {case_title_normalized} {parties_normalized} {court_normalized}"
+                total_terms = len(basic_content.split())
+                
+                # Create a virtual document chunk for basic case information
+                from ..models import DocumentChunk
+                virtual_chunk, created = DocumentChunk.objects.get_or_create(
+                    case_id=case_id,
+                    chunk_index=0,
+                    defaults={
+                        'content': basic_content,
+                        'token_count': total_terms,
+                        'chunk_type': 'basic_info',
+                        'metadata': {
+                            'source': 'case_basic_info',
+                            'case_number': case_number_normalized,
+                            'case_title': case_title_normalized,
+                            'parties': parties_normalized,
+                            'court': court_normalized
+                        }
+                    }
+                )
+                if created:
+                    total_chunks = 1
+            else:
+                total_terms = 0  # Will be calculated when vocabulary is available
             
             avg_chunk_length = 0
             if total_chunks > 0:
                 avg_chunk_length = sum(chunk.token_count for chunk in DocumentChunk.objects.filter(case_id=case_id)) / total_chunks
             
-            # Create or update search metadata
+            # Create or update search metadata with enhanced fields
             search_metadata, created = SearchMetadata.objects.get_or_create(
                 case_id=case_id,
                 defaults={
@@ -130,10 +206,27 @@ class KeywordIndexingService:
                     'content_hash': content_hash,
                     'text_hash': text_hash,
                     'metadata_hash': metadata_hash,
+                    'enhanced_metadata_hash': enhanced_metadata_hash,
                     'total_chunks': total_chunks,
                     'total_terms': total_terms,
                     'avg_chunk_length': avg_chunk_length,
-                    'is_indexed': False
+                    'is_indexed': False,
+                    # TIER 1 ENHANCEMENT: Enhanced metadata fields
+                    'legal_entities': enhanced_metadata.get('legal_entities', []),
+                    'legal_concepts': enhanced_metadata.get('legal_concepts', []),
+                    'case_classification': enhanced_metadata.get('case_type_classification', {}),
+                    'subject_matter': enhanced_metadata.get('subject_matter', []),
+                    'parties_intelligence': enhanced_metadata.get('parties_intelligence', {}),
+                    'procedural_stage': enhanced_metadata.get('procedural_stage', ''),
+                    'case_timeline': enhanced_metadata.get('case_timeline', []),
+                    'content_richness_score': enhanced_metadata.get('content_richness_score', 0.0),
+                    'data_completeness_score': enhanced_metadata.get('data_completeness_score', 0.0),
+                    'authority_score': self._calculate_authority_score(court_normalized),
+                    'precedential_value': self._calculate_precedential_value(case_data),
+                    'searchable_keywords': enhanced_metadata.get('searchable_keywords', []),
+                    'semantic_tags': enhanced_metadata.get('semantic_tags', []),
+                    'relevance_boosters': enhanced_metadata.get('relevance_boosters', []),
+                    'enhanced_metadata_extracted': True
                 }
             )
             
@@ -161,6 +254,54 @@ class KeywordIndexingService:
         except Exception as e:
             logger.error(f"Error creating search metadata for case {case_id}: {str(e)}")
             return None
+    
+    def _calculate_authority_score(self, court_normalized: str) -> float:
+        """Calculate authority score based on court hierarchy"""
+        court_lower = court_normalized.lower()
+        
+        if 'supreme court' in court_lower:
+            return 1.0
+        elif 'high court' in court_lower:
+            return 0.8
+        elif 'district court' in court_lower or 'sessions court' in court_lower:
+            return 0.6
+        elif 'magistrate' in court_lower:
+            return 0.4
+        else:
+            return 0.5  # Default score
+    
+    def _calculate_precedential_value(self, case_data: Dict) -> float:
+        """Calculate precedential value based on case characteristics"""
+        score = 0.0
+        
+        # Status-based scoring
+        status = case_data.get('status', '').lower()
+        if 'decided' in status:
+            score += 0.4
+        elif 'pending' in status:
+            score += 0.1
+        
+        # Case type-based scoring
+        case_number = case_data.get('case_number', '').lower()
+        if 'appeal' in case_number:
+            score += 0.3
+        elif 'revision' in case_number:
+            score += 0.25
+        elif 'writ' in case_number:
+            score += 0.35
+        else:
+            score += 0.1
+        
+        # Court-based scoring (already handled in authority_score)
+        court = case_data.get('court_name', '').lower()
+        if 'supreme court' in court:
+            score += 0.3
+        elif 'high court' in court:
+            score += 0.2
+        elif 'district court' in court:
+            score += 0.1
+        
+        return min(score, 1.0)
     
     def build_facet_index(self, facet_type: str) -> Dict[str, any]:
         """Build facet index for vocabulary-driven search"""
@@ -501,9 +642,10 @@ class KeywordIndexingService:
                 rank=SearchRank(search_vector, search_query)
             ).order_by('-rank')[:top_k * 2]  # Get more results for better scoring
             
-            # If no results with meaningful rank, try partial matching
-            # PostgreSQL ranks can be very small (like 1e-20), so we check for very low ranks
-            if not results or all(r.rank < 0.001 for r in results):
+            # IMPROVED: Handle PostgreSQL's very small ranks properly
+            # PostgreSQL ranks can be very small (like 1e-20), but they're still meaningful
+            # Only try partial matching if we have NO results at all
+            if not results:
                 # Try partial matching by splitting query into terms
                 query_terms = normalized_query.split()
                 partial_results = []

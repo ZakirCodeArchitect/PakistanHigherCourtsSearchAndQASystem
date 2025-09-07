@@ -285,7 +285,7 @@ class IndexingLog(models.Model):
 
 
 class SearchMetadata(models.Model):
-    """Metadata for search optimization and ranking"""
+    """Enhanced metadata for search optimization and ranking"""
     
     # Document information
     case_id = models.IntegerField()  # Store case ID as integer instead of foreign key
@@ -302,10 +302,31 @@ class SearchMetadata(models.Model):
     hearing_date = models.DateField(null=True, blank=True, db_index=True)
     disposal_date = models.DateField(null=True, blank=True, db_index=True)
     
+    # TIER 1 ENHANCEMENT: Rich metadata fields
+    legal_entities = models.JSONField(default=list, blank=True)  # Extracted legal entities
+    legal_concepts = models.JSONField(default=list, blank=True)  # Legal concepts
+    case_classification = models.JSONField(default=dict, blank=True)  # Case type classification
+    subject_matter = models.JSONField(default=list, blank=True)  # Subject matter tags
+    parties_intelligence = models.JSONField(default=dict, blank=True)  # Party analysis
+    procedural_stage = models.CharField(max_length=50, blank=True, db_index=True)
+    case_timeline = models.JSONField(default=list, blank=True)  # Case timeline
+    
+    # TIER 1 ENHANCEMENT: Quality and relevance scores
+    content_richness_score = models.FloatField(default=0.0, db_index=True)
+    data_completeness_score = models.FloatField(default=0.0, db_index=True)
+    authority_score = models.FloatField(default=0.0, db_index=True)  # Court hierarchy score
+    precedential_value = models.FloatField(default=0.0, db_index=True)
+    
+    # TIER 1 ENHANCEMENT: Search optimization
+    searchable_keywords = models.JSONField(default=list, blank=True)  # Optimized keywords
+    semantic_tags = models.JSONField(default=list, blank=True)  # Semantic tags
+    relevance_boosters = models.JSONField(default=list, blank=True)  # Boost factors
+    
     # Content hashes for idempotency
     content_hash = models.CharField(max_length=64, db_index=True)  # Hash of all content
     text_hash = models.CharField(max_length=64, db_index=True)     # Hash of text content
     metadata_hash = models.CharField(max_length=64, db_index=True) # Hash of metadata
+    enhanced_metadata_hash = models.CharField(max_length=64, db_index=True, default='')  # Enhanced metadata hash
     
     # Search statistics
     total_chunks = models.IntegerField(default=0)
@@ -314,6 +335,7 @@ class SearchMetadata(models.Model):
     
     # Processing status
     is_indexed = models.BooleanField(default=False)
+    enhanced_metadata_extracted = models.BooleanField(default=False, db_index=True)
     last_indexed = models.DateTimeField(null=True, blank=True)
     
     # Timestamps

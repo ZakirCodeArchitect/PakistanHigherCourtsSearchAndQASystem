@@ -398,7 +398,21 @@ class HybridIndexingService:
             for case_id, result in case_results.items():
                 # Normalize scores to 0-1 range
                 normalized_vector = min(1.0, result['vector_score'])
-                normalized_keyword = min(1.0, result['keyword_score'] / 10.0)  # Assuming max rank is around 10
+                
+                # IMPROVED: Better keyword score normalization
+                # Handle very small PostgreSQL ranks and convert to meaningful scores
+                keyword_score = result['keyword_score']
+                if keyword_score > 0:
+                    # For PostgreSQL ranks, use logarithmic scaling to make small ranks meaningful
+                    if keyword_score < 0.001:
+                        # Very small ranks get a base score
+                        normalized_keyword = 0.3 + (keyword_score * 100)  # Scale up small ranks
+                    else:
+                        # Normal ranks get standard normalization
+                        normalized_keyword = min(1.0, keyword_score)
+                else:
+                    # If keyword score is 0 but case was found, give it a small boost
+                    normalized_keyword = 0.1 if case_id in [r['case_id'] for r in keyword_results] else 0.0
                 
                 # Calculate weighted combined score
                 result['combined_score'] = (

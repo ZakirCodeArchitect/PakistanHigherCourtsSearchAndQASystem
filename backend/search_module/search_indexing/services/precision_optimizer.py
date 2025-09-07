@@ -452,7 +452,7 @@ class PrecisionOptimizerService:
         return final_results
     
     def _apply_intelligent_cutoff(self, sorted_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Apply intelligent relevance-based cutoff to results"""
+        """Apply intelligent relevance-based cutoff to results - IMPROVED for partial matches"""
         if not sorted_results:
             return sorted_results
             
@@ -471,11 +471,21 @@ class PrecisionOptimizerService:
                 if current_score < min_score:
                     break  # Stop at first result below minimum
                 
-                # Apply relative score drop threshold
+                # IMPROVED: More lenient relative score drop threshold for cases with good combined scores
                 if top_score > 0:
                     score_ratio = current_score / top_score
-                    if score_ratio < score_drop_threshold:
-                        break  # Stop when quality drops significantly
+                    
+                    # If the case has a good combined score (from vector/keyword search), be more lenient
+                    combined_score = result.get('combined_score', 0)
+                    if combined_score > 0.1:  # If it has a decent combined score
+                        # Use a very lenient threshold for cases with good search scores
+                        lenient_threshold = max(0.02, score_drop_threshold * 0.1)  # 90% more lenient (0.45 * 0.1 = 0.045)
+                        if score_ratio < lenient_threshold:
+                            break
+                    else:
+                        # Use normal threshold for cases without good search scores
+                        if score_ratio < score_drop_threshold:
+                            break
                 
                 intelligent_results.append(result)
                 

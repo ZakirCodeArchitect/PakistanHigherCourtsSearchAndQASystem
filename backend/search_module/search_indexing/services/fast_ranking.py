@@ -176,7 +176,7 @@ class FastRankingService:
         return scored_results
     
     def _calculate_simple_boost(self, result: Dict, query: str) -> float:
-        """Calculate boost without database queries"""
+        """Calculate boost without database queries - IMPROVED for partial matches"""
         total_boost = 0
         
         # Check if case number contains query terms (fast string operation)
@@ -186,10 +186,36 @@ class FastRankingService:
         if query_upper in case_number:
             total_boost += self.default_config['exact_match_boost']
         
-        # Check if case title contains query terms (fast string operation)
+        # IMPROVED: Check if case title contains query terms with better scoring
         case_title = result['result_data'].get('case_title', '').upper()
-        if query_upper in case_title:
-            total_boost += 0.5  # Smaller boost for title match
+        if case_title and query_upper:
+            # Split query into individual terms for partial matching
+            query_terms = [term.strip() for term in query_upper.split() if len(term.strip()) > 2]
+            
+            # Count how many query terms appear in the title
+            matching_terms = 0
+            for term in query_terms:
+                if term in case_title:
+                    matching_terms += 1
+            
+            # Calculate boost based on term matches
+            if matching_terms > 0:
+                # Base boost for any title match
+                title_boost = 1.0
+                
+                # Additional boost for multiple term matches
+                if matching_terms > 1:
+                    title_boost += (matching_terms - 1) * 0.5
+                
+                # Extra boost for exact phrase match
+                if query_upper in case_title:
+                    title_boost += 1.5
+                
+                # Boost for query terms at the beginning of title (more important)
+                if case_title.startswith(query_upper):
+                    title_boost += 1.0
+                
+                total_boost += title_boost
         
         # Cap total boost
         total_boost = min(total_boost, self.default_config['max_boost'])

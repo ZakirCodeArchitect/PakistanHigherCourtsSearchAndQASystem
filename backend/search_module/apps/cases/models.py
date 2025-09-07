@@ -150,8 +150,8 @@ class JudgementData(models.Model):
     )
 
     # Judgement information from scraper
-    pdf_url = models.URLField(max_length=800, blank=True)  # pdf_url
-    pdf_filename = models.CharField(max_length=300, blank=True)  # pdf_filename
+    pdf_url = models.URLField(max_length=800, blank=True, null=True, default='')  # pdf_url
+    pdf_filename = models.CharField(max_length=300, blank=True, null=True, default='')  # pdf_filename
     # REMOVED: page_title (empty, redundant)
 
     # Timestamps
@@ -209,12 +209,12 @@ class CommentsData(models.Model):
     )
 
     # Comments table data from scraper
-    compliance_date = models.CharField(max_length=50, blank=True)  # row[1]
-    case_no = models.CharField(max_length=300, blank=True)  # row[2]
-    case_title = models.CharField(max_length=800, blank=True)  # row[3]
-    doc_type = models.CharField(max_length=100, blank=True)  # row[4]
-    parties = models.CharField(max_length=300, blank=True)  # row[5]
-    description = models.TextField(blank=True)  # row[6]
+    compliance_date = models.CharField(max_length=50, blank=True, null=True, default='')  # row[1]
+    case_no = models.CharField(max_length=300, blank=True, null=True, default='')  # row[2]
+    case_title = models.CharField(max_length=800, blank=True, null=True, default='')  # row[3]
+    doc_type = models.CharField(max_length=100, blank=True, null=True, default='')  # row[4]
+    parties = models.CharField(max_length=300, blank=True, null=True, default='')  # row[5]
+    description = models.TextField(blank=True, null=True, default='')  # row[6]
     view_link = models.JSONField(
         default=list, blank=True
     )  # row[7] (array of link objects)
@@ -279,9 +279,9 @@ class PartiesDetailData(models.Model):
     )
 
     # Parties table data from scraper
-    party_number = models.CharField(max_length=20, blank=True)  # row[0]
-    party_name = models.CharField(max_length=800, blank=True)  # row[1]
-    party_side = models.CharField(max_length=100, blank=True)  # row[2]
+    party_number = models.CharField(max_length=20, blank=True, null=True, default='')  # row[0]
+    party_name = models.CharField(max_length=800, blank=True, null=True, default='')  # row[1]
+    party_side = models.CharField(max_length=100, blank=True, null=True, default='')  # row[2]
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -319,8 +319,8 @@ class Document(models.Model):
     is_cleaned = models.BooleanField(default=False)  # Text cleaning completed
     
     # Error handling
-    download_error = models.TextField(blank=True)  # Download error message
-    processing_error = models.TextField(blank=True)  # Processing error message
+    download_error = models.TextField(blank=True, null=True, default='')  # Download error message
+    processing_error = models.TextField(blank=True, null=True, default='')  # Processing error message
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -351,8 +351,8 @@ class CaseDocument(models.Model):
     source_link_index = models.IntegerField(default=0)  # Index in the view_link array
     
     # Document context
-    document_type = models.CharField(max_length=50, blank=True)  # 'order', 'judgment', 'comment', etc.
-    document_title = models.CharField(max_length=500, blank=True)  # Title from link metadata
+    document_type = models.CharField(max_length=50, blank=True, null=True, default='')  # 'order', 'judgment', 'comment', etc.
+    document_title = models.CharField(max_length=500, blank=True, null=True, default='')  # Title from link metadata
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -380,7 +380,7 @@ class DocumentText(models.Model):
     
     # Text content
     raw_text = models.TextField()  # Raw extracted text
-    clean_text = models.TextField(blank=True)  # Cleaned text (after processing)
+    clean_text = models.TextField(blank=True, null=True, default='')  # Cleaned text (after processing)
     
     # Processing metadata
     extraction_method = models.CharField(max_length=20, default='pymupdf')  # 'pymupdf', 'ocr'
@@ -429,7 +429,7 @@ class UnifiedCaseView(models.Model):
     
     # Processing status
     is_processed = models.BooleanField(default=False)
-    processing_error = models.TextField(blank=True)
+    processing_error = models.TextField(blank=True, null=True, default='')
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -456,8 +456,8 @@ class ViewLinkData(models.Model):
 
     # Link information
     href = models.URLField(max_length=800, null=True, blank=True)  # The actual URL
-    title = models.CharField(max_length=200, blank=True)  # Link title/tooltip
-    link_text = models.CharField(max_length=200, blank=True)  # Display text
+    title = models.CharField(max_length=200, blank=True, null=True, default='')  # Link title/tooltip
+    link_text = models.CharField(max_length=200, blank=True, null=True, default='')  # Display text
 
     # Source information
     source_table = models.CharField(
@@ -468,7 +468,7 @@ class ViewLinkData(models.Model):
     )  # SR number from source row
 
     # File information
-    file_type = models.CharField(max_length=20, blank=True)  # 'pdf', 'doc', etc.
+    file_type = models.CharField(max_length=20, blank=True, null=True, default='')  # 'pdf', 'doc', etc.
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -574,7 +574,7 @@ class VocabularyProcessingLog(models.Model):
     
     # Status
     is_successful = models.BooleanField(default=True)
-    error_message = models.TextField(blank=True)
+    error_message = models.TextField(blank=True, null=True, default='')
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

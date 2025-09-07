@@ -27,8 +27,14 @@ class LegalSemanticMatcher:
         try:
             if self.model is None:
                 # Use a model that works well with legal text
-                self.model = SentenceTransformer('all-MiniLM-L6-v2')
-                logger.info("Legal semantic matcher initialized")
+                try:
+                    self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
+                    logger.info("Legal semantic matcher initialized with CPU device")
+                except Exception as tensor_error:
+                    logger.warning(f"Tensor error with device specification: {str(tensor_error)}")
+                    # Try without device specification
+                    self.model = SentenceTransformer('all-MiniLM-L6-v2')
+                    logger.info("Legal semantic matcher initialized without device specification")
                 
                 # Pre-compute embeddings for common legal concepts
                 self._precompute_legal_embeddings()

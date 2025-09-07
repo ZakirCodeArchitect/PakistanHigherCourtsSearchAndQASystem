@@ -183,7 +183,13 @@ class AdvancedRankingService:
                 boost_factors.append(('legal_term', legal_term_boost))
                 total_boost += legal_term_boost
             
-            # 4. Filter alignment boost
+            # 4. Title match boost (NEW - for partial matches)
+            title_boost = self._calculate_title_match_boost(result, query_info.get('original_query', ''))
+            if title_boost > 0:
+                boost_factors.append(('title_match', title_boost))
+                total_boost += title_boost
+            
+            # 5. Filter alignment boost
             if filters:
                 filter_boost = self._calculate_filter_alignment_boost(case_id, filters)
                 if filter_boost > 0:
@@ -282,6 +288,53 @@ class AdvancedRankingService:
         except Exception as e:
             logger.error(f"Error calculating legal term boost: {str(e)}")
             return 0.0
+    
+    def _calculate_title_match_boost(self, result: Dict, query: str) -> float:
+        """Calculate boost for title matches - IMPROVED for partial matches"""
+        if not query or not result.get('result_data'):
+            return 0.0
+        
+        case_title = result['result_data'].get('case_title', '').upper()
+        query_upper = query.upper()
+        
+        if not case_title or not query_upper:
+            return 0.0
+        
+        boost = 0.0
+        
+        # Split query into individual terms for partial matching
+        query_terms = [term.strip() for term in query_upper.split() if len(term.strip()) > 2]
+        
+        if query_terms:
+            # Count how many query terms appear in the title
+            matching_terms = 0
+            for term in query_terms:
+                if term in case_title:
+                    matching_terms += 1
+            
+            # Calculate boost based on term matches
+            if matching_terms > 0:
+                # Base boost for any title match
+                boost = 1.5
+                
+                # Additional boost for multiple term matches
+                if matching_terms > 1:
+                    boost += (matching_terms - 1) * 0.8
+                
+                # Extra boost for exact phrase match
+                if query_upper in case_title:
+                    boost += 2.0
+                
+                # Boost for query terms at the beginning of title (more important)
+                if case_title.startswith(query_upper):
+                    boost += 1.5
+                
+                # Boost for case number matches too
+                case_number = result['result_data'].get('case_number', '').upper()
+                if query_upper in case_number:
+                    boost += 1.0
+        
+        return min(boost, 3.0)  # Cap at 3.0 for title matches
     
     def _calculate_filter_alignment_boost(self, case_id: int, filters: Dict) -> float:
         """Calculate boost for filter alignment"""
