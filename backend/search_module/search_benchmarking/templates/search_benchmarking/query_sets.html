@@ -320,6 +320,14 @@
                     return;
                 }
                 
+                // Determine appropriate search mode based on query set category
+                let searchMode = 'hybrid'; // default
+                if (querySet.category === 'exact_match' || querySet.category === 'lexical') {
+                    searchMode = 'lexical';
+                } else if (querySet.category === 'semantic') {
+                    searchMode = 'semantic';
+                }
+                
                 // Get CSRF token
                 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                                  getCookie('csrftoken');
@@ -332,15 +340,15 @@
                     },
                     body: JSON.stringify({
                         query_set_id: querySetId,
-                        execution_name: `Benchmark for ${querySet.name}`,
-                        search_mode: 'hybrid',
-                        ranking_algorithm: 'advanced_ranking'
+                        execution_name: `${searchMode.charAt(0).toUpperCase() + searchMode.slice(1)} Benchmark for ${querySet.name}`,
+                        search_mode: searchMode,
+                        ranking_algorithm: 'fast_ranking'
                     })
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    alert(`Benchmark started successfully! Execution ID: ${data.id}`);
+                    alert(`${searchMode.charAt(0).toUpperCase() + searchMode.slice(1)} benchmark started successfully!\nExecution ID: ${data.id}\nMode: ${searchMode}`);
                     // Redirect to dashboard to see the execution
                     window.location.href = '/search/benchmarking/dashboard/';
                 } else {

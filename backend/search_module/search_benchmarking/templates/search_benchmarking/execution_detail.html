@@ -124,6 +124,26 @@
             color: #721c24;
         }
         
+        .status.excellent {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.good {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status.fair {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.poor {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -327,6 +347,22 @@
             </div>
         </div>
         
+        <!-- Advanced Performance Metrics -->
+        <div class="section">
+            <h2>Advanced Performance Metrics</h2>
+            <div id="advancedPerformanceAnalysis">
+                <div class="loading">Loading advanced performance analysis...</div>
+            </div>
+        </div>
+        
+        <!-- Quality Distribution Analysis -->
+        <div class="section">
+            <h2>Quality Distribution Analysis</h2>
+            <div id="qualityDistributionAnalysis">
+                <div class="loading">Loading quality distribution analysis...</div>
+            </div>
+        </div>
+        
         <!-- Query Results -->
         <div class="section">
             <h2>Query Results</h2>
@@ -371,6 +407,8 @@
                 updateExecutionInfo(data);
                 updatePerformanceMetrics(data);
                 updatePerformanceAnalysis(data);
+                updateAdvancedPerformanceAnalysis(data);
+                updateQualityDistributionAnalysis(data);
                 updateQueryResults(data);
             } catch (error) {
                 console.error('Error loading execution details:', error);
@@ -544,6 +582,177 @@
             container.innerHTML = html;
         }
         
+        // Update advanced performance analysis
+        function updateAdvancedPerformanceAnalysis(data) {
+            const container = document.getElementById('advancedPerformanceAnalysis');
+            const analysis = data.performance_analysis || {};
+            
+            let html = '<div class="performance-insights">';
+            
+            // CPU Analysis
+            if (analysis.cpu_analysis) {
+                const cpu = analysis.cpu_analysis;
+                html += `
+                    <div class="analysis-card">
+                        <h4>CPU Usage Analysis</h4>
+                        <p><strong>Average CPU:</strong> ${cpu.mean_percent.toFixed(1)}%</p>
+                        <p><strong>Median CPU:</strong> ${cpu.median_percent.toFixed(1)}%</p>
+                        <p><strong>Range:</strong> ${cpu.min_percent.toFixed(1)}% - ${cpu.max_percent.toFixed(1)}%</p>
+                        <p><strong>CPU Efficiency Score:</strong> ${(cpu.cpu_efficiency.cpu_efficiency_score * 100).toFixed(1)}%</p>
+                        <p><strong>Performance Categories:</strong></p>
+                        <ul>
+                            <li>Excellent (≤10%): ${cpu.performance_categories.excellent || 0}</li>
+                            <li>Good (11-25%): ${cpu.performance_categories.good || 0}</li>
+                            <li>Acceptable (26-50%): ${cpu.performance_categories.acceptable || 0}</li>
+                            <li>Poor (>50%): ${cpu.performance_categories.poor || 0}</li>
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Performance Trends within execution
+            if (analysis.performance_trends) {
+                const trends = analysis.performance_trends;
+                html += `
+                    <div class="analysis-card">
+                        <h4>Performance Trends</h4>
+                        <p><strong>Consistency Score:</strong> ${(trends.consistency_score * 100).toFixed(1)}%</p>
+                        <p><strong>Performance Degradation:</strong> ${trends.performance_degradation.detected ? 'Yes' : 'No'}</p>
+                        ${trends.performance_degradation.detected ? `
+                            <p><strong>Degradation:</strong> ${trends.performance_degradation.degradation_percent.toFixed(1)}%</p>
+                            <p><strong>Severity:</strong> <span class="status ${trends.performance_degradation.severity}">${trends.performance_degradation.severity}</span></p>
+                        ` : ''}
+                        <p><strong>Latency Trend:</strong> ${trends.latency_trend ? 'Available' : 'Not available'}</p>
+                        <p><strong>Memory Trend:</strong> ${trends.memory_trend ? 'Available' : 'Not available'}</p>
+                    </div>
+                `;
+            }
+            
+            // Statistical Analysis
+            if (data.statistical_analysis) {
+                const stats = data.statistical_analysis;
+                html += `
+                    <div class="analysis-card">
+                        <h4>Statistical Analysis</h4>
+                        <p><strong>Standard Deviation (Latency):</strong> ${stats.latency_std.toFixed(1)} ms</p>
+                        <p><strong>Standard Deviation (Precision):</strong> ${stats.precision_std.toFixed(3)}</p>
+                        <p><strong>Standard Deviation (Recall):</strong> ${stats.recall_std.toFixed(3)}</p>
+                        <p><strong>Standard Deviation (MRR):</strong> ${stats.mrr_std.toFixed(3)}</p>
+                        <p><strong>Confidence Interval (95%):</strong> ±${stats.confidence_interval.toFixed(3)}</p>
+                        <p><strong>Sample Size:</strong> ${stats.sample_size}</p>
+                    </div>
+                `;
+            }
+            
+            // Performance Efficiency
+            html += `
+                <div class="analysis-card">
+                    <h4>Performance Efficiency</h4>
+                    <p><strong>Memory Efficiency:</strong> ${analysis.memory_analysis?.memory_efficiency?.memory_efficiency_score ? (analysis.memory_analysis.memory_efficiency.memory_efficiency_score * 100).toFixed(1) + '%' : 'N/A'}</p>
+                    <p><strong>CPU Efficiency:</strong> ${analysis.cpu_analysis?.cpu_efficiency?.cpu_efficiency_score ? (analysis.cpu_analysis.cpu_efficiency.cpu_efficiency_score * 100).toFixed(1) + '%' : 'N/A'}</p>
+                    <p><strong>Throughput Efficiency:</strong> ${analysis.throughput_analysis?.throughput_efficiency ? (analysis.throughput_analysis.throughput_efficiency * 100).toFixed(1) + '%' : 'N/A'}</p>
+                    <p><strong>Overall Efficiency Score:</strong> ${calculateOverallEfficiency(analysis).toFixed(1)}%</p>
+                </div>
+            `;
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Update quality distribution analysis
+        function updateQualityDistributionAnalysis(data) {
+            const container = document.getElementById('qualityDistributionAnalysis');
+            const quality = data.quality_analysis || {};
+            
+            let html = '<div class="performance-insights">';
+            
+            // Quality Distribution
+            if (quality.quality_distribution) {
+                const distribution = quality.quality_distribution;
+                html += `
+                    <div class="analysis-card">
+                        <h4>Quality Score Distribution</h4>
+                        <p><strong>Excellent Queries (≥80%):</strong> ${distribution.excellent_queries || 0}</p>
+                        <p><strong>Good Queries (60-80%):</strong> ${distribution.good_queries || 0}</p>
+                        <p><strong>Fair Queries (40-60%):</strong> ${distribution.fair_queries || 0}</p>
+                        <p><strong>Poor Queries (<40%):</strong> ${distribution.poor_queries || 0}</p>
+                        <p><strong>Mean Quality:</strong> ${(distribution.quality_distribution?.mean * 100 || 0).toFixed(1)}%</p>
+                        <p><strong>Median Quality:</strong> ${(distribution.quality_distribution?.median * 100 || 0).toFixed(1)}%</p>
+                        <p><strong>Quality Std Dev:</strong> ${(distribution.quality_distribution?.std * 100 || 0).toFixed(1)}%</p>
+                    </div>
+                `;
+            }
+            
+            // Performance Categories
+            if (data.performance_analysis?.latency_analysis?.performance_categories) {
+                const categories = data.performance_analysis.latency_analysis.performance_categories;
+                html += `
+                    <div class="analysis-card">
+                        <h4>Latency Performance Categories</h4>
+                        <p><strong>Excellent (≤500ms):</strong> ${categories.excellent || 0} queries</p>
+                        <p><strong>Good (501-1000ms):</strong> ${categories.good || 0} queries</p>
+                        <p><strong>Acceptable (1001-2000ms):</strong> ${categories.acceptable || 0} queries</p>
+                        <p><strong>Poor (>2000ms):</strong> ${categories.poor || 0} queries</p>
+                        <p><strong>Performance Score:</strong> ${calculatePerformanceScore(categories).toFixed(1)}%</p>
+                    </div>
+                `;
+            }
+            
+            // Quality Trends
+            html += `
+                <div class="analysis-card">
+                    <h4>Quality Trends & Insights</h4>
+                    <p><strong>Best Performing Query Type:</strong> ${data.best_query_type || 'N/A'}</p>
+                    <p><strong>Worst Performing Query Type:</strong> ${data.worst_query_type || 'N/A'}</p>
+                    <p><strong>Quality Improvement Potential:</strong> ${calculateImprovementPotential(data).toFixed(1)}%</p>
+                    <p><strong>Consistency Rating:</strong> ${getConsistencyRating(data)}</p>
+                    <p><strong>Overall Assessment:</strong> ${getOverallAssessment(data)}</p>
+                </div>
+            `;
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Helper functions for calculations
+        function calculateOverallEfficiency(analysis) {
+            const memoryEff = analysis.memory_analysis?.memory_efficiency?.memory_efficiency_score || 0;
+            const cpuEff = analysis.cpu_analysis?.cpu_efficiency?.cpu_efficiency_score || 0;
+            const throughputEff = analysis.throughput_analysis?.throughput_efficiency || 0;
+            return ((memoryEff + cpuEff + throughputEff) / 3) * 100;
+        }
+        
+        function calculatePerformanceScore(categories) {
+            const total = (categories.excellent || 0) + (categories.good || 0) + (categories.acceptable || 0) + (categories.poor || 0);
+            if (total === 0) return 0;
+            const score = ((categories.excellent * 100) + (categories.good * 75) + (categories.acceptable * 50) + (categories.poor * 25)) / total;
+            return score;
+        }
+        
+        function calculateImprovementPotential(data) {
+            const currentQuality = data.quality_analysis?.overall_quality_score || 0;
+            return Math.max(0, (1 - currentQuality) * 100);
+        }
+        
+        function getConsistencyRating(data) {
+            const consistency = data.performance_analysis?.performance_trends?.consistency_score || 0;
+            if (consistency >= 0.8) return 'Excellent';
+            if (consistency >= 0.6) return 'Good';
+            if (consistency >= 0.4) return 'Fair';
+            return 'Poor';
+        }
+        
+        function getOverallAssessment(data) {
+            const quality = data.quality_analysis?.overall_quality_score || 0;
+            const latency = data.performance_analysis?.latency_analysis?.mean_ms || 0;
+            const successRate = data.summary?.success_rate || 0;
+            
+            if (quality >= 0.8 && latency <= 1000 && successRate >= 95) return 'Excellent';
+            if (quality >= 0.6 && latency <= 2000 && successRate >= 90) return 'Good';
+            if (quality >= 0.4 && latency <= 5000 && successRate >= 80) return 'Fair';
+            return 'Needs Improvement';
+        }
+        
         // Update query results
         function updateQueryResults(data) {
             const container = document.getElementById('queryResults');
@@ -552,39 +761,132 @@
             const results = data.results || data.query_results || data.individual_results || [];
             
             if (results && results.length > 0) {
-                let html = '<table class="table">';
-                html += '<thead><tr><th>Query</th><th>Status</th><th>Latency (ms)</th><th>Precision@10</th><th>Recall@10</th><th>MRR</th><th>NDCG@10</th></tr></thead>';
+                let html = '<div style="margin-bottom: 20px;">';
+                html += '<h4>Individual Query Performance</h4>';
+                html += '<p>Detailed breakdown of each query\'s performance metrics and relevance analysis.</p>';
+                html += '</div>';
+                
+                html += '<table class="table">';
+                html += '<thead><tr><th>Query</th><th>Status</th><th>Latency</th><th>P@5</th><th>P@10</th><th>P@20</th><th>R@5</th><th>R@10</th><th>R@20</th><th>MRR</th><th>NDCG@10</th><th>F1@10</th><th>Quality</th></tr></thead>';
                 html += '<tbody>';
                 
                 results.forEach(result => {
+                    const qualityScore = calculateQueryQualityScore(result);
+                    const qualityClass = getQualityClass(qualityScore);
+                    
                     html += `<tr>
-                        <td>${result.query_text ? result.query_text.substring(0, 50) + (result.query_text.length > 50 ? '...' : '') : 'N/A'}</td>
+                        <td title="${result.query_text || 'N/A'}">${result.query_text ? result.query_text.substring(0, 40) + (result.query_text.length > 40 ? '...' : '') : 'N/A'}</td>
                         <td><span class="status ${result.status || 'unknown'}">${result.status || 'unknown'}</span></td>
-                        <td>${(result.latency_ms || 0).toFixed(1)}</td>
+                        <td>${(result.execution_time_ms || result.latency_ms || 0).toFixed(1)}ms</td>
+                        <td>${(result.precision_at_5 || 0).toFixed(3)}</td>
                         <td>${(result.precision_at_10 || 0).toFixed(3)}</td>
+                        <td>${(result.precision_at_20 || 0).toFixed(3)}</td>
+                        <td>${(result.recall_at_5 || 0).toFixed(3)}</td>
                         <td>${(result.recall_at_10 || 0).toFixed(3)}</td>
+                        <td>${(result.recall_at_20 || 0).toFixed(3)}</td>
                         <td>${(result.mrr || 0).toFixed(3)}</td>
                         <td>${(result.ndcg_at_10 || 0).toFixed(3)}</td>
+                        <td>${(result.f1_at_10 || 0).toFixed(3)}</td>
+                        <td><span class="status ${qualityClass}">${(qualityScore * 100).toFixed(1)}%</span></td>
                     </tr>`;
                 });
                 
                 html += '</tbody></table>';
+                
+                // Add detailed relevance analysis if available
+                if (data.detailed_analysis) {
+                    html += addDetailedRelevanceAnalysis(data.detailed_analysis);
+                }
+                
                 container.innerHTML = html;
             } else {
-                // Show summary information instead
+                // Show enhanced summary information
                 const summary = data.summary || {};
                 container.innerHTML = `
                     <div class="info">
                         <h4>Execution Summary</h4>
-                        <p><strong>Total Queries:</strong> ${summary.total_queries || 0}</p>
-                        <p><strong>Successful Queries:</strong> ${summary.successful_queries || 0}</p>
-                        <p><strong>Failed Queries:</strong> ${summary.failed_queries || 0}</p>
-                        <p><strong>Success Rate:</strong> ${summary.success_rate || 0}%</p>
-                        <p><strong>Average Latency:</strong> ${(summary.average_latency_ms || 0).toFixed(1)} ms</p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                            <div><strong>Total Queries:</strong> ${summary.total_queries || 0}</div>
+                            <div><strong>Successful Queries:</strong> ${summary.successful_queries || 0}</div>
+                            <div><strong>Failed Queries:</strong> ${summary.failed_queries || 0}</div>
+                            <div><strong>Success Rate:</strong> ${summary.success_rate || 0}%</div>
+                            <div><strong>Average Latency:</strong> ${(summary.average_latency_ms || 0).toFixed(1)} ms</div>
+                            <div><strong>Average Precision@10:</strong> ${(summary.average_precision_at_10 || 0).toFixed(3)}</div>
+                            <div><strong>Average Recall@10:</strong> ${(summary.average_recall_at_10 || 0).toFixed(3)}</div>
+                            <div><strong>Average MRR:</strong> ${(summary.average_mrr || 0).toFixed(3)}</div>
+                        </div>
                         <p><em>Individual query results are not available for this execution. Use the summary metrics above for performance analysis.</em></p>
                     </div>
                 `;
             }
+        }
+        
+        // Add detailed relevance analysis section
+        function addDetailedRelevanceAnalysis(analysis) {
+            let html = '<div style="margin-top: 30px;">';
+            html += '<h4>Detailed Relevance Analysis</h4>';
+            
+            if (analysis.total_expected !== undefined) {
+                html += `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                        <div class="analysis-card">
+                            <h5>Coverage Analysis</h5>
+                            <p><strong>Total Expected:</strong> ${analysis.total_expected}</p>
+                            <p><strong>Total Returned:</strong> ${analysis.total_returned}</p>
+                            <p><strong>Relevant Found:</strong> ${analysis.relevant_found}</p>
+                            <p><strong>Coverage Rate:</strong> ${((analysis.relevant_found / analysis.total_expected) * 100).toFixed(1)}%</p>
+                        </div>
+                        <div class="analysis-card">
+                            <h5>Quality Analysis</h5>
+                            <p><strong>Irrelevant Returned:</strong> ${analysis.irrelevant_returned}</p>
+                            <p><strong>Missing Relevant:</strong> ${analysis.missing_relevant?.length || 0}</p>
+                            <p><strong>Precision Rate:</strong> ${((analysis.relevant_found / analysis.total_returned) * 100).toFixed(1)}%</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (analysis.relevant_positions && analysis.relevant_positions.length > 0) {
+                html += '<div class="analysis-card" style="margin-top: 15px;">';
+                html += '<h5>Relevant Results Positions</h5>';
+                html += '<table style="width: 100%; font-size: 0.9em;">';
+                html += '<thead><tr><th>Position</th><th>Case ID</th><th>Relevance Score</th><th>Quality</th></tr></thead>';
+                html += '<tbody>';
+                
+                analysis.relevant_positions.slice(0, 10).forEach(item => {
+                    const qualityClass = getQualityClass(item.relevance);
+                    html += `<tr>
+                        <td>${item.position}</td>
+                        <td>${item.case_id}</td>
+                        <td>${item.relevance.toFixed(3)}</td>
+                        <td><span class="status ${qualityClass}">${(item.relevance * 100).toFixed(1)}%</span></td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Helper functions for query quality assessment
+        function calculateQueryQualityScore(result) {
+            const precision = result.precision_at_10 || 0;
+            const recall = result.recall_at_10 || 0;
+            const mrr = result.mrr || 0;
+            const ndcg = result.ndcg_at_10 || 0;
+            
+            // Weighted average of key metrics
+            return (precision * 0.3 + recall * 0.3 + mrr * 0.2 + ndcg * 0.2);
+        }
+        
+        function getQualityClass(score) {
+            if (score >= 0.8) return 'excellent';
+            if (score >= 0.6) return 'good';
+            if (score >= 0.4) return 'fair';
+            return 'poor';
         }
         
         // Generate report

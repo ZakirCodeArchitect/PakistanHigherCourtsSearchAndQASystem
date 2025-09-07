@@ -396,6 +396,18 @@ class BenchmarkExecutionAPIView(APIView):
                         'error': 'Benchmark configuration not found'
                     }, status=status.HTTP_404_NOT_FOUND)
             
+            # Create a temporary configuration with the specified search mode
+            search_mode = data.get('search_mode', 'hybrid')
+            if not configuration:
+                # Create a temporary configuration for this execution
+                from search_benchmarking.models import BenchmarkConfiguration
+                configuration = BenchmarkConfiguration(
+                    name=f"Temp Config - {search_mode}",
+                    search_mode=search_mode,
+                    ranking_algorithm='fast_ranking',
+                    ranking_config={}
+                )
+            
             # Start benchmark collection
             collector = BenchmarkCollector()
             execution = collector.collect_benchmark_data(
@@ -650,7 +662,8 @@ class BenchmarkStatisticsAPIView(APIView):
                 avg_latency=Avg('average_latency_ms'),
                 avg_precision=Avg('average_precision_at_10'),
                 avg_recall=Avg('average_recall_at_10'),
-                avg_mrr=Avg('average_mrr')
+                avg_mrr=Avg('average_mrr'),
+                avg_ndcg=Avg('average_ndcg_at_10')
             )
             
             # Get query set distribution
@@ -675,7 +688,9 @@ class BenchmarkStatisticsAPIView(APIView):
                     'average_latency_ms': round(avg_metrics['avg_latency'] or 0, 2),
                     'average_precision_at_10': round(avg_metrics['avg_precision'] or 0, 3),
                     'average_recall_at_10': round(avg_metrics['avg_recall'] or 0, 3),
-                    'average_mrr': round(avg_metrics['avg_mrr'] or 0, 3)
+                    'average_mrr': round(avg_metrics['avg_mrr'] or 0, 3),
+                    'average_ndcg_at_10': round(avg_metrics['avg_ndcg'] or 0, 3),
+                    'average_f1_at_10': round(self._calculate_f1_from_precision_recall(avg_metrics['avg_precision'], avg_metrics['avg_recall']), 3)
                 },
                 'query_set_categories': list(query_set_categories),
                 'execution_statuses': list(execution_statuses)
@@ -689,6 +704,12 @@ class BenchmarkStatisticsAPIView(APIView):
                 'error': 'Failed to retrieve benchmark statistics',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _calculate_f1_from_precision_recall(self, precision, recall):
+        """Calculate F1 score from precision and recall"""
+        if precision is None or recall is None or precision == 0 or recall == 0:
+            return 0.0
+        return 2 * (precision * recall) / (precision + recall)
 
 
 class ReportViewerView(View):

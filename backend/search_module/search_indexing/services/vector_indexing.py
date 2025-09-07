@@ -542,10 +542,12 @@ class VectorIndexingService:
             # Search using cached index
             scores, indices = self.faiss_index.search(query_embedding, top_k)
             
-            # Get results
+            # FIXED: Get results with similarity threshold to prevent irrelevant results
             results = []
+            min_similarity_threshold = 0.5  # Only return results with meaningful similarity
+            
             for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
-                if idx != -1:  # Valid result
+                if idx != -1 and float(score) >= min_similarity_threshold:  # Valid result with meaningful similarity
                     try:
                         # Use mapping to get chunk ID
                         if self.index_to_chunk_mapping and idx < len(self.index_to_chunk_mapping):

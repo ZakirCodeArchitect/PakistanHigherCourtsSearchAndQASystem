@@ -145,8 +145,18 @@ class FastRankingService:
             # Normalize scores to 0-1 range
             vector_score = min(1.0, result['vector_score'])
             
-            # Keyword score normalization (assuming max rank is around 10)
-            keyword_score = min(1.0, result['keyword_score'] / 10.0) if result['keyword_score'] > 0 else 0
+            # Keyword score normalization (PostgreSQL ranks are typically 0.001-1.0)
+            # Use logarithmic scaling for very small ranks
+            if result['keyword_score'] > 0:
+                if result['keyword_score'] < 0.01:  # Very small ranks (1e-20, etc.)
+                    keyword_score = min(1.0, result['keyword_score'] * 100)  # Scale up small ranks
+                else:
+                    keyword_score = min(1.0, result['keyword_score'])  # Use ranks as-is for larger values
+            else:
+                # FIXED: Handle zero-rank results from PostgreSQL full-text search
+                # If we have a keyword result with rank 0, it means PostgreSQL found a match
+                # but couldn't calculate a meaningful rank. Give it a minimal score.
+                keyword_score = 0.01 if result['keyword_score'] == 0 and 'keyword_score' in result else 0
             
             # Calculate weighted base score
             vector_weight = self.default_config['vector_weight']
@@ -159,8 +169,10 @@ class FastRankingService:
             # Calculate final score
             final_score = base_score * (1 + total_boost)
             
-            # Only include results with meaningful scores
-            if final_score > 0.05 or vector_score > 0.1 or keyword_score > 0.1:
+            # Only include results with meaningful scores (adjusted for lexical search)
+            # FIXED: Be more inclusive for lexical search results with zero ranks
+            if (final_score > 0.01 or vector_score > 0.05 or keyword_score > 0.01 or 
+                (result['keyword_score'] == 0 and 'keyword_score' in result)):  # Include zero-rank keyword results
                 scored_result = {
                     'case_id': case_id,
                     'vector_score': vector_score,
