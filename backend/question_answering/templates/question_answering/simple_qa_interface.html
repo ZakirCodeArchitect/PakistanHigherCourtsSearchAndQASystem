@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Answering System - Pakistan Higher Courts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .qa-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .qa-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .chat-container {
+            height: 500px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: 20%;
+        }
+        .bot-message {
+            background: white;
+            border: 1px solid #dee2e6;
+            margin-right: 20%;
+        }
+        .system-message {
+            background: #e9ecef;
+            color: #6c757d;
+            text-align: center;
+            font-style: italic;
+        }
+        .input-group {
+            margin-top: 1rem;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .status-online {
+            background-color: #28a745;
+        }
+        .status-offline {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="qa-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-robot me-3"></i>Legal Question Answering System</h1>
+                    <p class="mb-0">AI-powered legal research assistant for Pakistani law and court procedures</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="status-indicator status-online"></div>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Quick Start Panel -->
+            <div class="col-lg-4">
+                <div class="qa-card">
+                    <h5><i class="fas fa-rocket me-2"></i>Quick Start</h5>
+                    
+                    <div class="mb-3">
+                        <h6>Ask About:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('cases')">
+                                <i class="fas fa-gavel me-1"></i>Cases
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('laws')">
+                                <i class="fas fa-book me-1"></i>Laws
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('judges')">
+                                <i class="fas fa-user-tie me-1"></i>Judges
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('procedures')">
+                                <i class="fas fa-clipboard-list me-1"></i>Procedures
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Sample Questions:</h6>
+                        <div class="list-group list-group-flush">
+                            <button class="list-group-item list-group-item-action" onclick="askQuestion('What is the law regarding bail in Pakistan?')">
+                                <i class="fas fa-question-circle me-2"></i>
+                                What is the law regarding bail in Pakistan?
+                            </button>
+                            <button class="list-group-item list-group-item-action" onclick="askQuestion('How to file a writ petition in High Court?')">
+                                <i class="fas fa-question-circle me-2"></i>
+                                How to file a writ petition in High Court?
+                            </button>
+                            <button class="list-group-item list-group-item-action" onclick="askQuestion('What are the recent judgments on constitutional rights?')">
+                                <i class="fas fa-question-circle me-2"></i>
+                                What are the recent judgments on constitutional rights?
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h6>System Status:</h6>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator status-online"></div>
+                                <span>Knowledge Base</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator status-online"></div>
+                                <span>AI Engine</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator status-online"></div>
+                                <span>Search Index</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Interface -->
+            <div class="col-lg-8">
+                <div class="qa-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5><i class="fas fa-comments me-2"></i>Legal Research Assistant</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearChat()">
+                                <i class="fas fa-trash me-1"></i>Clear
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="newSession()">
+                                <i class="fas fa-plus me-1"></i>New Session
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Messages -->
+                    <div class="chat-container" id="chatMessages">
+                        <div class="message system-message">
+                            <div class="text-center">
+                                <h6>Welcome to the Legal Question Answering System!</h6>
+                                <p>I can help you with:</p>
+                                <ul class="list-unstyled">
+                                    <li>• Legal research and case law analysis</li>
+                                    <li>• Court procedures and filing requirements</li>
+                                    <li>• Judicial decisions and precedents</li>
+                                    <li>• Statutory provisions and legal principles</li>
+                                </ul>
+                                <p>Ask me a question to get started!</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="questionInput" 
+                               placeholder="Ask a legal question..." maxlength="1000">
+                        <button class="btn btn-primary" type="button" onclick="sendQuestion()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Press Enter to send, Shift+Enter for new line
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Processing your question...</p>
+                    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="hideLoading()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple QA Interface JavaScript
+        let currentSessionId = null;
+        let isLoading = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enter key to send question
+            document.getElementById('questionInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendQuestion();
+                }
+            });
+            
+            // Create initial session
+            newSession();
+        });
+
+        function setQuestionType(type) {
+            // Update UI to show selected question type
+            document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function askQuestion(question) {
+            document.getElementById('questionInput').value = question;
+            sendQuestion();
+        }
+
+        async function newSession() {
+            try {
+                currentSessionId = 'session_' + Date.now();
+                clearChat();
+                addSystemMessage('New session created. You can start asking legal questions!');
+            } catch (error) {
+                console.error('Error creating session:', error);
+                addSystemMessage('Error creating new session. Please try again.');
+            }
+        }
+
+        async function sendQuestion() {
+            const questionInput = document.getElementById('questionInput');
+            const question = questionInput.value.trim();
+            
+            if (!question || isLoading) return;
+            
+            if (!currentSessionId) {
+                await newSession();
+            }
+            
+            // Add user message
+            addUserMessage(question);
+            
+            // Clear input
+            questionInput.value = '';
+            
+            // Show loading
+            showLoading();
+            
+            try {
+                console.log('Sending question:', question);
+                const response = await fetch('/api/qa/ask/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        question: question,
+                        context: {}
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    addBotMessage(data);
+                } else {
+                    throw new Error('Failed to get answer');
+                }
+            } catch (error) {
+                console.error('Error sending question:', error);
+                addBotMessage({
+                    answer: 'I apologize, but I encountered an error while processing your question. Please try again.',
+                    answer_type: 'explanation',
+                    confidence: 0.0,
+                    sources: []
+                });
+            } finally {
+                console.log('Hiding loading modal');
+                hideLoading();
+            }
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>You:</strong><br>
+                        ${escapeHtml(message)}
+                    </div>
+                    <small class="text-light">${new Date().toLocaleTimeString()}</small>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addBotMessage(data) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            
+            let sourcesHtml = '';
+            if (data.sources && data.sources.length > 0) {
+                sourcesHtml = `
+                    <div class="mt-3 p-2 bg-light rounded">
+                        <h6>Sources:</h6>
+                        ${data.sources.map(source => `
+                            <div class="mb-2">
+                                <strong>${source.title || 'Legal Document'}</strong>
+                                ${source.court ? `<br><small>Court: ${source.court}</small>` : ''}
+                                ${source.case_number ? `<br><small>Case: ${source.case_number}</small>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>Legal Assistant:</strong><br>
+                        ${formatAnswer(data.answer)}
+                        ${sourcesHtml}
+                    </div>
+                    <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        Confidence: ${data.confidence ? (data.confidence * 100).toFixed(0) : 'N/A'}%
+                    </small>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addSystemMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+            messageDiv.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${escapeHtml(message)}
+                    <br><small>${new Date().toLocaleTimeString()}</small>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function formatAnswer(answer) {
+            // Basic formatting for legal text
+            return escapeHtml(answer)
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^/, '<p>')
+                .replace(/$/, '</p>');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function clearChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="message system-message">
+                    <div class="text-center">
+                        <h6>Welcome to the Legal Question Answering System!</h6>
+                        <p>I can help you with:</p>
+                        <ul class="list-unstyled">
+                            <li>• Legal research and case law analysis</li>
+                            <li>• Court procedures and filing requirements</li>
+                            <li>• Judicial decisions and precedents</li>
+                            <li>• Statutory provisions and legal principles</li>
+                        </ul>
+                        <p>Ask me a question to get started!</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLoading() {
+            isLoading = true;
+            const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            modal.show();
+            
+            // Auto-hide after 10 seconds as a safety measure
+            setTimeout(() => {
+                if (isLoading) {
+                    console.log('Auto-hiding loading modal after timeout');
+                    hideLoading();
+                }
+            }, 10000);
+        }
+
+        function hideLoading() {
+            isLoading = false;
+            const modalElement = document.getElementById('loadingModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            } else {
+                // Force hide the modal if instance doesn't exist
+                modalElement.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

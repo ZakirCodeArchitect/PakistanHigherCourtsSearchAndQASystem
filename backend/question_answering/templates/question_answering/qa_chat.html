@@ -1,0 +1,596 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Legal Chat - Question Answering System{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<!-- Chat Interface -->
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="chat-title">
+            <h4>
+                <i class="fas fa-comments me-2"></i>
+                Legal Research Chat
+            </h4>
+            {% if session %}
+            <span class="session-info">
+                Session: {{ session.title|default:"Untitled Session" }}
+            </span>
+            {% endif %}
+        </div>
+        <div class="chat-actions">
+            <button class="btn btn-sm btn-outline-secondary" id="exportChatBtn">
+                <i class="fas fa-download me-1"></i>Export
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="clearChatBtn">
+                <i class="fas fa-trash me-1"></i>Clear
+            </button>
+            <a href="{% url 'question_answering:qa_interface' %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i>Back
+            </a>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <!-- Messages will be loaded here -->
+    </div>
+    
+    <div class="chat-input">
+        <div class="input-group">
+            <input type="text" 
+                   class="form-control" 
+                   id="questionInput" 
+                   placeholder="Ask a legal question..."
+                   maxlength="1000">
+            <button class="btn btn-primary" id="sendBtn" type="button">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        <div class="input-help">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Press Enter to send, Shift+Enter for new line
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Chat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Export Format</label>
+                    <select class="form-select" id="exportFormat">
+                        <option value="txt">Plain Text</option>
+                        <option value="pdf">PDF Document</option>
+                        <option value="json">JSON Data</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Include Sources</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="includeSources" checked>
+                        <label class="form-check-label" for="includeSources">
+                            Include source documents and citations
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="exportBtn">Export</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+}
+
+.chat-header {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chat-title h4 {
+    margin: 0;
+    color: #333;
+}
+
+.session-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-left: 0.5rem;
+}
+
+.chat-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.message.user .message-avatar {
+    background: #007bff;
+    color: white;
+}
+
+.message.bot .message-avatar {
+    background: #28a745;
+    color: white;
+}
+
+.message-content {
+    max-width: 70%;
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.message.user .message-content {
+    background: #e3f2fd;
+}
+
+.message-text {
+    line-height: 1.6;
+}
+
+.message-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.message-sources {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.source-item {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.source-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.source-meta {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.chat-input {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.input-help {
+    margin-top: 0.5rem;
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6c757d;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chat-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .chat-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .message-content {
+        max-width: 85%;
+    }
+    
+    .chat-input {
+        padding: 0.75rem 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class QAChat {
+    constructor() {
+        this.sessionId = '{{ session.session_id|default:"" }}';
+        this.isLoading = false;
+        this.init();
+    }
+    
+    init() {
+        this.bindEvents();
+        this.loadChatHistory();
+    }
+    
+    bindEvents() {
+        // Send button
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            this.sendMessage();
+        });
+        
+        // Enter key
+        document.getElementById('questionInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+        
+        // Clear chat
+        document.getElementById('clearChatBtn').addEventListener('click', () => {
+            this.clearChat();
+        });
+        
+        // Export chat
+        document.getElementById('exportChatBtn').addEventListener('click', () => {
+            this.showExportModal();
+        });
+        
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            this.exportChat();
+        });
+    }
+    
+    async loadChatHistory() {
+        if (!this.sessionId) return;
+        
+        try {
+            const response = await fetch(`/api/qa/sessions/${this.sessionId}/`);
+            if (response.ok) {
+                const data = await response.json();
+                this.displayChatHistory(data.conversation_history);
+            }
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+        }
+    }
+    
+    displayChatHistory(history) {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '';
+        
+        if (history.length === 0) {
+            this.addWelcomeMessage();
+            return;
+        }
+        
+        history.forEach(item => {
+            this.addUserMessage(item.question);
+            this.addBotMessage(item);
+        });
+    }
+    
+    addWelcomeMessage() {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = `
+            <div class="message bot">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-text">
+                        <h6>Welcome to Legal Research Chat!</h6>
+                        <p>I'm here to help you with legal research and questions about Pakistani law. Ask me anything!</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    async sendMessage() {
+        const input = document.getElementById('questionInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        if (!this.sessionId) {
+            await this.createSession();
+        }
+        
+        this.addUserMessage(message);
+        input.value = '';
+        
+        this.showTypingIndicator();
+        
+        try {
+            const response = await fetch('/api/qa/ask/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    session_id: this.sessionId,
+                    question: message
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.hideTypingIndicator();
+                this.addBotMessage(data);
+            } else {
+                throw new Error('Failed to get response');
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+            this.hideTypingIndicator();
+            this.addBotMessage({
+                answer: 'I apologize, but I encountered an error. Please try again.',
+                confidence: 0.0,
+                sources: []
+            });
+        }
+    }
+    
+    addUserMessage(message) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">${this.escapeHtml(message)}</div>
+                <div class="message-meta">
+                    <span>${new Date().toLocaleTimeString()}</span>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    addBotMessage(data) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot';
+        
+        let sourcesHtml = '';
+        if (data.sources && data.sources.length > 0) {
+            sourcesHtml = `
+                <div class="message-sources">
+                    <h6>Sources:</h6>
+                    ${data.sources.map(source => `
+                        <div class="source-item">
+                            <div class="source-title">${source.title || 'Legal Document'}</div>
+                            <div class="source-meta">
+                                ${source.court ? `Court: ${source.court}` : ''}
+                                ${source.case_number ? ` • Case: ${source.case_number}` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">${this.formatAnswer(data.answer)}</div>
+                <div class="message-meta">
+                    <span>${new Date().toLocaleTimeString()}</span>
+                    <span>Confidence: ${(data.confidence * 100).toFixed(0)}%</span>
+                </div>
+                ${sourcesHtml}
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    showTypingIndicator() {
+        const chatMessages = document.getElementById('chatMessages');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="typing-indicator">
+                    <span>AI is thinking</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+    
+    formatAnswer(answer) {
+        return this.escapeHtml(answer)
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>')
+            .replace(/^/, '<p>')
+            .replace(/$/, '</p>');
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    clearChat() {
+        if (confirm('Are you sure you want to clear the chat?')) {
+            document.getElementById('chatMessages').innerHTML = '';
+            this.addWelcomeMessage();
+        }
+    }
+    
+    showExportModal() {
+        const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+        modal.show();
+    }
+    
+    async exportChat() {
+        const format = document.getElementById('exportFormat').value;
+        const includeSources = document.getElementById('includeSources').checked;
+        
+        try {
+            const response = await fetch(`/api/qa/sessions/${this.sessionId}/export/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    format: format,
+                    include_sources: includeSources
+                })
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chat_export_${new Date().toISOString().split('T')[0]}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                modal.hide();
+            }
+        } catch (error) {
+            console.error('Error exporting chat:', error);
+            alert('Error exporting chat. Please try again.');
+        }
+    }
+    
+    async createSession() {
+        try {
+            const response = await fetch('/api/qa/sessions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    title: `Chat Session ${new Date().toLocaleString()}`,
+                    description: 'Legal research chat session'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.sessionId = data.session_id;
+            }
+        } catch (error) {
+            console.error('Error creating session:', error);
+        }
+    }
+}
+
+// Initialize chat
+const qaChat = new QAChat();
+</script>
+{% endblock %}
