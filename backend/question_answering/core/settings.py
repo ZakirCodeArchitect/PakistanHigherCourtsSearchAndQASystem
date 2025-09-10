@@ -126,9 +126,9 @@ REST_FRAMEWORK = {
 # QA System specific settings
 QA_SETTINGS = {
     'EMBEDDING_MODEL': 'all-MiniLM-L6-v2',
-    'GENERATION_MODEL': 'gpt-3.5-turbo',
-    'MAX_TOKENS': 1000,
-    'TEMPERATURE': 0.7,
+    'GENERATION_MODEL': 'gpt-4o-mini',
+    'MAX_TOKENS': 1500,
+    'TEMPERATURE': 0.3,
     'TOP_K_DOCUMENTS': 5,
     'SIMILARITY_THRESHOLD': 0.7,
     'MAX_CONTEXT_LENGTH': 4000,
@@ -142,7 +142,7 @@ PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT', 'us-west1-gcp')
 PINECONE_INDEX_NAME = 'legal-knowledge-base'
 
 # OpenAI settings
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY_a')
 
 # Model cache directory
 MODEL_CACHE_DIR = BASE_DIR / 'model_cache'

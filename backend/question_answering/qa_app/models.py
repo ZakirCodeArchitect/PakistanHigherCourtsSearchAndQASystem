@@ -6,6 +6,7 @@ Database models for storing QA sessions, queries, responses, and knowledge base
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 import json
 import hashlib
 from datetime import datetime, timedelta
@@ -17,7 +18,7 @@ class QASession(models.Model):
     
     # Session identification
     session_id = models.CharField(max_length=64, unique=True, db_index=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='qa_sessions')
+    user_id = models.CharField(max_length=100, db_index=True, default='anonymous')
     
     # Session metadata
     title = models.CharField(max_length=200, blank=True, default='')
@@ -46,7 +47,7 @@ class QASession(models.Model):
     last_activity = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"QA Session {self.session_id[:8]} - {self.user.username}"
+        return f"QA Session {self.session_id[:8]} - {self.user_id}"
     
     @property
     def success_rate(self):
@@ -62,12 +63,85 @@ class QASession(models.Model):
             return self.last_activity - self.created_at
         return timedelta(0)
     
+    def add_conversation_turn(self, query, response, context_documents=None, query_id=None, response_id=None):
+        """Add a conversation turn to the session history"""
+        turn = {
+            'timestamp': timezone.now().isoformat(),
+            'query': query,
+            'response': response,
+            'context_documents': context_documents or [],
+            'query_id': query_id,
+            'response_id': response_id
+        }
+        
+        if not self.conversation_history:
+            self.conversation_history = []
+        
+        self.conversation_history.append(turn)
+        self.total_queries += 1
+        self.last_activity = timezone.now()
+        self.save()
+    
+    def get_recent_context(self, max_turns=5):
+        """Get recent conversation context for follow-up queries"""
+        if not self.conversation_history:
+            return []
+        
+        recent_turns = self.conversation_history[-max_turns:]
+        context = []
+        
+        for turn in recent_turns:
+            context.append({
+                'query': turn.get('query', ''),
+                'response': turn.get('response', ''),
+                'timestamp': turn.get('timestamp', '')
+            })
+        
+        return context
+    
+    def get_context_summary(self, max_turns=3):
+        """Get a summary of the conversation context for AI prompts"""
+        if not self.conversation_history:
+            return ""
+        
+        recent_turns = self.conversation_history[-max_turns:]
+        summary = "Previous conversation context:\n"
+        
+        for i, turn in enumerate(recent_turns, 1):
+            summary += f"{i}. Q: {turn.get('query', '')}\n"
+            response_preview = turn.get('response', '')
+            if len(response_preview) > 200:
+                response_preview = response_preview[:200] + "..."
+            summary += f"   A: {response_preview}\n\n"
+        
+        return summary
+    
+    def get_conversation_topics(self):
+        """Extract main topics from conversation history"""
+        topics = set()
+        for turn in self.conversation_history:
+            query = turn.get('query', '').lower()
+            # Simple topic extraction based on keywords
+            if 'writ' in query:
+                topics.add('writ petitions')
+            if 'constitutional' in query:
+                topics.add('constitutional law')
+            if 'criminal' in query:
+                topics.add('criminal law')
+            if 'civil' in query:
+                topics.add('civil law')
+            if 'judge' in query:
+                topics.add('judges')
+            if 'lawyer' in query:
+                topics.add('lawyers')
+        return list(topics)
+    
     class Meta:
         db_table = "qa_sessions"
         ordering = ['-last_activity']
         indexes = [
             models.Index(fields=['session_id']),
-            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['user_id', 'is_active']),
             models.Index(fields=['created_at']),
         ]
 
@@ -277,7 +351,7 @@ class QAFeedback(models.Model):
     
     # Relationships
     response = models.ForeignKey(QAResponse, on_delete=models.CASCADE, related_name='feedback')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='qa_feedback')
+    user_id = models.CharField(max_length=100, db_index=True, default='anonymous')
     
     # Feedback content
     rating = models.IntegerField(
@@ -323,7 +397,7 @@ class QAFeedback(models.Model):
     
     class Meta:
         db_table = "qa_feedback"
-        unique_together = ['response', 'user']
+        unique_together = ['response', 'user_id']
         ordering = ['-created_at']
 
 

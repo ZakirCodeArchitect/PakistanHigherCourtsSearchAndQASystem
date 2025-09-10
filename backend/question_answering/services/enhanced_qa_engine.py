@@ -8,6 +8,8 @@ from typing import List, Dict, Any, Optional
 from .ai_answer_generator import AIAnswerGenerator
 from .knowledge_retriever import KnowledgeRetriever
 from .rag_service import RAGService
+from .conversation_manager import ConversationManager, CitationFormatter
+from .advanced_embeddings import AdvancedEmbeddingService
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,9 @@ class EnhancedQAEngine:
         self.ai_generator = AIAnswerGenerator()
         self.knowledge_retriever = KnowledgeRetriever()
         self.rag_service = RAGService()
+        self.conversation_manager = ConversationManager()
+        self.citation_formatter = CitationFormatter()
+        self.advanced_embeddings = AdvancedEmbeddingService()
     
     def _precompute_embeddings(self):
         """Precompute embeddings for all documents"""
@@ -29,27 +34,43 @@ class EnhancedQAEngine:
         self, 
         question: str, 
         conversation_history: Optional[List[Dict]] = None,
-        use_ai: bool = True
+        use_ai: bool = True,
+        session_id: Optional[str] = None,
+        user_id: str = "anonymous"
     ) -> Dict[str, Any]:
         """
-        Ask a question and get an intelligent answer
+        Ask a question and get an intelligent answer with conversation management
         
         Args:
             question: The user's question
             conversation_history: Previous conversation context
             use_ai: Whether to use AI generation (True) or simple retrieval (False)
+            session_id: Session ID for conversation management
+            user_id: User ID for session tracking
             
         Returns:
             Dictionary containing the answer and metadata
         """
         try:
-            # Step 1: Use knowledge retriever to find relevant legal cases
+            # Step 1: Get or create session for conversation management
+            session = None
+            if session_id:
+                session = self.conversation_manager.get_or_create_session(user_id, session_id)
+            
+            # Step 2: Process follow-up query if session exists
+            enhanced_query_info = None
+            if session:
+                enhanced_query_info = self.conversation_manager.process_follow_up_query(session, question)
+                question = enhanced_query_info.get('enhanced_query', question)
+                conversation_history = session.get_recent_context(5)
+            
+            # Step 3: Use knowledge retriever to find relevant legal cases
             search_results = self.knowledge_retriever.search_legal_cases(question, top_k=5)
             
-            # Extract case information for context
+            # Step 4: Extract case information for context
             relevant_documents = self._prepare_case_context(search_results)
             
-            # Step 2: Generate answer using AI or simple retrieval
+            # Step 5: Generate answer using AI or simple retrieval
             if use_ai and self.ai_generator.enabled:
                 answer_data = self.ai_generator.generate_answer(
                     question=question,
@@ -59,13 +80,30 @@ class EnhancedQAEngine:
             else:
                 answer_data = self._generate_simple_answer(question, relevant_documents)
             
-            # Step 3: Add search metadata
+            # Step 6: Format citations
+            if answer_data.get('sources'):
+                formatted_sources = self.citation_formatter.format_citations(answer_data['sources'])
+                answer_data['sources'] = formatted_sources
+            
+            # Step 7: Add conversation and search metadata
             answer_data.update({
                 'search_method': 'database',  # RAG temporarily disabled
                 'documents_found': len(relevant_documents),
                 'search_results': search_results,
-                'question': question
+                'question': question,
+                'session_id': session.session_id if session else None,
+                'is_follow_up': enhanced_query_info.get('is_follow_up', False) if enhanced_query_info else False,
+                'conversation_context': enhanced_query_info.get('conversation_context', {}) if enhanced_query_info else {}
             })
+            
+            # Step 8: Add conversation turn to session
+            if session:
+                self.conversation_manager.add_conversation_turn(
+                    session=session,
+                    query=question,
+                    response=answer_data.get('answer', ''),
+                    context_documents=relevant_documents
+                )
             
             return answer_data
             
