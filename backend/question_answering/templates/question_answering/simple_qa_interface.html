@@ -221,6 +221,8 @@
         // Simple QA Interface JavaScript
         let currentSessionId = null;
         let isLoading = false;
+        let userId = 'anonymous';
+        let conversationHistory = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -251,12 +253,35 @@
 
         async function newSession() {
             try {
-                currentSessionId = 'session_' + Date.now();
-                clearChat();
-                addSystemMessage('New session created. You can start asking legal questions!');
+                // Create a new session via API
+                const response = await fetch('/qa/sessions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        title: 'Legal QA Session',
+                        description: 'New legal question-answering session'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentSessionId = data.session_id;
+                    conversationHistory = [];
+                    clearChat();
+                    addSystemMessage('New session created. You can start asking legal questions!');
+                    console.log('New session created:', currentSessionId);
+                } else {
+                    throw new Error('Failed to create session');
+                }
             } catch (error) {
                 console.error('Error creating session:', error);
-                addSystemMessage('Error creating new session. Please try again.');
+                // Fallback to local session
+                currentSessionId = 'session_' + Date.now();
+                clearChat();
+                addSystemMessage('New session created (local). You can start asking legal questions!');
             }
         }
 
@@ -290,7 +315,8 @@
                     body: JSON.stringify({
                         session_id: currentSessionId,
                         question: question,
-                        context: {}
+                        use_ai: true,
+                        user_id: userId
                     })
                 });
                 
@@ -299,6 +325,16 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Response data:', data);
+                    
+                    // Add to conversation history
+                    conversationHistory.push({
+                        query: question,
+                        response: data.answer,
+                        timestamp: new Date().toISOString(),
+                        session_id: data.session_id,
+                        is_follow_up: data.is_follow_up || false
+                    });
+                    
                     addBotMessage(data);
                 } else {
                     throw new Error('Failed to get answer');
@@ -355,10 +391,22 @@
                 `;
             }
             
+            // Enhanced message display with conversation context
+            let contextInfo = '';
+            if (data.is_follow_up) {
+                contextInfo = '<span class="badge bg-info me-2">Follow-up</span>';
+            }
+            if (data.session_id) {
+                contextInfo += `<span class="badge bg-secondary me-2">Session: ${data.session_id.substring(0, 8)}</span>`;
+            }
+            
             messageDiv.innerHTML = `
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <strong>Legal Assistant:</strong><br>
+                        <div class="mb-2">
+                            <strong>Legal Assistant:</strong>
+                            ${contextInfo}
+                        </div>
                         ${formatAnswer(data.answer)}
                         ${sourcesHtml}
                     </div>
@@ -366,7 +414,9 @@
                 </div>
                 <div class="mt-2">
                     <small class="text-muted">
-                        Confidence: ${data.confidence ? (data.confidence * 100).toFixed(0) : 'N/A'}%
+                        Confidence: ${data.confidence ? (data.confidence * 100).toFixed(0) : 'N/A'}% | 
+                        Model: ${data.model_used || 'Unknown'} | 
+                        Documents: ${data.documents_found || 0}
                     </small>
                 </div>
             `;
@@ -390,12 +440,29 @@
         }
 
         function formatAnswer(answer) {
-            // Basic formatting for legal text
-            return escapeHtml(answer)
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/\n/g, '<br>')
-                .replace(/^/, '<p>')
-                .replace(/$/, '</p>');
+            // Enhanced formatting for legal text with proper structure
+            let formatted = escapeHtml(answer);
+            
+            // Convert markdown-style headers to HTML
+            formatted = formatted.replace(/^## (.*$)/gm, '<h4 class="mt-3 mb-2 text-primary">$1</h4>');
+            formatted = formatted.replace(/^### (.*$)/gm, '<h5 class="mt-2 mb-1 text-secondary">$1</h5>');
+            
+            // Convert bold text
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Convert lists
+            formatted = formatted.replace(/^- (.*$)/gm, '<li class="mb-1">$1</li>');
+            formatted = formatted.replace(/(<li.*<\/li>)/gs, '<ul class="mb-2">$1</ul>');
+            
+            // Convert numbered lists
+            formatted = formatted.replace(/^(\d+)\. \*\*(.*?)\*\*: (.*$)/gm, '<div class="mb-2"><strong>$1. $2:</strong> $3</div>');
+            formatted = formatted.replace(/^(\d+)\. (.*$)/gm, '<div class="mb-1">$1. $2</div>');
+            
+            // Convert line breaks
+            formatted = formatted.replace(/\n/g, '<br>');
+            
+            return formatted;
         }
 
         function escapeHtml(text) {
