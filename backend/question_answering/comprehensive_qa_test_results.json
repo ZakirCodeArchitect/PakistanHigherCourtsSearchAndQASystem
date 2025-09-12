@@ -1,0 +1,741 @@
+{
+  "timestamp": "2025-09-13 02:50:15.120076",
+  "test_suite": "Comprehensive QA Knowledge Base Test",
+  "results": {
+    "pattern_recognition": {
+      "total_tests": 11,
+      "passed": 9,
+      "failed": 2,
+      "details": [
+        {
+          "name": "Constitutional Articles - Simple",
+          "passed": true,
+          "expected_refs": 1,
+          "actual_refs": 1,
+          "expected_types": [
+            "constitutional_article"
+          ],
+          "actual_types": [
+            "constitutional_article"
+          ],
+          "processing_time": 0.016590595245361328,
+          "references": [
+            {
+              "section_number": 199,
+              "act_abbreviation": "constitution",
+              "act_name": "Constitution of Pakistan",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "constitutional_article",
+              "action": null,
+              "original_match": "Article 199 of Constitution",
+              "start_pos": 0,
+              "end_pos": 27,
+              "context": "Article 199 of Constitution provides writ jurisdiction.",
+              "qa_relevance": 0.9500000000000001
+            }
+          ]
+        },
+        {
+          "name": "Constitutional Articles - Complex",
+          "passed": true,
+          "expected_refs": 1,
+          "actual_refs": 1,
+          "expected_types": [
+            "constitutional_article"
+          ],
+          "actual_types": [
+            "constitutional_article"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 3,
+              "act_abbreviation": "constitution",
+              "act_name": "Constitution of Pakistan",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "constitutional_article",
+              "action": null,
+              "original_match": "Art 184(3) of Constitution",
+              "start_pos": 0,
+              "end_pos": 26,
+              "context": "Art 184(3) of Constitution deals with fundamental rights.",
+              "qa_relevance": 0.9500000000000001
+            }
+          ]
+        },
+        {
+          "name": "Case Citations - Full Format",
+          "passed": true,
+          "expected_refs": 1,
+          "actual_refs": 1,
+          "expected_types": [
+            "case_citation"
+          ],
+          "actual_types": [
+            "case_citation"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 123,
+              "act_abbreviation": "pld",
+              "act_name": "Pakistan Legal Decisions",
+              "year": 2023,
+              "court": "SC",
+              "court_name": "Supreme Court of Pakistan",
+              "reference_type": "case_citation",
+              "action": null,
+              "original_match": "PLD 2023 SC 123",
+              "start_pos": 11,
+              "end_pos": 26,
+              "context": "As held in PLD 2023 SC 123, the court ruled on the matter.",
+              "qa_relevance": 0.95
+            }
+          ]
+        },
+        {
+          "name": "Case Citations - Multiple",
+          "passed": true,
+          "expected_refs": 2,
+          "actual_refs": 2,
+          "expected_types": [
+            "case_citation",
+            "case_citation"
+          ],
+          "actual_types": [
+            "case_citation",
+            "case_citation"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 123,
+              "act_abbreviation": "pld",
+              "act_name": "Pakistan Legal Decisions",
+              "year": 2023,
+              "court": "SC",
+              "court_name": "Supreme Court of Pakistan",
+              "reference_type": "case_citation",
+              "action": null,
+              "original_match": "PLD 2023 SC 123",
+              "start_pos": 0,
+              "end_pos": 15,
+              "context": "PLD 2023 SC 123 and PLJ 2022 LHC 456 were cited.",
+              "qa_relevance": 0.95
+            },
+            {
+              "section_number": 456,
+              "act_abbreviation": "plj",
+              "act_name": "Pakistan Law Journal",
+              "year": 2022,
+              "court": "LHC",
+              "court_name": "Lahore High Court",
+              "reference_type": "case_citation",
+              "action": null,
+              "original_match": "PLJ 2022 LHC 456",
+              "start_pos": 20,
+              "end_pos": 36,
+              "context": "PLD 2023 SC 123 and PLJ 2022 LHC 456 were cited.",
+              "qa_relevance": 0.95
+            }
+          ]
+        },
+        {
+          "name": "Government Agencies - Single",
+          "passed": true,
+          "expected_refs": 1,
+          "actual_refs": 1,
+          "expected_types": [
+            "agency_reference"
+          ],
+          "actual_types": [
+            "agency_reference"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 0,
+              "act_abbreviation": "fia",
+              "act_name": "Federal Investigation Agency",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "agency_reference",
+              "action": "investigation",
+              "original_match": "FIA investigation",
+              "start_pos": 0,
+              "end_pos": 17,
+              "context": "FIA investigation revealed corruption in the case.",
+              "qa_relevance": 0.85
+            }
+          ]
+        },
+        {
+          "name": "Government Agencies - Multiple",
+          "passed": true,
+          "expected_refs": 3,
+          "actual_refs": 3,
+          "expected_types": [
+            "agency_reference",
+            "agency_reference",
+            "agency_reference"
+          ],
+          "actual_types": [
+            "agency_reference",
+            "agency_reference",
+            "agency_reference"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 0,
+              "act_abbreviation": "fia",
+              "act_name": "Federal Investigation Agency",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "agency_reference",
+              "action": "investigation",
+              "original_match": "FIA investigation",
+              "start_pos": 0,
+              "end_pos": 17,
+              "context": "FIA investigation, NAB filed charges, and FBR issued notice.",
+              "qa_relevance": 0.85
+            },
+            {
+              "section_number": 0,
+              "act_abbreviation": "nab",
+              "act_name": "National Accountability Bureau",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "agency_reference",
+              "action": "filed",
+              "original_match": "NAB filed",
+              "start_pos": 19,
+              "end_pos": 28,
+              "context": "FIA investigation, NAB filed charges, and FBR issued notice.",
+              "qa_relevance": 0.85
+            },
+            {
+              "section_number": 0,
+              "act_abbreviation": "fbr",
+              "act_name": "Federal Board of Revenue",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "agency_reference",
+              "action": "issued",
+              "original_match": "FBR issued",
+              "start_pos": 42,
+              "end_pos": 52,
+              "context": "FIA investigation, NAB filed charges, and FBR issued notice.",
+              "qa_relevance": 0.8
+            }
+          ]
+        },
+        {
+          "name": "Section References - Standard",
+          "passed": true,
+          "expected_refs": 1,
+          "actual_refs": 1,
+          "expected_types": [
+            "section"
+          ],
+          "actual_types": [
+            "section"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 302,
+              "act_abbreviation": "ppc",
+              "act_name": "Pakistan Penal Code",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "section",
+              "action": null,
+              "original_match": "Section 302 PPC",
+              "start_pos": 0,
+              "end_pos": 15,
+              "context": "Section 302 PPC deals with murder offenses.",
+              "qa_relevance": 0.9
+            }
+          ]
+        },
+        {
+          "name": "Section References - Abbreviated",
+          "passed": true,
+          "expected_refs": 1,
+          "actual_refs": 1,
+          "expected_types": [
+            "section"
+          ],
+          "actual_types": [
+            "section"
+          ],
+          "processing_time": 0.004433393478393555,
+          "references": [
+            {
+              "section_number": 420,
+              "act_abbreviation": "ppc",
+              "act_name": "Pakistan Penal Code",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "section",
+              "action": null,
+              "original_match": "s. 420 PPC",
+              "start_pos": 0,
+              "end_pos": 10,
+              "context": "s. 420 PPC is about cheating and dishonesty.",
+              "qa_relevance": 0.9
+            }
+          ]
+        },
+        {
+          "name": "Mixed References - Complex",
+          "passed": false,
+          "expected_refs": 5,
+          "actual_refs": 5,
+          "expected_types": [
+            "case_citation",
+            "constitutional_article",
+            "section",
+            "agency_reference",
+            "agency_reference"
+          ],
+          "actual_types": [
+            "case_citation",
+            "constitutional_article",
+            "agency_reference",
+            "agency_reference",
+            "section"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 123,
+              "act_abbreviation": "pld",
+              "act_name": "Pakistan Legal Decisions",
+              "year": 2023,
+              "court": "SC",
+              "court_name": "Supreme Court of Pakistan",
+              "reference_type": "case_citation",
+              "action": null,
+              "original_match": "PLD 2023 SC 123",
+              "start_pos": 3,
+              "end_pos": 18,
+              "context": "In PLD 2023 SC 123, the court held that under Article 199 Constituti",
+              "qa_relevance": 0.95
+            },
+            {
+              "section_number": 199,
+              "act_abbreviation": "constitution",
+              "act_name": "Constitution of Pakistan",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "constitutional_article",
+              "action": null,
+              "original_match": "Article 199 Constitution",
+              "start_pos": 46,
+              "end_pos": 70,
+              "context": "In PLD 2023 SC 123, the court held that under Article 199 Constitution, writ jurisdiction can be invoked. The case invol",
+              "qa_relevance": 0.9500000000000001
+            },
+            {
+              "section_number": 0,
+              "act_abbreviation": "fia",
+              "act_name": "Federal Investigation Agency",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "agency_reference",
+              "action": "investigation",
+              "original_match": "FIA investigation",
+              "start_pos": 136,
+              "end_pos": 153,
+              "context": "ion can be invoked. The case involved s. 302 PPC, FIA investigation, and NAB charges.",
+              "qa_relevance": 0.85
+            },
+            {
+              "section_number": 0,
+              "act_abbreviation": "nab",
+              "act_name": "National Accountability Bureau",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "agency_reference",
+              "action": "charges",
+              "original_match": "NAB charges",
+              "start_pos": 159,
+              "end_pos": 170,
+              "context": " case involved s. 302 PPC, FIA investigation, and NAB charges.",
+              "qa_relevance": 0.85
+            },
+            {
+              "section_number": 302,
+              "act_abbreviation": "ppc",
+              "act_name": "Pakistan Penal Code",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "section",
+              "action": null,
+              "original_match": "s. 302 PPC",
+              "start_pos": 124,
+              "end_pos": 134,
+              "context": "it jurisdiction can be invoked. The case involved s. 302 PPC, FIA investigation, and NAB charges.",
+              "qa_relevance": 0.9
+            }
+          ]
+        },
+        {
+          "name": "Edge Case - Similar Patterns",
+          "passed": false,
+          "expected_refs": 1,
+          "actual_refs": 2,
+          "expected_types": [
+            "section"
+          ],
+          "actual_types": [
+            "section",
+            "section"
+          ],
+          "processing_time": 0.0,
+          "references": [
+            {
+              "section_number": 302,
+              "act_abbreviation": "ppc",
+              "act_name": "Pakistan Penal Code",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "section",
+              "action": null,
+              "original_match": "Section 302 PPC",
+              "start_pos": 0,
+              "end_pos": 15,
+              "context": "Section 302 PPC and s. 302 PPC both deal with murder.",
+              "qa_relevance": 0.9
+            },
+            {
+              "section_number": 302,
+              "act_abbreviation": "ppc",
+              "act_name": "Pakistan Penal Code",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "section",
+              "action": null,
+              "original_match": "s. 302 PPC",
+              "start_pos": 20,
+              "end_pos": 30,
+              "context": "Section 302 PPC and s. 302 PPC both deal with murder.",
+              "qa_relevance": 0.9
+            }
+          ]
+        },
+        {
+          "name": "Edge Case - No References",
+          "passed": true,
+          "expected_refs": 0,
+          "actual_refs": 0,
+          "expected_types": [],
+          "actual_types": [],
+          "processing_time": 0.0,
+          "references": []
+        }
+      ]
+    },
+    "domain_classification": {
+      "total_tests": 25,
+      "passed": 25,
+      "failed": 0,
+      "details": [
+        {
+          "name": "Criminal Law - Murder",
+          "passed": true,
+          "expected_domain": "criminal",
+          "actual_domain": "criminal",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Criminal Law - Theft",
+          "passed": true,
+          "expected_domain": "criminal",
+          "actual_domain": "criminal",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Criminal Law - Corruption",
+          "passed": true,
+          "expected_domain": "criminal",
+          "actual_domain": "criminal",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Civil Law - Contract",
+          "passed": true,
+          "expected_domain": "civil",
+          "actual_domain": "civil",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Civil Law - Tort",
+          "passed": true,
+          "expected_domain": "civil",
+          "actual_domain": "civil",
+          "processing_time": 0.003376483917236328
+        },
+        {
+          "name": "Constitutional Law - Writ",
+          "passed": true,
+          "expected_domain": "constitutional",
+          "actual_domain": "constitutional",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Constitutional Law - Rights",
+          "passed": true,
+          "expected_domain": "constitutional",
+          "actual_domain": "constitutional",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Family Law - Divorce",
+          "passed": true,
+          "expected_domain": "family",
+          "actual_domain": "family",
+          "processing_time": 0.0020301342010498047
+        },
+        {
+          "name": "Family Law - Marriage",
+          "passed": true,
+          "expected_domain": "family",
+          "actual_domain": "family",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Commercial Law - Company",
+          "passed": true,
+          "expected_domain": "commercial",
+          "actual_domain": "commercial",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Commercial Law - Partnership",
+          "passed": true,
+          "expected_domain": "commercial",
+          "actual_domain": "commercial",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Tax Law - Income Tax",
+          "passed": true,
+          "expected_domain": "tax",
+          "actual_domain": "tax",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Tax Law - Sales Tax",
+          "passed": true,
+          "expected_domain": "tax",
+          "actual_domain": "tax",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Labor Law - Compensation",
+          "passed": true,
+          "expected_domain": "labor",
+          "actual_domain": "labor",
+          "processing_time": 0.0025818347930908203
+        },
+        {
+          "name": "Labor Law - Employment",
+          "passed": true,
+          "expected_domain": "labor",
+          "actual_domain": "labor",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Property Law - Transfer",
+          "passed": true,
+          "expected_domain": "property",
+          "actual_domain": "property",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Property Law - Mortgage",
+          "passed": true,
+          "expected_domain": "property",
+          "actual_domain": "property",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Banking Law - Islamic",
+          "passed": true,
+          "expected_domain": "banking",
+          "actual_domain": "banking",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Banking Law - Loan",
+          "passed": true,
+          "expected_domain": "banking",
+          "actual_domain": "banking",
+          "processing_time": 0.0
+        },
+        {
+          "name": "IP Law - Patent",
+          "passed": true,
+          "expected_domain": "intellectual_property",
+          "actual_domain": "intellectual_property",
+          "processing_time": 0.0
+        },
+        {
+          "name": "IP Law - Copyright",
+          "passed": true,
+          "expected_domain": "intellectual_property",
+          "actual_domain": "intellectual_property",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Corporate Law - Governance",
+          "passed": true,
+          "expected_domain": "corporate",
+          "actual_domain": "corporate",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Corporate Law - Securities",
+          "passed": true,
+          "expected_domain": "corporate",
+          "actual_domain": "corporate",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Mixed Case - Criminal + Civil",
+          "passed": true,
+          "expected_domain": "criminal",
+          "actual_domain": "criminal",
+          "processing_time": 0.0
+        },
+        {
+          "name": "Mixed Case - Tax + Corporate",
+          "passed": true,
+          "expected_domain": "tax",
+          "actual_domain": "tax",
+          "processing_time": 0.0
+        }
+      ]
+    },
+    "performance_benchmarks": {
+      "total_tests": 3,
+      "details": [
+        {
+          "name": "Simple Text",
+          "complexity": "low",
+          "ref_processing_time": 0.0,
+          "domain_processing_time": 0.0,
+          "total_processing_time": 0.0,
+          "references_found": 1,
+          "domain_classified": "criminal"
+        },
+        {
+          "name": "Medium Text",
+          "complexity": "medium",
+          "ref_processing_time": 0.0,
+          "domain_processing_time": 0.0,
+          "total_processing_time": 0.0,
+          "references_found": 4,
+          "domain_classified": "constitutional"
+        },
+        {
+          "name": "Complex Text",
+          "complexity": "high",
+          "ref_processing_time": 0.0071887969970703125,
+          "domain_processing_time": 0.0,
+          "total_processing_time": 0.0071887969970703125,
+          "references_found": 10,
+          "domain_classified": "criminal"
+        }
+      ],
+      "averages": {
+        "ref_processing_time": 0.002396265665690104,
+        "domain_processing_time": 0.0,
+        "total_processing_time": 0.002396265665690104
+      }
+    },
+    "edge_cases": {
+      "total_tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "details": [
+        {
+          "name": "Empty Text",
+          "passed": true,
+          "ref_success": true,
+          "domain_success": true,
+          "ref_count_match": true,
+          "domain_match": true,
+          "ref_error": null,
+          "domain_error": null
+        },
+        {
+          "name": "Very Long Text",
+          "passed": true,
+          "ref_success": true,
+          "domain_success": true,
+          "ref_count_match": true,
+          "domain_match": true,
+          "ref_error": null,
+          "domain_error": null
+        },
+        {
+          "name": "Special Characters",
+          "passed": true,
+          "ref_success": true,
+          "domain_success": true,
+          "ref_count_match": true,
+          "domain_match": true,
+          "ref_error": null,
+          "domain_error": null
+        },
+        {
+          "name": "Mixed Languages",
+          "passed": true,
+          "ref_success": true,
+          "domain_success": true,
+          "ref_count_match": true,
+          "domain_match": true,
+          "ref_error": null,
+          "domain_error": null
+        },
+        {
+          "name": "Malformed References",
+          "passed": true,
+          "ref_success": true,
+          "domain_success": true,
+          "ref_count_match": true,
+          "domain_match": true,
+          "ref_error": null,
+          "domain_error": null
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_tests": 41,
+    "total_passed": 39,
+    "total_failed": 2,
+    "overall_accuracy": 95.1219512195122,
+    "test_completion_time": "2025-09-13 02:50:16.843166"
+  }
+}

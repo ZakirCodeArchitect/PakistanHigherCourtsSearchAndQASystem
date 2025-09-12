@@ -33,6 +33,9 @@ urlpatterns = [
         # Analytics
         path('analytics/', views.QAAnalyticsView.as_view(), name='qa_analytics'),
         path('metrics/', views.QAMetricsView.as_view(), name='qa_metrics'),
+        
+        # QA Knowledge Base endpoints
+        path('kb/', include('question_answering.urls.qa_knowledge_base_urls')),
     ])),
     
     # Frontend routes
