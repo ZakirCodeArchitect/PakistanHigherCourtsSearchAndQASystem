@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-13 02:50:15.120076",
+  "timestamp": "2025-09-14 01:00:38.713288",
   "test_suite": "Comprehensive QA Knowledge Base Test",
   "results": {
     "pattern_recognition": {
@@ -18,7 +18,7 @@
           "actual_types": [
             "constitutional_article"
           ],
-          "processing_time": 0.016590595245361328,
+          "processing_time": 0.004449605941772461,
           "references": [
             {
               "section_number": 199,
@@ -78,7 +78,7 @@
           "actual_types": [
             "case_citation"
           ],
-          "processing_time": 0.0,
+          "processing_time": 0.0006132125854492188,
           "references": [
             {
               "section_number": 123,
@@ -249,7 +249,7 @@
           "actual_types": [
             "section"
           ],
-          "processing_time": 0.0,
+          "processing_time": 0.0015163421630859375,
           "references": [
             {
               "section_number": 302,
@@ -279,7 +279,7 @@
           "actual_types": [
             "section"
           ],
-          "processing_time": 0.004433393478393555,
+          "processing_time": 0.0011508464813232422,
           "references": [
             {
               "section_number": 420,
@@ -317,7 +317,7 @@
             "agency_reference",
             "section"
           ],
-          "processing_time": 0.0,
+          "processing_time": 0.0005133152008056641,
           "references": [
             {
               "section_number": 123,
@@ -478,7 +478,7 @@
           "passed": true,
           "expected_domain": "criminal",
           "actual_domain": "criminal",
-          "processing_time": 0.0
+          "processing_time": 0.0005655288696289062
         },
         {
           "name": "Civil Law - Contract",
@@ -492,7 +492,7 @@
           "passed": true,
           "expected_domain": "civil",
           "actual_domain": "civil",
-          "processing_time": 0.003376483917236328
+          "processing_time": 0.0
         },
         {
           "name": "Constitutional Law - Writ",
@@ -506,14 +506,14 @@
           "passed": true,
           "expected_domain": "constitutional",
           "actual_domain": "constitutional",
-          "processing_time": 0.0
+          "processing_time": 0.0009970664978027344
         },
         {
           "name": "Family Law - Divorce",
           "passed": true,
           "expected_domain": "family",
           "actual_domain": "family",
-          "processing_time": 0.0020301342010498047
+          "processing_time": 0.0010151863098144531
         },
         {
           "name": "Family Law - Marriage",
@@ -548,14 +548,14 @@
           "passed": true,
           "expected_domain": "tax",
           "actual_domain": "tax",
-          "processing_time": 0.0
+          "processing_time": 0.000982522964477539
         },
         {
           "name": "Labor Law - Compensation",
           "passed": true,
           "expected_domain": "labor",
           "actual_domain": "labor",
-          "processing_time": 0.0025818347930908203
+          "processing_time": 0.0010004043579101562
         },
         {
           "name": "Labor Law - Employment",
@@ -625,7 +625,7 @@
           "passed": true,
           "expected_domain": "criminal",
           "actual_domain": "criminal",
-          "processing_time": 0.0
+          "processing_time": 0.0009961128234863281
         },
         {
           "name": "Mixed Case - Tax + Corporate",
@@ -651,26 +651,26 @@
         {
           "name": "Medium Text",
           "complexity": "medium",
-          "ref_processing_time": 0.0,
+          "ref_processing_time": 0.0015151500701904297,
           "domain_processing_time": 0.0,
-          "total_processing_time": 0.0,
+          "total_processing_time": 0.0015151500701904297,
           "references_found": 4,
           "domain_classified": "constitutional"
         },
         {
           "name": "Complex Text",
           "complexity": "high",
-          "ref_processing_time": 0.0071887969970703125,
+          "ref_processing_time": 0.0024025440216064453,
           "domain_processing_time": 0.0,
-          "total_processing_time": 0.0071887969970703125,
+          "total_processing_time": 0.0024025440216064453,
           "references_found": 10,
           "domain_classified": "criminal"
         }
       ],
       "averages": {
-        "ref_processing_time": 0.002396265665690104,
+        "ref_processing_time": 0.0013058980305989583,
         "domain_processing_time": 0.0,
-        "total_processing_time": 0.002396265665690104
+        "total_processing_time": 0.0013058980305989583
       }
     },
     "edge_cases": {
@@ -736,6 +736,6 @@
     "total_passed": 39,
     "total_failed": 2,
     "overall_accuracy": 95.1219512195122,
-    "test_completion_time": "2025-09-13 02:50:16.843166"
+    "test_completion_time": "2025-09-14 01:00:39.534682"
   }
 }
