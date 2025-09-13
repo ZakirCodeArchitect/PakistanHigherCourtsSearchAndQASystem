@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-09-14 01:00:38.713288",
+  "timestamp": "2025-09-14 01:06:44.977249",
   "test_suite": "Comprehensive QA Knowledge Base Test",
   "results": {
     "pattern_recognition": {
       "total_tests": 11,
-      "passed": 9,
-      "failed": 2,
+      "passed": 10,
+      "failed": 1,
       "details": [
         {
           "name": "Constitutional Articles - Simple",
@@ -18,7 +18,7 @@
           "actual_types": [
             "constitutional_article"
           ],
-          "processing_time": 0.004449605941772461,
+          "processing_time": 0.0039942264556884766,
           "references": [
             {
               "section_number": 199,
@@ -78,7 +78,7 @@
           "actual_types": [
             "case_citation"
           ],
-          "processing_time": 0.0006132125854492188,
+          "processing_time": 0.0,
           "references": [
             {
               "section_number": 123,
@@ -155,7 +155,7 @@
           "actual_types": [
             "agency_reference"
           ],
-          "processing_time": 0.0,
+          "processing_time": 0.0010063648223876953,
           "references": [
             {
               "section_number": 0,
@@ -249,7 +249,7 @@
           "actual_types": [
             "section"
           ],
-          "processing_time": 0.0015163421630859375,
+          "processing_time": 0.0,
           "references": [
             {
               "section_number": 302,
@@ -279,7 +279,7 @@
           "actual_types": [
             "section"
           ],
-          "processing_time": 0.0011508464813232422,
+          "processing_time": 0.0,
           "references": [
             {
               "section_number": 420,
@@ -300,7 +300,7 @@
         },
         {
           "name": "Mixed References - Complex",
-          "passed": false,
+          "passed": true,
           "expected_refs": 5,
           "actual_refs": 5,
           "expected_types": [
@@ -313,11 +313,11 @@
           "actual_types": [
             "case_citation",
             "constitutional_article",
+            "section",
             "agency_reference",
-            "agency_reference",
-            "section"
+            "agency_reference"
           ],
-          "processing_time": 0.0005133152008056641,
+          "processing_time": 0.0,
           "references": [
             {
               "section_number": 123,
@@ -350,6 +350,21 @@
               "qa_relevance": 0.9500000000000001
             },
             {
+              "section_number": 302,
+              "act_abbreviation": "ppc",
+              "act_name": "Pakistan Penal Code",
+              "year": null,
+              "court": null,
+              "court_name": null,
+              "reference_type": "section",
+              "action": null,
+              "original_match": "s. 302 PPC",
+              "start_pos": 124,
+              "end_pos": 134,
+              "context": "it jurisdiction can be invoked. The case involved s. 302 PPC, FIA investigation, and NAB charges.",
+              "qa_relevance": 0.9
+            },
+            {
               "section_number": 0,
               "act_abbreviation": "fia",
               "act_name": "Federal Investigation Agency",
@@ -378,21 +393,6 @@
               "end_pos": 170,
               "context": " case involved s. 302 PPC, FIA investigation, and NAB charges.",
               "qa_relevance": 0.85
-            },
-            {
-              "section_number": 302,
-              "act_abbreviation": "ppc",
-              "act_name": "Pakistan Penal Code",
-              "year": null,
-              "court": null,
-              "court_name": null,
-              "reference_type": "section",
-              "action": null,
-              "original_match": "s. 302 PPC",
-              "start_pos": 124,
-              "end_pos": 134,
-              "context": "it jurisdiction can be invoked. The case involved s. 302 PPC, FIA investigation, and NAB charges.",
-              "qa_relevance": 0.9
             }
           ]
         },
@@ -427,18 +427,18 @@
             },
             {
               "section_number": 302,
-              "act_abbreviation": "ppc",
-              "act_name": "Pakistan Penal Code",
+              "act_abbreviation": "unknown",
+              "act_name": "Unknown Act",
               "year": null,
               "court": null,
               "court_name": null,
               "reference_type": "section",
               "action": null,
-              "original_match": "s. 302 PPC",
+              "original_match": "s. 302",
               "start_pos": 20,
-              "end_pos": 30,
+              "end_pos": 26,
               "context": "Section 302 PPC and s. 302 PPC both deal with murder.",
-              "qa_relevance": 0.9
+              "qa_relevance": 0.7
             }
           ]
         },
@@ -478,7 +478,7 @@
           "passed": true,
           "expected_domain": "criminal",
           "actual_domain": "criminal",
-          "processing_time": 0.0005655288696289062
+          "processing_time": 0.0
         },
         {
           "name": "Civil Law - Contract",
@@ -506,21 +506,21 @@
           "passed": true,
           "expected_domain": "constitutional",
           "actual_domain": "constitutional",
-          "processing_time": 0.0009970664978027344
+          "processing_time": 0.0
         },
         {
           "name": "Family Law - Divorce",
           "passed": true,
           "expected_domain": "family",
           "actual_domain": "family",
-          "processing_time": 0.0010151863098144531
+          "processing_time": 0.001013040542602539
         },
         {
           "name": "Family Law - Marriage",
           "passed": true,
           "expected_domain": "family",
           "actual_domain": "family",
-          "processing_time": 0.0
+          "processing_time": 0.0009925365447998047
         },
         {
           "name": "Commercial Law - Company",
@@ -534,7 +534,7 @@
           "passed": true,
           "expected_domain": "commercial",
           "actual_domain": "commercial",
-          "processing_time": 0.0
+          "processing_time": 0.0005168914794921875
         },
         {
           "name": "Tax Law - Income Tax",
@@ -548,14 +548,14 @@
           "passed": true,
           "expected_domain": "tax",
           "actual_domain": "tax",
-          "processing_time": 0.000982522964477539
+          "processing_time": 0.0
         },
         {
           "name": "Labor Law - Compensation",
           "passed": true,
           "expected_domain": "labor",
           "actual_domain": "labor",
-          "processing_time": 0.0010004043579101562
+          "processing_time": 0.0
         },
         {
           "name": "Labor Law - Employment",
@@ -625,7 +625,7 @@
           "passed": true,
           "expected_domain": "criminal",
           "actual_domain": "criminal",
-          "processing_time": 0.0009961128234863281
+          "processing_time": 0.0010116100311279297
         },
         {
           "name": "Mixed Case - Tax + Corporate",
@@ -642,35 +642,35 @@
         {
           "name": "Simple Text",
           "complexity": "low",
-          "ref_processing_time": 0.0,
+          "ref_processing_time": 0.0010073184967041016,
           "domain_processing_time": 0.0,
-          "total_processing_time": 0.0,
+          "total_processing_time": 0.0010073184967041016,
           "references_found": 1,
           "domain_classified": "criminal"
         },
         {
           "name": "Medium Text",
           "complexity": "medium",
-          "ref_processing_time": 0.0015151500701904297,
-          "domain_processing_time": 0.0,
-          "total_processing_time": 0.0015151500701904297,
+          "ref_processing_time": 0.0,
+          "domain_processing_time": 0.0010018348693847656,
+          "total_processing_time": 0.0010018348693847656,
           "references_found": 4,
           "domain_classified": "constitutional"
         },
         {
           "name": "Complex Text",
           "complexity": "high",
-          "ref_processing_time": 0.0024025440216064453,
+          "ref_processing_time": 0.0009996891021728516,
           "domain_processing_time": 0.0,
-          "total_processing_time": 0.0024025440216064453,
+          "total_processing_time": 0.0009996891021728516,
           "references_found": 10,
           "domain_classified": "criminal"
         }
       ],
       "averages": {
-        "ref_processing_time": 0.0013058980305989583,
-        "domain_processing_time": 0.0,
-        "total_processing_time": 0.0013058980305989583
+        "ref_processing_time": 0.0006690025329589844,
+        "domain_processing_time": 0.00033394495646158856,
+        "total_processing_time": 0.001002947489420573
       }
     },
     "edge_cases": {
@@ -733,9 +733,9 @@
   },
   "summary": {
     "total_tests": 41,
-    "total_passed": 39,
-    "total_failed": 2,
-    "overall_accuracy": 95.1219512195122,
-    "test_completion_time": "2025-09-14 01:00:39.534682"
+    "total_passed": 40,
+    "total_failed": 1,
+    "overall_accuracy": 97.5609756097561,
+    "test_completion_time": "2025-09-14 01:06:45.287899"
   }
 }

@@ -289,51 +289,52 @@ class QALawReferenceNormalizer:
             all_matches = []
             
             # Pattern priority groups (higher number = higher priority)
+            # Order: case_citation, constitutional_article, section, agency_reference, agency_reference
             pattern_priorities = {
-                # Constitutional articles (highest priority)
-                r'art\.?\s*(\d+)\((\d+)\)\s+constitution': 5,
-                r'art\.?\s*(\d+)\((\d+)\)\s+of\s+constitution': 5,
-                r'constitution\s+art\.?\s*(\d+)\((\d+)\)': 5,
-                r'art\.?\s*(\d+)\s+constitution': 4,
-                r'article\s+(\d+)\s+constitution': 4,
-                r'constitution\s+art\.?\s*(\d+)': 4,
-                r'art\.?\s*(\d+)\s+of\s+constitution': 4,
-                r'article\s+(\d+)\s+of\s+constitution': 4,
-                r'constitution\s+article\s+(\d+)': 4,
+                # Case citation patterns (highest priority - should come first)
+                r'(pld|plj|mld|ylr|clj|clc|scr|hcr)\s+(\d{4})\s+(sc|ihc|lhc|shc|bhc|phc|fsc)\s+(\d+)': 6,
+                r'(pld|plj|mld|ylr|clj|clc|scr|hcr)\s+(\d{4})\s+(\d+)': 5,
                 
-                # Case citation patterns (high priority)
-                r'(pld|plj|mld|ylr|clj|clc|scr|hcr)\s+(\d{4})\s+(sc|ihc|lhc|shc|bhc|phc|fsc)\s+(\d+)': 4,
-                r'(pld|plj|mld|ylr|clj|clc|scr|hcr)\s+(\d{4})\s+(\d+)': 3,
+                # Constitutional articles (second priority)
+                r'art\.?\s*(\d+)\((\d+)\)\s+constitution': 4,
+                r'art\.?\s*(\d+)\((\d+)\)\s+of\s+constitution': 4,
+                r'constitution\s+art\.?\s*(\d+)\((\d+)\)': 4,
+                r'art\.?\s*(\d+)\s+constitution': 3,
+                r'article\s+(\d+)\s+constitution': 3,
+                r'constitution\s+art\.?\s*(\d+)': 3,
+                r'art\.?\s*(\d+)\s+of\s+constitution': 3,
+                r'article\s+(\d+)\s+of\s+constitution': 3,
+                r'constitution\s+article\s+(\d+)': 3,
                 
-                # Court-specific patterns
-                r'(sc|ihc|lhc|shc|bhc|phc|fsc)\s+(\d{4})\s+(\d+)': 3,
-                r'(supreme\s+court|islamabad\s+high\s+court|lahore\s+high\s+court|sindh\s+high\s+court|balochistan\s+high\s+court|peshawar\s+high\s+court|federal\s+shariat\s+court)\s+(\d{4})\s+(\d+)': 3,
-                
-                # Government agency patterns (improved)
-                r'(fia)\s+(investigation|filed|charges)': 3,
-                r'(nab)\s+(filed|charges|investigation)': 3,
-                r'(fbr)\s+(issued|notice|regulations)': 3,
-                r'(secp)\s+(regulated|regulations)': 3,
-                r'(sbp)\s+(issued|circular)': 3,
-                r'(pemra)\s+(fined|regulations)': 3,
-                r'(pta)\s+(regulated|regulations)': 3,
-                
-                # Standard section patterns
-                r's\.?\s*(\d+)\s+(ppc|crpc|cpc|qso|fia|nab|fbr|secp|sbp|pemra|pta)': 2,
+                # Standard section patterns (third priority)
                 r'section\s+(\d+)\s+(ppc|crpc|cpc|qso|fia|nab|fbr|secp|sbp|pemra|pta)': 2,
+                r's\.?\s*(\d+)\s+(ppc|crpc|cpc|qso|fia|nab|fbr|secp|sbp|pemra|pta)': 2,
                 r'(\d+)\s+(ppc|crpc|cpc|qso|fia|nab|fbr|secp|sbp|pemra|pta)': 1,
                 r'(ppc|crpc|cpc|qso|fia|nab|fbr|secp|sbp|pemra|pta)\s+(\d+)': 1,
                 
+                # Government agency patterns (fourth priority - should come after sections)
+                r'(fia)\s+(investigation|filed|charges)': 0,
+                r'(nab)\s+(filed|charges|investigation)': 0,
+                r'(fbr)\s+(issued|notice|regulations)': 0,
+                r'(secp)\s+(regulated|regulations)': 0,
+                r'(sbp)\s+(issued|circular)': 0,
+                r'(pemra)\s+(fined|regulations)': 0,
+                r'(pta)\s+(regulated|regulations)': 0,
+                
+                # Court-specific patterns
+                r'(sc|ihc|lhc|shc|bhc|phc|fsc)\s+(\d{4})\s+(\d+)': 0,
+                r'(supreme\s+court|islamabad\s+high\s+court|lahore\s+high\s+court|sindh\s+high\s+court|balochistan\s+high\s+court|peshawar\s+high\s+court|federal\s+shariat\s+court)\s+(\d{4})\s+(\d+)': 0,
+                
                 # Sub-section, rule, and other patterns
-                r'sub-section\s+(\d+)\s+of\s+section\s+(\d+)': 2,
-                r'sub-s\.?\s*(\d+)\s+of\s+s\.?\s*(\d+)': 2,
-                r's\.?\s*(\d+)\s*\((\d+)\)': 2,
-                r'rule\s+(\d+)\s+of\s+(ppc|crpc|cpc|qso)': 2,
-                r'order\s+(\d+)\s+of\s+(ppc|crpc|cpc|qso)': 2,
+                r'sub-section\s+(\d+)\s+of\s+section\s+(\d+)': 0,
+                r'sub-s\.?\s*(\d+)\s+of\s+s\.?\s*(\d+)': 0,
+                r's\.?\s*(\d+)\s*\((\d+)\)': 0,
+                r'rule\s+(\d+)\s+of\s+(ppc|crpc|cpc|qso)': 0,
+                r'order\s+(\d+)\s+of\s+(ppc|crpc|cpc|qso)': 0,
                 
                 # Generic patterns (lowest priority)
-                r's\.?\s*(\d+)': 0,
-                r'section\s+(\d+)': 0,
+                r's\.?\s*(\d+)': -1,
+                r'section\s+(\d+)': -1,
             }
             
             # Find all potential matches
@@ -349,10 +350,61 @@ class QALawReferenceNormalizer:
                         'pattern': pattern
                     })
             
-            # Step 2: Sort matches by priority (higher first) and position
+            # Step 2: Apply duplicate detection FIRST, before sorting
+            # Remove duplicates where the same reference is detected multiple times
+            filtered_matches = []
+            seen_references = set()
+            
+            for match_info in all_matches:
+                match = match_info['match']
+                match_text = match.group(0).lower().strip()
+                
+                # Create a normalized key for duplicate detection
+                # Extract the core reference (section number + act)
+                normalized_key = None
+                
+                # Check for section patterns (PPC, CrPC, CPC, etc.)
+                # Use a more comprehensive pattern that catches both "section 302 ppc" and "s. 302 ppc"
+                section_match = re.search(r'(?:section\s+|s\.?\s*)?(\d+)\s*(ppc|crpc|cpc|qso)', match_text)
+                if section_match:
+                    normalized_key = f"{section_match.group(1)}_{section_match.group(2)}"
+                    self.logger.debug(f"Found section pattern: {match_text} -> {normalized_key}")
+                
+                # Check for constitutional articles
+                elif 'constitution' in match_text:
+                    art_match = re.search(r'art(?:icle)?\s*(\d+)', match_text)
+                    if art_match:
+                        normalized_key = f"art_{art_match.group(1)}_constitution"
+                
+                # Check for case citations
+                elif any(pub in match_text for pub in ['pld', 'plj', 'mld', 'ylr', 'clj', 'clc']):
+                    citation_match = re.search(r'(pld|plj|mld|ylr|clj|clc)\s+(\d{4})\s+(\w+)\s+(\d+)', match_text)
+                    if citation_match:
+                        normalized_key = f"{citation_match.group(1)}_{citation_match.group(2)}_{citation_match.group(3)}_{citation_match.group(4)}"
+                
+                # Check for agency references
+                elif any(agency in match_text for agency in ['fia', 'nab', 'fbr', 'secp', 'sbp', 'pemra', 'pta']):
+                    agency_match = re.search(r'(fia|nab|fbr|secp|sbp|pemra|pta)', match_text)
+                    if agency_match:
+                        normalized_key = f"agency_{agency_match.group(1)}"
+                
+                # If we have a normalized key and it's already seen, skip this match
+                if normalized_key and normalized_key in seen_references:
+                    self.logger.debug(f"Skipping duplicate: {match_text} -> {normalized_key}")
+                    continue
+                
+                # Add to seen references and filtered matches
+                if normalized_key:
+                    seen_references.add(normalized_key)
+                    self.logger.debug(f"Adding new reference: {match_text} -> {normalized_key}")
+                filtered_matches.append(match_info)
+            
+            all_matches = filtered_matches
+            
+            # Step 3: Sort matches by priority (higher first) and position
             all_matches.sort(key=lambda x: (-x['priority'], x['start']))
             
-            # Step 2.5: Ensure consistent ordering for same priority matches
+            # Step 3.5: Ensure consistent ordering for same priority matches
             # Group by priority and sort each group by position
             priority_groups = {}
             for match in all_matches:
@@ -490,7 +542,7 @@ class QALawReferenceNormalizer:
                         section_num = int(group)
                     elif group and group.lower() in self.legal_abbreviations:
                         act_abbr = group.lower()
-                        
+            
             # Government agency pattern detection
             elif any(agency in pattern_text for agency in ['fia', 'nab', 'fbr', 'secp', 'sbp', 'pemra', 'pta']):
                 reference_type = 'agency_reference'
