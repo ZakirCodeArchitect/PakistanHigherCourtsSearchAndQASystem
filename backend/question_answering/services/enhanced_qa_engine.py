@@ -10,6 +10,7 @@ from .knowledge_retriever import KnowledgeRetriever
 from .rag_service import RAGService
 from .conversation_manager import ConversationManager, CitationFormatter
 from .advanced_embeddings import AdvancedEmbeddingService
+from qa_app.services.qa_retrieval_service import QARetrievalService
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ class EnhancedQAEngine:
         self.conversation_manager = ConversationManager()
         self.citation_formatter = CitationFormatter()
         self.advanced_embeddings = AdvancedEmbeddingService()
+        
+        # NEW: Advanced QA retrieval with two-stage process
+        self.qa_retrieval_service = QARetrievalService()
     
     def _precompute_embeddings(self):
         """Precompute embeddings for all documents"""
@@ -64,8 +68,8 @@ class EnhancedQAEngine:
                 question = enhanced_query_info.get('enhanced_query', question)
                 conversation_history = session.get_recent_context(5)
             
-            # Step 3: Use knowledge retriever to find relevant legal cases
-            search_results = self.knowledge_retriever.search_legal_cases(question, top_k=5)
+            # Step 3: Use advanced QA retrieval (two-stage with cross-encoder)
+            search_results = self._advanced_qa_retrieval(question, top_k=5)
             
             # Step 4: Extract case information for context
             relevant_documents = self._prepare_case_context(search_results)
@@ -273,15 +277,46 @@ class EnhancedQAEngine:
             logger.error(f"Error adding document: {str(e)}")
             return False
     
+    def _advanced_qa_retrieval(self, question: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Advanced QA retrieval using two-stage process with cross-encoder reranking
+        
+        Args:
+            question: User's question
+            top_k: Number of results to return
+            
+        Returns:
+            List of high-quality results optimized for QA
+        """
+        try:
+            logger.info(f"Using advanced QA retrieval for: '{question[:50]}...'")
+            
+            # Try advanced QA retrieval first
+            if self.qa_retrieval_service:
+                qa_results = self.qa_retrieval_service.retrieve_for_qa(
+                    query=question,
+                    top_k=top_k
+                )
+                
+                if qa_results:
+                    logger.info(f"Advanced QA retrieval found {len(qa_results)} results")
+                    return qa_results
+                else:
+                    logger.info("Advanced QA retrieval returned no results, falling back to knowledge retriever")
+            
+            # Fallback to original knowledge retriever
+            return self.knowledge_retriever.search_legal_cases(question, top_k=top_k)
+            
+        except Exception as e:
+            logger.error(f"Error in advanced QA retrieval: {str(e)}")
+            # Fallback to original method
+            return self.knowledge_retriever.search_legal_cases(question, top_k=top_k)
+    
     def search_only(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """Search documents without generating an answer"""
         try:
-            results = self.semantic_search.search_documents(
-                query=query,
-                documents=self.documents,
-                document_embeddings=self.document_embeddings
-            )
-            return results[:top_k]
+            # Use advanced QA retrieval for search-only as well
+            return self._advanced_qa_retrieval(query, top_k)
         except Exception as e:
             logger.error(f"Error in search only: {str(e)}")
             return []

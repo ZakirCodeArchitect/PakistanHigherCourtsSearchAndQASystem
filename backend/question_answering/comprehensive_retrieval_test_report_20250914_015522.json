@@ -1,0 +1,226 @@
+{
+  "test_summary": {
+    "total_duration": 63.220371,
+    "total_tests": 6,
+    "successful_tests": 3,
+    "failed_tests": 3,
+    "success_rate": 50.0,
+    "test_date": "2025-09-14T01:54:19.170015",
+    "test_end_date": "2025-09-14T01:55:22.390386"
+  },
+  "test_results": {
+    "initialization": {
+      "success": true,
+      "init_time": 12.869962692260742,
+      "stats": {
+        "embedding_model_loaded": true,
+        "cross_encoder_loaded": true,
+        "pinecone_connected": false,
+        "embedding_dimension": 384,
+        "config": {
+          "initial_retrieval_k": 30,
+          "final_retrieval_k": 12,
+          "min_rerank_k": 8,
+          "semantic_weight": 0.7,
+          "qa_relevance_weight": 0.3,
+          "diversity_threshold": 0.8,
+          "cross_encoder_model": "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        },
+        "retrieval_method": "two_stage_qa_retrieval"
+      },
+      "config": {
+        "initial_retrieval_k": 30,
+        "final_retrieval_k": 12,
+        "min_rerank_k": 8,
+        "semantic_weight": 0.7,
+        "qa_relevance_weight": 0.3,
+        "diversity_threshold": 0.8,
+        "cross_encoder_model": "cross-encoder/ms-marco-MiniLM-L-6-v2"
+      }
+    },
+    "two_stage_retrieval": {
+      "simple": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.003004789352416992,
+        "error": "No results returned"
+      },
+      "complex": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.001974821090698242,
+        "error": "No results returned"
+      },
+      "constitutional": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.0035479068756103516,
+        "error": "No results returned"
+      }
+    },
+    "metadata_filtering": {
+      "Legal Domain Filter": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.002119302749633789,
+        "error": "No results returned"
+      },
+      "Case Type Filter": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.002620220184326172,
+        "error": "No results returned"
+      },
+      "Court Filter": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.0027968883514404297,
+        "error": "No results returned"
+      },
+      "Year Filter": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.006024599075317383,
+        "error": "No results returned"
+      },
+      "Multiple Filters": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.004014015197753906,
+        "error": "No results returned"
+      }
+    },
+    "diversity_control": {
+      "What is a writ petition?": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.0,
+        "error": "No results returned"
+      },
+      "How to file a criminal case?": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.0010066032409667969,
+        "error": "No results returned"
+      },
+      "Constitutional rights in Pakistan": {
+        "success": false,
+        "results_count": 0,
+        "processing_time": 0.0010223388671875,
+        "error": "No results returned"
+      }
+    },
+    "performance_metrics": {
+      "success": true,
+      "overall_metrics": {
+        "total_queries": 10,
+        "avg_processing_time": 0.003072245915730794,
+        "min_processing_time": 0.0015692710876464844,
+        "max_processing_time": 0.004384199778238933,
+        "avg_results_per_query": 0.0,
+        "total_processing_time": 0.03072245915730794
+      },
+      "detailed_results": [
+        {
+          "query": "What is a writ petition?",
+          "avg_time": 0.004384199778238933,
+          "min_time": 0.0035152435302734375,
+          "max_time": 0.005110263824462891,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "How to file a criminal case under PPC?",
+          "avg_time": 0.0020072460174560547,
+          "min_time": 0.0009913444519042969,
+          "max_time": 0.003015756607055664,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "What are fundamental rights under Constitution?",
+          "avg_time": 0.0033644835154215493,
+          "min_time": 0.001983165740966797,
+          "max_time": 0.004085540771484375,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "How to get bail in criminal cases?",
+          "avg_time": 0.004253466924031575,
+          "min_time": 0.0037353038787841797,
+          "max_time": 0.005021810531616211,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "What is the procedure for divorce in Pakistan?",
+          "avg_time": 0.0038798650105794272,
+          "min_time": 0.003768444061279297,
+          "max_time": 0.00400090217590332,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "Supreme Court judgments on constitutional matters",
+          "avg_time": 0.0015692710876464844,
+          "min_time": 0.0008122920989990234,
+          "max_time": 0.0022101402282714844,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "High Court orders on civil cases",
+          "avg_time": 0.0021875699361165366,
+          "min_time": 0.0009014606475830078,
+          "max_time": 0.0029234886169433594,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "Legal precedents on property disputes",
+          "avg_time": 0.002427260080973307,
+          "min_time": 0.0021009445190429688,
+          "max_time": 0.0026426315307617188,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "Criminal law provisions under PPC",
+          "avg_time": 0.0035435358683268228,
+          "min_time": 0.001878499984741211,
+          "max_time": 0.0047528743743896484,
+          "avg_results": 0.0,
+          "iterations": 3
+        },
+        {
+          "query": "Constitutional interpretation cases",
+          "avg_time": 0.0031055609385172525,
+          "min_time": 0.0021028518676757812,
+          "max_time": 0.0041811466217041016,
+          "avg_results": 0.0,
+          "iterations": 3
+        }
+      ]
+    },
+    "integration": {
+      "success": true,
+      "components_tested": [
+        "QARetrievalService import",
+        "Service initialization",
+        "get_qa_retrieval_stats method",
+        "retrieve_for_qa method",
+        "Configuration validation"
+      ]
+    }
+  },
+  "performance_metrics": {
+    "initialization_time": 12.869962692260742,
+    "total_queries": 10,
+    "avg_processing_time": 0.003072245915730794,
+    "min_processing_time": 0.0015692710876464844,
+    "max_processing_time": 0.004384199778238933,
+    "avg_results_per_query": 0.0,
+    "total_processing_time": 0.03072245915730794
+  }
+}
