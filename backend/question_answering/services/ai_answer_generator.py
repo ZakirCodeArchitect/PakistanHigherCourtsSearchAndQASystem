@@ -18,7 +18,14 @@ class AIAnswerGenerator:
     
     def __init__(self):
         """Initialize the AI service"""
-        self.api_key = os.getenv("OPENAI_API_KEY_a")
+        # Load .env file
+        try:
+            from dotenv import load_dotenv
+            load_dotenv('.env')
+        except Exception:
+            pass
+            
+        self.api_key = os.getenv("OPENAI_API_KEY")
         self.model = getattr(settings, 'QA_SETTINGS', {}).get('GENERATION_MODEL', 'gpt-4')
         self.max_tokens = getattr(settings, 'QA_SETTINGS', {}).get('MAX_TOKENS', 1500)
         self.temperature = getattr(settings, 'QA_SETTINGS', {}).get('TEMPERATURE', 0.3)

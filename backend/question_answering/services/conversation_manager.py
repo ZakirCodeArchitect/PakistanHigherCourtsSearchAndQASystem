@@ -52,9 +52,16 @@ class ConversationManager:
                     session = QASession.objects.get(session_id=session_id, is_active=True)
                     return session
                 except QASession.DoesNotExist:
-                    pass
+                    # Create new session with the provided session_id
+                    session = QASession.objects.create(
+                        session_id=session_id,
+                        user_id=user_id,
+                        is_active=True
+                    )
+                    self.logger.info(f"Created new session with provided ID: {session_id}")
+                    return session
             
-            # Create new session
+            # Create new session with generated ID
             return self.create_session(user_id)
             
         except Exception as e:
@@ -66,13 +73,30 @@ class ConversationManager:
                             query_id: int = None, response_id: int = None) -> None:
         """Add a conversation turn to the session"""
         try:
-            session.add_conversation_turn(
-                query=query,
-                response=response,
-                context_documents=context_documents or [],
-                query_id=query_id,
-                response_id=response_id
-            )
+            # Create QAQuery if not provided
+            if not query_id:
+                qa_query = QAQuery.objects.create(
+                    session=session,
+                    query_text=query,
+                    query_type="general"
+                )
+                query_id = qa_query.id
+            else:
+                qa_query = QAQuery.objects.get(id=query_id)
+            
+            # Create QAResponse if not provided
+            if not response_id:
+                qa_response = QAResponse.objects.create(
+                    query=qa_query,
+                    answer_text=response,
+                    confidence_score=1.0,
+                    answer_type="advanced_rag"
+                )
+                response_id = qa_response.id
+            
+            # Update session counters
+            session.total_queries = session.queries.count()
+            session.save()
             
             self.logger.info(f"Added conversation turn to session: {session.session_id}")
             
@@ -83,16 +107,32 @@ class ConversationManager:
     def get_conversation_context(self, session: QASession, max_turns: int = 5) -> Dict[str, Any]:
         """Get conversation context for follow-up queries"""
         try:
+            # Get recent queries and responses
+            recent_queries = session.queries.order_by('-created_at')[:max_turns]
+            recent_responses = QAResponse.objects.filter(query__session=session).order_by('-created_at')[:max_turns]
+            
+            self.logger.info(f"Found {len(recent_queries)} queries and {len(recent_responses)} responses for session {session.session_id}")
+            
+            # Build recent turns
+            recent_turns = []
+            for query, response in zip(reversed(recent_queries), reversed(recent_responses)):
+                recent_turns.append({
+                    'query': query.query_text,
+                    'response': response.answer_text,
+                    'timestamp': query.created_at.isoformat(),
+                    'query_type': query.query_type
+                })
+            
             context = {
-                'recent_turns': session.get_recent_context(max_turns),
-                'context_summary': session.get_context_summary(3),
-                'topics': session.get_conversation_topics(),
+                'recent_turns': recent_turns,
+                'context_summary': f"Session with {session.total_queries} queries",
+                'topics': [q.query_type for q in recent_queries[:3]],
                 'session_info': {
                     'session_id': session.session_id,
                     'total_queries': session.total_queries,
-                    'success_rate': session.success_rate,
-                    'duration': str(session.duration),
-                    'last_activity': session.last_activity.isoformat() if session.last_activity else None
+                    'total_responses': QAResponse.objects.filter(query__session=session).count(),
+                    'created_at': session.created_at.isoformat(),
+                    'updated_at': session.updated_at.isoformat()
                 }
             }
             
@@ -289,19 +329,24 @@ class CitationFormatter:
     def _format_single_citation(self, source: Dict[str, Any]) -> Dict[str, Any]:
         """Format a single legal citation"""
         try:
+            # Get metadata if available (handle both dict and list cases)
+            metadata = source.get('metadata', {})
+            if isinstance(metadata, list):
+                metadata = {}
+            
             citation = {
-                'title': source.get('title', 'Unknown Case'),
-                'case_number': source.get('case_number', 'N/A'),
-                'court': source.get('court', 'Unknown Court'),
-                'date': source.get('date_decided', 'N/A'),
-                'judge': source.get('judge_name', 'Unknown Judge'),
-                'relevance_score': source.get('score', 0.0),
-                'legal_domain': source.get('legal_domain', 'General'),
-                'formatted_citation': self._create_formatted_citation(source),
-                'download_link': self._create_download_link(source),
-                'metadata': {
-                    'case_id': source.get('case_id'),
-                    'document_id': source.get('document_id'),
+            'title': source.get('case_title', metadata.get('case_title', source.get('title', 'Unknown Case'))),
+            'case_number': source.get('case_number', metadata.get('case_number', 'N/A')),
+            'court': source.get('court', metadata.get('court', self._extract_court_from_filename(source.get('file_name', 'Unknown Court')))),
+            'date': source.get('date_decided', metadata.get('institution_date', source.get('institution_date', 'N/A'))),
+            'judge': source.get('judge_name', 'Unknown Judge'),
+            'relevance_score': source.get('score', 0.0),
+            'legal_domain': source.get('legal_domain', 'General'),
+            'formatted_citation': self._create_formatted_citation(source),
+            'download_link': self._create_download_link(source),
+            'metadata': {
+                'case_id': source.get('case_id'),
+                'document_id': source.get('document_id'),
                     'content_type': source.get('content_type', 'unknown')
                 }
             }
@@ -311,6 +356,42 @@ class CitationFormatter:
         except Exception as e:
             self.logger.error(f"Error formatting single citation: {str(e)}")
             return source
+    
+    def _extract_court_from_filename(self, filename: str) -> str:
+        """Extract court information from filename"""
+        try:
+            if not filename or filename == 'Unknown Court':
+                return 'Unknown Court'
+            
+            # Common court patterns in Pakistani legal documents
+            if 'lahore' in filename.lower():
+                return 'Lahore High Court'
+            elif 'karachi' in filename.lower():
+                return 'Karachi High Court'
+            elif 'islamabad' in filename.lower():
+                return 'Islamabad High Court'
+            elif 'peshawar' in filename.lower():
+                return 'Peshawar High Court'
+            elif 'quetta' in filename.lower():
+                return 'Balochistan High Court'
+            elif 'sindh' in filename.lower():
+                return 'Sindh High Court'
+            elif 'punjab' in filename.lower():
+                return 'Punjab High Court'
+            elif 'kpk' in filename.lower() or 'khyber' in filename.lower():
+                return 'Khyber Pakhtunkhwa High Court'
+            else:
+                # Try to extract from case number patterns
+                if 'SB' in filename:
+                    return 'Supreme Court (Single Bench)'
+                elif 'DB' in filename:
+                    return 'Supreme Court (Division Bench)'
+                elif 'FB' in filename:
+                    return 'Supreme Court (Full Bench)'
+                else:
+                    return 'High Court'
+        except Exception:
+            return 'Unknown Court'
     
     def _create_formatted_citation(self, source: Dict[str, Any]) -> str:
         """Create a properly formatted legal citation"""

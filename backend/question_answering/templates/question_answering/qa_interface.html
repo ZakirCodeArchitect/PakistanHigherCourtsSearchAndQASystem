@@ -620,7 +620,7 @@ class QAInterface {
         this.showLoading();
         
         try {
-            const response = await fetch('/api/qa/ask/', {
+            const response = await fetch('/qa/ask/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -732,12 +732,8 @@ class QAInterface {
     }
     
     formatAnswer(answer) {
-        // Basic formatting for legal text
-        return this.escapeHtml(answer)
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>')
-            .replace(/^/, '<p>')
-            .replace(/$/, '</p>');
+        // Since backend now sends HTML, we don't need to escape it
+        return answer;
     }
     
     escapeHtml(text) {

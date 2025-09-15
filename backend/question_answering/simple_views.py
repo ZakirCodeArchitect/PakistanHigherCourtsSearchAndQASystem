@@ -37,6 +37,7 @@ class SimpleQAAPIView(View):
             data = json.loads(request.body)
             question = data.get('question', '')
             use_ai = data.get('use_ai', True)  # Default to using AI
+            use_advanced_rag = data.get('use_advanced_rag', True)  # Default to using Advanced RAG
             session_id = data.get('session_id')
             user_id = data.get('user_id', 'anonymous')
             
@@ -47,6 +48,7 @@ class SimpleQAAPIView(View):
                 question=question,
                 conversation_history=None,
                 use_ai=use_ai,
+                use_advanced_rag=use_advanced_rag,
                 session_id=session_id,
                 user_id=user_id
             )
@@ -218,5 +220,109 @@ class ConversationHistoryView(View):
         except Exception as e:
             return JsonResponse({
                 'error': f'Error getting history: {str(e)}',
+                'status': 'error'
+            }, status=500)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RAGTestView(View):
+    """RAG System Testing View - Test the Advanced RAG Engine directly"""
+    
+    def __init__(self):
+        super().__init__()
+        self.qa_engine = EnhancedQAEngine()
+    
+    def post(self, request):
+        """Test the RAG system with specific queries"""
+        try:
+            data = json.loads(request.body)
+            question = data.get('question', '')
+            test_type = data.get('test_type', 'full')  # 'full', 'retrieval_only', 'generation_only'
+            
+            print(f"RAG Test - Question: '{question}', Type: {test_type}")
+            
+            # Test the RAG system
+            if test_type == 'full':
+                # Full RAG pipeline test
+                result = self.qa_engine.ask_question(
+                    question=question,
+                    use_ai=True,
+                    use_advanced_rag=True,
+                    user_id='rag_test_user'
+                )
+            elif test_type == 'retrieval_only':
+                # Test only retrieval
+                search_results = self.qa_engine.search_only(question, top_k=5)
+                result = {
+                    'question': question,
+                    'answer': f'Retrieval test completed. Found {len(search_results)} documents.',
+                    'answer_type': 'retrieval_test',
+                    'sources': search_results,
+                    'test_type': 'retrieval_only'
+                }
+            else:
+                # Generation only test (would need to be implemented)
+                result = {
+                    'question': question,
+                    'answer': 'Generation-only test not yet implemented.',
+                    'answer_type': 'generation_test',
+                    'test_type': 'generation_only'
+                }
+            
+            # Add test metadata
+            result['test_timestamp'] = int(time.time())
+            result['test_type'] = test_type
+            result['rag_enabled'] = True
+            
+            print(f"RAG Test Result - Type: {result.get('answer_type')}, Sources: {len(result.get('sources', []))}")
+            
+            return JsonResponse(result)
+            
+        except Exception as e:
+            print(f"Error in RAG Test: {str(e)}")
+            return JsonResponse({
+                'question': data.get('question', ''),
+                'answer': f'RAG Test Error: {str(e)}',
+                'answer_type': 'error',
+                'test_type': data.get('test_type', 'full'),
+                'error': str(e),
+                'status': 'error'
+            }, status=400)
+    
+    def get(self, request):
+        """Get RAG system status and test information"""
+        try:
+            # Get system status
+            status = self.qa_engine.get_system_status()
+            
+            # Add RAG-specific test information
+            rag_test_info = {
+                'rag_system_status': 'operational',
+                'available_test_types': ['full', 'retrieval_only', 'generation_only'],
+                'sample_queries': [
+                    'What is a writ petition under Article 199?',
+                    'What are the grounds for divorce in Pakistan?',
+                    'How to file an FIR in Pakistan?',
+                    'What are tenant rights under Rent Restriction Act?',
+                    'How to register a company in Pakistan?'
+                ],
+                'api_usage': {
+                    'endpoint': '/qa/rag-test/',
+                    'method': 'POST',
+                    'parameters': {
+                        'question': 'string (required)',
+                        'test_type': 'string (optional: full, retrieval_only, generation_only)'
+                    }
+                }
+            }
+            
+            return JsonResponse({
+                'status': 'success',
+                'system_status': status,
+                'rag_test_info': rag_test_info
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'error': f'Error getting RAG test info: {str(e)}',
                 'status': 'error'
             }, status=500)
