@@ -105,7 +105,7 @@ class AdvancedRAGEngine:
             if session_id and self.enable_conversation_context:
                 session = self.conversation_manager.get_or_create_session(user_id, session_id)
                 if session:
-                    conversation_context = self.conversation_manager.get_conversation_context(session, 5)
+                    conversation_context = self.conversation_manager.get_conversation_context(session, 20)
                     conversation_history = conversation_context.get('recent_turns', [])
                     logger.info(f"Retrieved conversation history: {len(conversation_history)} turns")
                     if conversation_history:
@@ -132,12 +132,36 @@ class AdvancedRAGEngine:
                         error="Query blocked by guardrails"
                     )
             
-            # Step 4: Retrieve relevant documents
-            logger.info(f"Retrieving documents for query: '{query[:50]}...'")
-            retrieved_docs = self.retrieval_service.retrieve_for_qa(
-                query=query,
-                top_k=self.max_retrieval_results
-            )
+            # Step 4: Check if query is legal-related
+            is_legal_query = self._is_legal_query(query, conversation_history)
+            is_overview_query = self._is_database_overview_query(query)
+            logger.info(f"Query analysis: '{query[:50]}...' -> Legal: {is_legal_query}, Overview: {is_overview_query}")
+            
+            if not is_legal_query:
+                # Handle non-legal queries (greetings, casual conversation)
+                return RAGResult(
+                    answer="Hello! I'm Pakistan Legal AI Assistant. I can help you with legal research, case law analysis, and court procedures. Please ask me a specific legal question, and I'll provide you with detailed information based on Pakistani law and legal precedents.",
+                    confidence=1.0,
+                    sources=[],
+                    citations=[],
+                    metadata={'query_type': 'non_legal', 'is_greeting': True},
+                    guardrail_result=None,
+                    generation_time=time.time() - start_time,
+                    status="success"
+                )
+            
+            # Step 5: Retrieve relevant documents for legal queries
+            if is_overview_query:
+                # For database overview queries, get diverse cases representing different legal areas
+                logger.info(f"Retrieving diverse legal cases for database overview: '{query[:50]}...'")
+                retrieved_docs = self._get_diverse_legal_cases(top_k=self.max_retrieval_results)
+            else:
+                # For specific legal queries, use normal semantic search
+                logger.info(f"Retrieving documents for specific legal query: '{query[:50]}...'")
+                retrieved_docs = self.retrieval_service.retrieve_for_qa(
+                    query=query,
+                    top_k=self.max_retrieval_results
+                )
             
             if not retrieved_docs:
                 return RAGResult(
@@ -151,7 +175,7 @@ class AdvancedRAGEngine:
                     status="no_results"
                 )
             
-            # Step 5: Pack context for LLM
+            # Step 6: Pack context for LLM
             logger.info(f"Packing context from {len(retrieved_docs)} retrieved documents")
             try:
                 packed_context = self.context_packer.pack_context(
@@ -182,14 +206,14 @@ class AdvancedRAGEngine:
                     status="context_error"
                 )
             
-            # Step 6: Determine query type and legal domain
+            # Step 7: Determine query type and legal domain
             query_type = self._classify_query_type(query)
             legal_domain = self._classify_legal_domain(query, retrieved_docs)
             
-            # Step 7: Get appropriate prompt template
+            # Step 8: Get appropriate prompt template
             template = self.prompt_system.get_template(query_type, legal_domain, conversation_history)
             
-            # Step 8: Format prompt
+            # Step 9: Format prompt
             logger.info(f"Packed context type: {type(packed_context)}")
             if isinstance(packed_context, dict):
                 logger.info(f"Packed context keys: {list(packed_context.keys())}")
@@ -209,7 +233,7 @@ class AdvancedRAGEngine:
             else:
                 logger.info(f"Formatted prompt content: {formatted_prompt}")
             
-            # Step 9: Generate answer with LLM
+            # Step 10: Generate answer with LLM
             logger.info(f"Generating answer with {template.name} template")
             llm_result = self.llm_generator.generate_answer(
                 system_prompt=formatted_prompt['system_prompt'],
@@ -229,7 +253,7 @@ class AdvancedRAGEngine:
                     status="generation_error"
                 )
             
-            # Step 10: Apply guardrails to response
+            # Step 11: Apply guardrails to response
             guardrail_result = None
             if self.enable_guardrails:
                 logger.info("Applying guardrails to generated response")
@@ -434,6 +458,187 @@ class AdvancedRAGEngine:
                 'message': 'I encountered an unexpected error while processing your question.'
             }
     
+    def _is_legal_query(self, query: str, conversation_history: Optional[List[Dict]] = None) -> bool:
+        """Check if the query is legal-related or just casual conversation"""
+        try:
+            query_lower = query.lower().strip()
+            
+            # Define legal keywords at the top level
+            legal_keywords = [
+                'law', 'legal', 'court', 'judge', 'case', 'judgment', 'order', 'decision', 'ruling',
+                'statute', 'section', 'act', 'code', 'provision', 'constitution', 'article',
+                'procedure', 'process', 'filing', 'bail', 'fir', 'criminal', 'civil', 'family',
+                'divorce', 'custody', 'inheritance', 'marriage', 'property', 'contract',
+                'lawyer', 'advocate', 'counsel', 'attorney', 'justice', 'bench', 'judicial',
+                'cite', 'citation', 'reference', 'plj', 'pld', 'mld', 'writ', 'fundamental right',
+                'ppc', 'crpc', 'cpc', 'offence', 'suit', 'land', 'real estate', 'ownership',
+                'petition', 'appeal', 'hearing', 'trial', 'verdict', 'sentence', 'punishment',
+                'tax', 'revenue', 'commercial', 'business', 'administrative', 'government'
+            ]
+            
+            # FIRST: Check if this is a follow-up question in a legal conversation
+            # This takes priority over everything else
+            if conversation_history and len(conversation_history) > 0:
+                # Check the entire conversation history for ANY legal queries
+                for turn in conversation_history:  # Check ALL turns in conversation
+                    prev_query = turn.get('query', '').lower()
+                    if any(keyword in prev_query for keyword in legal_keywords):
+                        # If ANY previous query was legal, treat EVERY follow-up as legal
+                        # This is the most reliable approach - users can ask anything in follow-ups
+                        return True
+            
+            # SECOND: Check for legal keywords in current query
+            if any(keyword in query_lower for keyword in legal_keywords):
+                return True
+            
+            # THIRD: Check for casual patterns (only if no legal conversation history)
+            casual_patterns = [
+                'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening',
+                'how are you', 'how are you?', 'what\'s up', 'how do you do', 'nice to meet you',
+                'thank you', 'thanks', 'bye', 'goodbye', 'see you later',
+                'ok', 'okay', 'yes', 'no', 'maybe', 'sure', 'alright',
+                'test', 'testing', 'check', 'checking',
+                'how have you been', 'how is everything', 'how is your day',
+                'how are things', 'how is life', 'how are you doing',
+                'what\'s going on', 'how\'s it going', 'how\'s everything',
+                'good to see you', 'nice to see you', 'long time no see'
+            ]
+            
+            # Check for casual patterns (exact matches only for short patterns, contains for longer ones)
+            for pattern in casual_patterns:
+                if len(pattern) <= 3:  # Short patterns like 'ok', 'hi' should be exact matches
+                    # For short patterns, only match if it's the entire query or followed by casual words
+                    if query_lower == pattern:
+                        return False
+                    elif query_lower.startswith(pattern + ' '):
+                        # Check if what follows is also casual
+                        remaining = query_lower[len(pattern):].strip()
+                        casual_follow_ups = ['thanks', 'thank you', 'bye', 'goodbye', 'yes', 'no', 'sure', 'alright']
+                        if any(follow_up in remaining for follow_up in casual_follow_ups):
+                            return False
+                else:  # Longer patterns can be contains
+                    if pattern in query_lower:
+                        return False
+            
+            # Check for very short queries (likely casual)
+            if len(query_lower.split()) <= 2 and len(query_lower) <= 10:
+                return False
+            
+            # For longer queries without legal keywords, be more conservative
+            # Only classify as legal if it's clearly asking about legal matters
+            if len(query_lower.split()) >= 4:
+                # Check for question patterns that might be legal
+                legal_question_patterns = [
+                    'what is', 'what are', 'how to', 'how can', 'what does', 'what should',
+                    'explain', 'describe', 'tell me about', 'information about'
+                ]
+                
+                # If it's a question pattern but no legal keywords, it's probably not legal
+                # UNLESS it's a follow-up question (handled above)
+                if any(pattern in query_lower for pattern in legal_question_patterns):
+                    return False
+            
+            # Default to non-legal for unclear queries
+            return False
+        except Exception as e:
+            logger.error(f"Error in _is_legal_query: {str(e)}")
+            return False
+
+    def _is_database_overview_query(self, query: str) -> bool:
+        """Check if the query is asking about what types of information are available in the database"""
+        query_lower = query.lower().strip()
+        
+        # Patterns that indicate the user wants to know what information is available
+        overview_patterns = [
+            'what type of information',
+            'what information',
+            'what can you help',
+            'what can you provide',
+            'what do you have',
+            'what is available',
+            'what kind of',
+            'what types of',
+            'show me what',
+            'tell me what',
+            'what data',
+            'what cases',
+            'what documents',
+            'what legal information',
+            'what legal data',
+            'what legal cases',
+            'what legal documents',
+            'what is in your database',
+            'what does your database contain',
+            'what can you tell me about',
+            'what are the different types',
+            'what categories',
+            'what areas of law',
+            'what legal areas',
+            'what legal topics',
+            'what legal subjects'
+        ]
+        
+        # Check if query matches any overview pattern
+        for pattern in overview_patterns:
+            if pattern in query_lower:
+                return True
+        
+        return False
+
+    def _get_diverse_legal_cases(self, top_k: int = 8) -> List[Dict[str, Any]]:
+        """Get a diverse set of legal cases representing different types of information available"""
+        try:
+            # Get diverse cases by querying different legal areas
+            diverse_queries = [
+                "constitutional law writ petition",
+                "criminal law bail application", 
+                "civil law property dispute",
+                "family law divorce case",
+                "tax law revenue case",
+                "commercial law contract dispute",
+                "administrative law government case",
+                "banking law financial case"
+            ]
+            
+            diverse_cases = []
+            cases_per_query = max(1, top_k // len(diverse_queries))
+            
+            for query in diverse_queries:
+                try:
+                    results = self.retrieval_service.retrieve_for_qa(
+                        query=query,
+                        top_k=cases_per_query
+                    )
+                    diverse_cases.extend(results)
+                except Exception as e:
+                    logger.warning(f"Failed to get diverse cases for query '{query}': {str(e)}")
+                    continue
+            
+            # Remove duplicates and limit to top_k
+            seen_titles = set()
+            unique_cases = []
+            for case in diverse_cases:
+                title = case.get('case_title', '')
+                if title and title not in seen_titles:
+                    seen_titles.add(title)
+                    unique_cases.append(case)
+                    if len(unique_cases) >= top_k:
+                        break
+            
+            logger.info(f"Retrieved {len(unique_cases)} diverse legal cases for database overview")
+            return unique_cases
+            
+        except Exception as e:
+            logger.error(f"Error getting diverse legal cases: {str(e)}")
+            # Fallback: get any recent cases
+            try:
+                return self.retrieval_service.retrieve_for_qa(
+                    query="recent legal cases",
+                    top_k=top_k
+                )
+            except:
+                return []
+
     def _classify_query_type(self, query: str) -> QueryType:
         """Classify the type of legal query"""
         query_lower = query.lower()

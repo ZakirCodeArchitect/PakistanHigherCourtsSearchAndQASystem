@@ -316,7 +316,10 @@ class CitationFormatter:
         try:
             formatted_sources = []
             
-            for source in sources:
+            # Filter and prioritize sources
+            filtered_sources = self._filter_and_prioritize_sources(sources)
+            
+            for source in filtered_sources:
                 formatted_source = self._format_single_citation(source)
                 formatted_sources.append(formatted_source)
             
@@ -324,6 +327,64 @@ class CitationFormatter:
             
         except Exception as e:
             self.logger.error(f"Error formatting citations: {str(e)}")
+            return sources
+    
+    def _filter_and_prioritize_sources(self, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter and prioritize sources to show the best ones first"""
+        try:
+            if not sources:
+                return sources
+            
+            # Separate high-quality and low-quality sources
+            high_quality_sources = []
+            low_quality_sources = []
+            
+            for source in sources:
+                # Check if it's a high-quality source (has proper case title, court, etc.)
+                case_title = source.get('case_title', '')
+                court = source.get('court', '')
+                case_number = source.get('case_number', '')
+                
+                # High quality if it has proper case information
+                if (case_title and case_title not in ['Unknown Case', 'N/A', ''] and 
+                    court and court not in ['Unknown Court', 'N/A', ''] and
+                    case_number and case_number not in ['N/A', '']):
+                    high_quality_sources.append(source)
+                else:
+                    low_quality_sources.append(source)
+            
+            # Sort high-quality sources by relevance score
+            high_quality_sources.sort(key=lambda x: x.get('score', 0), reverse=True)
+            
+            # Sort low-quality sources by relevance score
+            low_quality_sources.sort(key=lambda x: x.get('score', 0), reverse=True)
+            
+            # Combine: high-quality first, then low-quality (but limit low-quality)
+            combined_sources = high_quality_sources.copy()
+            
+            # Only add low-quality sources if we have very few high-quality sources
+            # And only if they have some meaningful content
+            if len(high_quality_sources) < 2:
+                # Only add low-quality sources that have some meaningful content
+                meaningful_low_quality = []
+                for source in low_quality_sources[:3]:
+                    text_content = source.get('text', '')
+                    if text_content and len(text_content) > 100:
+                        # Check if it has some legal content
+                        if any(keyword in text_content.lower() for keyword in ['court', 'case', 'petition', 'law', 'legal', 'judge', 'order']):
+                            meaningful_low_quality.append(source)
+                
+                combined_sources.extend(meaningful_low_quality[:2])
+            
+            # If we still have no sources, add the best available
+            if len(combined_sources) == 0 and len(sources) > 0:
+                combined_sources = sources[:3]  # Take top 3 as fallback
+            
+            # Limit total sources to 5 for better UI
+            return combined_sources[:5]
+            
+        except Exception as e:
+            self.logger.error(f"Error filtering sources: {str(e)}")
             return sources
     
     def _format_single_citation(self, source: Dict[str, Any]) -> Dict[str, Any]:
@@ -334,13 +395,29 @@ class CitationFormatter:
             if isinstance(metadata, list):
                 metadata = {}
             
+            # Use the best available score (prioritize normalized scores)
+            # Ensure all scores are Python floats to avoid JSON serialization issues
+            relevance_score = float(
+                source.get('normalized_rerank_score') or 
+                source.get('combined_score') or 
+                source.get('rerank_score') or 
+                source.get('score', 0.0)
+            )
+            
+            # Generate better title based on available information
+            title = self._generate_better_title(source, metadata)
+            
+            # Enhanced metadata extraction
+            enhanced_metadata = self._extract_enhanced_metadata(source, metadata)
+            
             citation = {
-            'title': source.get('case_title', metadata.get('case_title', source.get('title', 'Unknown Case'))),
-            'case_number': source.get('case_number', metadata.get('case_number', 'N/A')),
-            'court': source.get('court', metadata.get('court', self._extract_court_from_filename(source.get('file_name', 'Unknown Court')))),
-            'date': source.get('date_decided', metadata.get('institution_date', source.get('institution_date', 'N/A'))),
-            'judge': source.get('judge_name', 'Unknown Judge'),
-            'relevance_score': source.get('score', 0.0),
+            'title': title,
+            'case_number': enhanced_metadata.get('case_number', 'N/A'),
+            'court': enhanced_metadata.get('court', 'Unknown Court'),
+            'date': enhanced_metadata.get('date', 'N/A'),
+            'judge': enhanced_metadata.get('judge', 'Unknown Judge'),
+            'relevance_score': relevance_score,  # Use the best available normalized score
+            'score': relevance_score,  # Preserve the main score field
             'legal_domain': source.get('legal_domain', 'General'),
             'formatted_citation': self._create_formatted_citation(source),
             'download_link': self._create_download_link(source),
@@ -356,6 +433,302 @@ class CitationFormatter:
         except Exception as e:
             self.logger.error(f"Error formatting single citation: {str(e)}")
             return source
+    
+    def _generate_better_title(self, source: Dict[str, Any], metadata: Dict[str, Any]) -> str:
+        """Generate a better title for the source based on available information"""
+        try:
+            # First, try to get a proper case title
+            case_title = source.get('case_title') or metadata.get('case_title')
+            if case_title and case_title not in ['Unknown Case', 'N/A', '']:
+                return case_title
+            
+            # Try to get title from source
+            title = source.get('title')
+            if title and title not in ['Unknown Case', 'N/A', '']:
+                return title
+            
+            # For document chunks and text content, try to extract meaningful info
+            content_type = source.get('content_type', '')
+            case_id = source.get('case_id', '')
+            document_id = source.get('document_id', '')
+            
+            # If it's a document chunk, try to create a meaningful title
+            if 'chunk' in content_type.lower() or 'chunk' in str(source.get('source_id', '')):
+                if case_id and case_id != 'unknown':
+                    return f"Legal Document - Case {case_id}"
+                elif document_id and document_id != 'unknown':
+                    return f"Legal Document - Doc {document_id}"
+                else:
+                    return "Legal Document Content"
+            
+            # If it's document text, try to create a meaningful title
+            if 'text' in content_type.lower() or 'text' in str(source.get('source_id', '')):
+                if case_id and case_id != 'unknown':
+                    return f"Legal Text - Case {case_id}"
+                elif document_id and document_id != 'unknown':
+                    return f"Legal Text - Doc {document_id}"
+                else:
+                    return "Legal Text Content"
+            
+            # Try to extract from text content if available
+            text_content = source.get('text', '')
+            if text_content and len(text_content) > 50:
+                # Enhanced content analysis for better title extraction
+                extracted_title = self._extract_title_from_content(text_content)
+                if extracted_title:
+                    return extracted_title
+            
+            # Fallback to generic title
+            return "Legal Document"
+            
+        except Exception as e:
+            self.logger.error(f"Error generating better title: {str(e)}")
+            return "Legal Document"
+    
+    def _extract_title_from_content(self, text_content: str) -> str:
+        """Enhanced content analysis to extract meaningful titles"""
+        try:
+            lines = text_content.split('\n')
+            
+            # Look for case titles in the first 15 lines
+            for i, line in enumerate(lines[:15]):
+                line = line.strip()
+                if len(line) < 20:
+                    continue
+                
+                # Pattern 1: Direct case names with VS
+                if ' vs ' in line.lower() or ' versus ' in line.lower():
+                    # Clean and format the case name
+                    clean_title = self._clean_case_title(line)
+                    if clean_title and len(clean_title) > 10:
+                        return clean_title
+                
+                # Pattern 2: Petition titles
+                if any(keyword in line.lower() for keyword in ['petition', 'writ petition', 'constitutional petition']):
+                    clean_title = self._clean_case_title(line)
+                    if clean_title and len(clean_title) > 15:
+                        return clean_title
+                
+                # Pattern 3: Court case references
+                if any(keyword in line.lower() for keyword in ['plaintiff', 'defendant', 'appellant', 'respondent']):
+                    clean_title = self._clean_case_title(line)
+                    if clean_title and len(clean_title) > 15:
+                        return clean_title
+                
+                # Pattern 4: Legal document headers
+                if any(keyword in line.lower() for keyword in ['in the matter of', 'in re:', 'case no', 'case number']):
+                    clean_title = self._clean_case_title(line)
+                    if clean_title and len(clean_title) > 15:
+                        return clean_title
+            
+            # Look for meaningful content in the middle of the document
+            middle_start = len(lines) // 3
+            middle_end = middle_start + 10
+            
+            for i, line in enumerate(lines[middle_start:middle_end]):
+                line = line.strip()
+                if len(line) < 30:
+                    continue
+                
+                # Look for case references in the middle
+                if any(keyword in line.lower() for keyword in ['case', 'matter', 'petition', 'application']):
+                    clean_title = self._clean_case_title(line)
+                    if clean_title and len(clean_title) > 20:
+                        return clean_title
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting title from content: {str(e)}")
+            return None
+    
+    def _clean_case_title(self, title: str) -> str:
+        """Clean and format case titles"""
+        try:
+            # Remove common prefixes and suffixes
+            clean_title = title.strip()
+            
+            # Remove common legal prefixes
+            prefixes_to_remove = [
+                'IN THE MATTER OF:',
+                'IN RE:',
+                'IN THE CASE OF:',
+                'CASE NO:',
+                'CASE NUMBER:',
+                'PETITION NO:',
+                'PETITION NUMBER:',
+                'APPLICATION NO:',
+                'APPLICATION NUMBER:'
+            ]
+            
+            for prefix in prefixes_to_remove:
+                if clean_title.upper().startswith(prefix):
+                    clean_title = clean_title[len(prefix):].strip()
+            
+            # Remove common suffixes
+            suffixes_to_remove = [
+                'PETITION',
+                'APPLICATION',
+                'CASE',
+                'MATTER'
+            ]
+            
+            for suffix in suffixes_to_remove:
+                if clean_title.upper().endswith(suffix):
+                    clean_title = clean_title[:-len(suffix)].strip()
+            
+            # Clean up extra spaces and special characters
+            clean_title = ' '.join(clean_title.split())
+            
+            # Limit length
+            if len(clean_title) > 120:
+                clean_title = clean_title[:120].strip()
+            
+            return clean_title if len(clean_title) > 5 else None
+            
+        except Exception as e:
+            self.logger.error(f"Error cleaning case title: {str(e)}")
+            return None
+    
+    def _extract_enhanced_metadata(self, source: Dict[str, Any], metadata: Dict[str, Any]) -> Dict[str, str]:
+        """Extract enhanced metadata from source and content"""
+        try:
+            enhanced_metadata = {
+                'case_number': 'N/A',
+                'court': 'Unknown Court',
+                'date': 'N/A',
+                'judge': 'Unknown Judge'
+            }
+            
+            # Try to get metadata from source first
+            case_number = source.get('case_number') or metadata.get('case_number')
+            court = source.get('court') or metadata.get('court')
+            date = source.get('date_decided') or metadata.get('institution_date') or source.get('institution_date')
+            judge = source.get('judge_name')
+            
+            # If we have good metadata, use it
+            if case_number and case_number not in ['N/A', '']:
+                enhanced_metadata['case_number'] = case_number
+            if court and court not in ['Unknown Court', 'N/A', '']:
+                enhanced_metadata['court'] = court
+            if date and date not in ['N/A', '']:
+                enhanced_metadata['date'] = date
+            if judge and judge not in ['Unknown Judge', 'N/A', '']:
+                enhanced_metadata['judge'] = judge
+            
+            # If metadata is missing, try to extract from content
+            text_content = source.get('text', '')
+            if text_content and len(text_content) > 100:
+                content_metadata = self._extract_metadata_from_content(text_content)
+                
+                # Use content metadata if source metadata is missing
+                if enhanced_metadata['case_number'] == 'N/A' and content_metadata.get('case_number'):
+                    enhanced_metadata['case_number'] = content_metadata['case_number']
+                
+                if enhanced_metadata['court'] == 'Unknown Court' and content_metadata.get('court'):
+                    enhanced_metadata['court'] = content_metadata['court']
+                
+                if enhanced_metadata['date'] == 'N/A' and content_metadata.get('date'):
+                    enhanced_metadata['date'] = content_metadata['date']
+                
+                if enhanced_metadata['judge'] == 'Unknown Judge' and content_metadata.get('judge'):
+                    enhanced_metadata['judge'] = content_metadata['judge']
+            
+            return enhanced_metadata
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting enhanced metadata: {str(e)}")
+            return {
+                'case_number': 'N/A',
+                'court': 'Unknown Court',
+                'date': 'N/A',
+                'judge': 'Unknown Judge'
+            }
+    
+    def _extract_metadata_from_content(self, text_content: str) -> Dict[str, str]:
+        """Extract metadata from document content"""
+        try:
+            import re
+            metadata = {}
+            lines = text_content.split('\n')
+            
+            # Look for case numbers
+            for line in lines[:20]:  # Check first 20 lines
+                line = line.strip()
+                if any(pattern in line.lower() for pattern in ['case no', 'case number', 'petition no', 'application no']):
+                    # Extract case number
+                    import re
+                    case_patterns = [
+                        r'case\s+no[.:]?\s*([A-Z0-9/\-]+)',
+                        r'case\s+number[.:]?\s*([A-Z0-9/\-]+)',
+                        r'petition\s+no[.:]?\s*([A-Z0-9/\-]+)',
+                        r'application\s+no[.:]?\s*([A-Z0-9/\-]+)'
+                    ]
+                    
+                    for pattern in case_patterns:
+                        match = re.search(pattern, line, re.IGNORECASE)
+                        if match:
+                            metadata['case_number'] = match.group(1).strip()
+                            break
+            
+            # Look for court information
+            for line in lines[:20]:
+                line = line.strip()
+                if any(court in line.lower() for court in ['high court', 'supreme court', 'district court', 'session court']):
+                    # Extract court name
+                    court_patterns = [
+                        r'([A-Za-z\s]+High Court)',
+                        r'([A-Za-z\s]+Supreme Court)',
+                        r'([A-Za-z\s]+District Court)',
+                        r'([A-Za-z\s]+Session Court)'
+                    ]
+                    
+                    for pattern in court_patterns:
+                        match = re.search(pattern, line, re.IGNORECASE)
+                        if match:
+                            metadata['court'] = match.group(1).strip()
+                            break
+            
+            # Look for dates
+            for line in lines[:20]:
+                line = line.strip()
+                # Look for date patterns
+                date_patterns = [
+                    r'(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})',
+                    r'(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})',
+                    r'(\d{1,2}\s+\w+\s+\d{4})'
+                ]
+                
+                for pattern in date_patterns:
+                    match = re.search(pattern, line)
+                    if match:
+                        metadata['date'] = match.group(1).strip()
+                        break
+            
+            # Look for judge names
+            for line in lines[:20]:
+                line = line.strip()
+                if any(keyword in line.lower() for keyword in ['justice', 'judge', 'honourable']):
+                    # Extract judge name
+                    judge_patterns = [
+                        r'justice\s+([A-Za-z\s]+)',
+                        r'judge\s+([A-Za-z\s]+)',
+                        r'honourable\s+([A-Za-z\s]+)'
+                    ]
+                    
+                    for pattern in judge_patterns:
+                        match = re.search(pattern, line, re.IGNORECASE)
+                        if match:
+                            judge_name = match.group(1).strip()
+                            if len(judge_name) > 3:  # Valid name length
+                                metadata['judge'] = judge_name
+                                break
+            
+            return metadata
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting metadata from content: {str(e)}")
+            return {}
     
     def _extract_court_from_filename(self, filename: str) -> str:
         """Extract court information from filename"""
