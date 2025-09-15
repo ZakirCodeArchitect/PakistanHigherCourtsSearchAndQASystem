@@ -1,0 +1,8 @@
+{
+  "context_packer": false,
+  "prompt_template": false,
+  "llm_generator": true,
+  "guardrails": false,
+  "qa_retrieval": true,
+  "end_to_end": false
+}

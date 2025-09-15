@@ -1,0 +1,145 @@
+{
+  "component_tests": {
+    "context_packer": {
+      "status": "passed",
+      "chunk_count": 2,
+      "token_count": 86,
+      "packing_metadata": {
+        "original_chunk_count": 2,
+        "processed_chunk_count": 2,
+        "selected_chunk_count": 2,
+        "deduplication_ratio": 1.0,
+        "selection_ratio": 1.0,
+        "total_tokens": 86,
+        "token_efficiency": 0.043,
+        "source_distribution": {
+          "constitutional_article": 2
+        },
+        "chunk_summary": {
+          "total_chunks": 2,
+          "total_tokens": 29,
+          "source_types": [
+            "constitutional_article"
+          ],
+          "priority_range": [
+            13,
+            15
+          ],
+          "relevance_range": [
+            0.8,
+            0.9
+          ],
+          "courts_mentioned": [
+            "Supreme Court",
+            "Lahore High Court"
+          ],
+          "cases_mentioned": [
+            "PLD 2022 LHC 456",
+            "PLD 2023 SC 123"
+          ]
+        }
+      }
+    },
+    "prompt_template_system": {
+      "status": "passed",
+      "template_used": "constitutional_law",
+      "prompt_length": 907
+    },
+    "llm_generator": {
+      "status": "passed",
+      "available_providers": [
+        "openai",
+        "llama_api",
+        "huggingface"
+      ],
+      "best_model": "gpt-4o-mini",
+      "providers_status": {
+        "openai": {
+          "available": true,
+          "models": [
+            "gpt-4o-mini",
+            "gpt-4o",
+            "gpt-3.5-turbo"
+          ],
+          "error": null
+        },
+        "llama_local": {
+          "available": false,
+          "models": [],
+          "error": null
+        },
+        "llama_api": {
+          "available": true,
+          "models": [
+            "llama-3.1-70b",
+            "llama-3.1-405b"
+          ],
+          "error": null
+        },
+        "huggingface": {
+          "available": true,
+          "models": [
+            "llama-3.1-8b"
+          ],
+          "error": null
+        }
+      }
+    },
+    "guardrails": {
+      "status": "passed",
+      "safe_query_allowed": true,
+      "risky_query_blocked": true,
+      "quality_score": 0.40653846153846157
+    },
+    "retrieval_service": {
+      "status": "passed",
+      "results_count": 5,
+      "retrieval_stats": {
+        "embedding_model_loaded": true,
+        "cross_encoder_loaded": true,
+        "pinecone_connected": true,
+        "embedding_dimension": 384,
+        "config": {
+          "initial_retrieval_k": 30,
+          "final_retrieval_k": 12,
+          "min_rerank_k": 8,
+          "semantic_weight": 0.7,
+          "qa_relevance_weight": 0.3,
+          "diversity_threshold": 0.8,
+          "cross_encoder_model": "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        },
+        "retrieval_method": "two_stage_qa_retrieval"
+      }
+    }
+  },
+  "integration_tests": {
+    "advanced_rag_engine": {
+      "status": "passed",
+      "system_status": "operational",
+      "health_status": "degraded",
+      "query_classification": "working"
+    },
+    "enhanced_qa_engine": {
+      "status": "passed",
+      "advanced_rag_enabled": true,
+      "legacy_mode_working": true
+    }
+  },
+  "performance_tests": {
+    "status": "passed",
+    "classification_time_100_queries": 0.0009996891021728516,
+    "packing_time_10_batches": 0.05100107192993164,
+    "avg_classification_time": 9.996891021728516e-06,
+    "avg_packing_time": 0.005100107192993164
+  },
+  "overall_status": "excellent",
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 8,
+    "failed_tests": 0,
+    "success_rate": 100.0,
+    "component_tests": "5/5",
+    "integration_tests": "2/2",
+    "performance_tests": "1/1"
+  }
+}

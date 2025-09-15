@@ -537,11 +537,11 @@ class QALawReferenceNormalizer:
             elif 'rule' in pattern_text or 'order' in pattern_text:
                 # Rule/Order pattern
                 reference_type = 'rule_order'
-                for group in groups:
-                    if group and group.isdigit():
-                        section_num = int(group)
-                    elif group and group.lower() in self.legal_abbreviations:
-                        act_abbr = group.lower()
+            for group in groups:
+                if group and group.isdigit():
+                    section_num = int(group)
+                elif group and group.lower() in self.legal_abbreviations:
+                    act_abbr = group.lower()
             
             # Government agency pattern detection
             elif any(agency in pattern_text for agency in ['fia', 'nab', 'fbr', 'secp', 'sbp', 'pemra', 'pta']):
@@ -645,13 +645,13 @@ class QALawReferenceNormalizer:
             return f"Art. {section} Constitution"
             
         else:  # Standard section reference
-            section = ref_info['section_number']
-            act_abbr = ref_info['act_abbreviation']
-            
+        section = ref_info['section_number']
+        act_abbr = ref_info['act_abbreviation']
+        
             if act_abbr and act_abbr != 'unknown':
-                return f"s. {section} {act_abbr.upper()}"
-            else:
-                return f"s. {section}"
+            return f"s. {section} {act_abbr.upper()}"
+        else:
+            return f"s. {section}"
     
     def _calculate_qa_relevance(self, act_abbr: str, section_num: int = None, reference_type: str = 'section') -> float:
         """Calculate relevance score for QA context"""

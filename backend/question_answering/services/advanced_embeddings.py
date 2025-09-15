@@ -21,8 +21,16 @@ class AdvancedEmbeddingService:
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        
+        # Load .env file
+        try:
+            from dotenv import load_dotenv
+            load_dotenv('.env')
+        except Exception:
+            pass
+            
         self.embedding_model_name = getattr(settings, 'QA_SETTINGS', {}).get('EMBEDDING_MODEL', 'bge-large-en-v1.5')
-        self.openai_api_key = os.getenv("OPENAI_API_KEY_a")
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
         
         # Initialize the selected embedding model
         self.embedding_model = None

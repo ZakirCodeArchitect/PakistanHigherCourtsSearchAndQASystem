@@ -1,6 +1,7 @@
 """
 Enhanced QA Engine
 Combines semantic search and AI answer generation for intelligent question answering
+Now integrated with Advanced RAG Engine for complete RAG pipeline
 """
 
 import logging
@@ -10,6 +11,7 @@ from .knowledge_retriever import KnowledgeRetriever
 from .rag_service import RAGService
 from .conversation_manager import ConversationManager, CitationFormatter
 from .advanced_embeddings import AdvancedEmbeddingService
+from .advanced_rag_engine import AdvancedRAGEngine
 from qa_app.services.qa_retrieval_service import QARetrievalService
 
 logger = logging.getLogger(__name__)
@@ -17,8 +19,11 @@ logger = logging.getLogger(__name__)
 class EnhancedQAEngine:
     """Enhanced QA engine combining semantic search and AI generation"""
     
-    def __init__(self):
+    def __init__(self, config: Dict[str, Any] = None):
         """Initialize the enhanced QA engine"""
+        self.config = config or {}
+        
+        # Legacy components (kept for backward compatibility)
         self.ai_generator = AIAnswerGenerator()
         self.knowledge_retriever = KnowledgeRetriever()
         self.rag_service = RAGService()
@@ -28,19 +33,53 @@ class EnhancedQAEngine:
         
         # NEW: Advanced QA retrieval with two-stage process
         self.qa_retrieval_service = QARetrievalService()
+        
+        # NEW: Advanced RAG Engine with all components
+        self.advanced_rag_engine = AdvancedRAGEngine(self.config.get('advanced_rag', {}))
+        
+        # Configuration
+        self.use_advanced_rag = self.config.get('use_advanced_rag', True)
+        
+        # Log integration status
+        logger.info(f"Enhanced QA Engine initialized with Advanced RAG: {self.use_advanced_rag}")
+        if self.use_advanced_rag:
+            logger.info("Advanced RAG Engine is ENABLED - using full RAG pipeline")
+        else:
+            logger.info("Advanced RAG Engine is DISABLED - using legacy implementation")
     
     def _precompute_embeddings(self):
         """Precompute embeddings for all documents"""
         # This method is now handled by the RAG service
         pass
     
+    def _serialize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Serialize metadata to ensure all values are JSON serializable"""
+        if not metadata:
+            return {}
+        
+        serialized = {}
+        for key, value in metadata.items():
+            if hasattr(value, 'value'):  # Handle enums
+                serialized[key] = value.value
+            elif isinstance(value, (list, tuple)):
+                serialized[key] = [v.value if hasattr(v, 'value') else v for v in value]
+            elif isinstance(value, dict):
+                serialized[key] = self._serialize_metadata(value)
+            else:
+                serialized[key] = value
+        
+        return serialized
+    
     def ask_question(
         self, 
         question: str, 
         conversation_history: Optional[List[Dict]] = None,
         use_ai: bool = True,
+        use_advanced_rag: Optional[bool] = None,
         session_id: Optional[str] = None,
-        user_id: str = "anonymous"
+        user_id: str = "anonymous",
+        access_level: str = "public",
+        filters: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Ask a question and get an intelligent answer with conversation management
@@ -49,13 +88,67 @@ class EnhancedQAEngine:
             question: The user's question
             conversation_history: Previous conversation context
             use_ai: Whether to use AI generation (True) or simple retrieval (False)
+            use_advanced_rag: Whether to use Advanced RAG Engine (None = use default)
             session_id: Session ID for conversation management
             user_id: User ID for session tracking
+            access_level: User access level (public, lawyer, judge, admin)
+            filters: Retrieval filters (court, year, legal_domain, etc.)
             
         Returns:
             Dictionary containing the answer and metadata
         """
         try:
+            # Determine whether to use Advanced RAG Engine
+            should_use_advanced_rag = use_advanced_rag if use_advanced_rag is not None else self.use_advanced_rag
+            
+            # Use Advanced RAG Engine if enabled
+            if should_use_advanced_rag:
+                logger.info("Using Advanced RAG Engine for question answering")
+                
+                # Convert access level string to enum
+                from .guardrails import AccessLevel
+                access_level_enum = AccessLevel(access_level.lower())
+                
+                # Generate answer using Advanced RAG Engine
+                rag_result = self.advanced_rag_engine.generate_answer(
+                    query=question,
+                    user_id=user_id,
+                    session_id=session_id,
+                    access_level=access_level_enum,
+                    conversation_history=conversation_history,
+                    filters=filters
+                )
+                
+                # Convert RAG result to legacy format
+                answer_data = {
+                    'answer': rag_result.answer,
+                    'answer_type': 'advanced_rag',
+                    'confidence': rag_result.confidence,
+                    'model_used': rag_result.metadata.get('llm_model', 'unknown'),
+                    'tokens_used': rag_result.metadata.get('tokens_used', 0),
+                    'sources': rag_result.sources,
+                    'citations': rag_result.citations,
+                    'status': rag_result.status,
+                    'question': question,
+                    'session_id': session_id,
+                    'generation_time': rag_result.generation_time,
+                    'metadata': self._serialize_metadata(rag_result.metadata),
+                    'guardrail_result': {
+                        'risk_level': rag_result.guardrail_result.risk_level.value if rag_result.guardrail_result and hasattr(rag_result.guardrail_result, 'risk_level') else None,
+                        'allowed': rag_result.guardrail_result.allowed if rag_result.guardrail_result else None,
+                        'warnings': rag_result.guardrail_result.warnings if rag_result.guardrail_result else None,
+                        'errors': rag_result.guardrail_result.errors if rag_result.guardrail_result else None
+                    } if rag_result.guardrail_result else None
+                }
+                
+                if rag_result.error:
+                    answer_data['error'] = rag_result.error
+                
+                return answer_data
+            
+            # Fallback to legacy implementation
+            logger.info("Using legacy QA engine for question answering")
+            
             # Step 1: Get or create session for conversation management
             session = None
             if session_id:
@@ -91,7 +184,7 @@ class EnhancedQAEngine:
             
             # Step 7: Add conversation and search metadata
             answer_data.update({
-                'search_method': 'database',  # RAG temporarily disabled
+                'search_method': 'legacy',
                 'documents_found': len(relevant_documents),
                 'search_results': search_results,
                 'question': question,
@@ -243,6 +336,46 @@ class EnhancedQAEngine:
             'error': error_message
         }
     
+    def ask_question_streaming(self, 
+                              question: str, 
+                              user_id: str = "anonymous",
+                              session_id: Optional[str] = None,
+                              access_level: str = "public",
+                              filters: Optional[Dict[str, Any]] = None):
+        """Ask a question and get streaming answer"""
+        
+        if self.use_advanced_rag:
+            # Convert access level string to enum
+            from .guardrails import AccessLevel
+            access_level_enum = AccessLevel(access_level.lower())
+            
+            # Generate streaming answer using Advanced RAG Engine
+            for chunk in self.advanced_rag_engine.generate_streaming_answer(
+                query=question,
+                user_id=user_id,
+                session_id=session_id,
+                access_level=access_level_enum,
+                filters=filters
+            ):
+                yield chunk
+        else:
+            # Fallback to non-streaming for legacy implementation
+            result = self.ask_question(
+                question=question,
+                user_id=user_id,
+                session_id=session_id,
+                access_level=access_level,
+                filters=filters
+            )
+            
+            # Simulate streaming by yielding the result
+            yield {
+                'type': 'complete',
+                'answer': result.get('answer', ''),
+                'sources': result.get('sources', []),
+                'metadata': result.get('metadata', {})
+            }
+    
     def get_system_status(self) -> Dict[str, Any]:
         """Get the status of all system components"""
         # Get database statistics
@@ -251,12 +384,22 @@ class EnhancedQAEngine:
         # Get RAG service status
         rag_status = self.rag_service.get_system_status()
         
+        # Get Advanced RAG Engine status
+        advanced_rag_status = {}
+        if self.use_advanced_rag:
+            try:
+                advanced_rag_status = self.advanced_rag_engine.get_system_status()
+            except Exception as e:
+                advanced_rag_status = {'error': str(e)}
+        
         return {
+            'engine_type': 'advanced_rag' if self.use_advanced_rag else 'legacy',
             'ai_generator': {
                 'enabled': self.ai_generator.enabled,
                 'model': self.ai_generator.model if self.ai_generator.enabled else 'disabled'
             },
             'rag_service': rag_status,
+            'advanced_rag_engine': advanced_rag_status,
             'knowledge_base': {
                 'total_cases': db_stats.get('total_cases', 0),
                 'total_documents': db_stats.get('total_documents', 0),

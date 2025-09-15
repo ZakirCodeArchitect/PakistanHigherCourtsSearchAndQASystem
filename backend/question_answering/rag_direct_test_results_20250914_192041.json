@@ -1,0 +1,9 @@
+{
+  "context_packer": false,
+  "prompt_template": false,
+  "llm_generator": true,
+  "guardrails": false,
+  "qa_retrieval": false,
+  "advanced_rag": false,
+  "legal_queries": 0.0
+}
