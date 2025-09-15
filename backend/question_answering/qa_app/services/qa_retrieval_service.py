@@ -231,7 +231,11 @@ class QARetrievalService:
             # Add QA-specific metadata
             for i, result in enumerate(final_results):
                 result['qa_rank'] = i + 1
-                result['qa_relevance_score'] = result.get('score', 0.0)
+                # Use combined_score if available (from cross-encoder), otherwise use original score
+                # Ensure all scores are Python floats to avoid JSON serialization issues
+                final_score = float(result.get('combined_score', result.get('score', 0.0)))
+                result['qa_relevance_score'] = final_score
+                result['score'] = final_score  # Update the main score field too
                 result['retrieval_method'] = 'two_stage_qa'
                 result['retrieval_time'] = (datetime.now() - start_time).total_seconds()
             
@@ -333,18 +337,34 @@ class QARetrievalService:
             # Get cross-encoder scores
             rerank_scores = self.cross_encoder.predict(pairs)
             
+            # Normalize cross-encoder scores to 0-1 range
+            if len(rerank_scores) > 0:
+                min_score = min(rerank_scores)
+                max_score = max(rerank_scores)
+                
+                # Avoid division by zero
+                if max_score == min_score:
+                    normalized_scores = [0.5] * len(rerank_scores)
+                else:
+                    # Normalize to 0-1 range
+                    normalized_scores = [(score - min_score) / (max_score - min_score) for score in rerank_scores]
+            else:
+                normalized_scores = []
+            
             # Combine with initial scores
             for i, result in enumerate(initial_results):
-                initial_score = result.get('score', 0.0)
-                rerank_score = float(rerank_scores[i])
+                initial_score = float(result.get('score', 0.0))  # Ensure Python float
+                raw_rerank_score = float(rerank_scores[i])  # Convert NumPy float32 to Python float
+                normalized_rerank_score = float(normalized_scores[i]) if i < len(normalized_scores) else 0.0
                 
                 # Weighted combination: 70% cross-encoder + 30% initial
-                combined_score = (
-                    self.config['semantic_weight'] * rerank_score +
+                combined_score = float(
+                    self.config['semantic_weight'] * normalized_rerank_score +
                     (1 - self.config['semantic_weight']) * initial_score
                 )
                 
-                result['rerank_score'] = rerank_score
+                result['rerank_score'] = raw_rerank_score
+                result['normalized_rerank_score'] = normalized_rerank_score
                 result['combined_score'] = combined_score
                 result['retrieval_stage'] = 'cross_encoder_reranked'
                 # Preserve source information

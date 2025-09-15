@@ -347,9 +347,11 @@ RESPONSE GUIDELINES:
 RESPONSE FORMAT:
 - Start with the relevant constitutional provision
 - Analyze the legal position with case law
-- Explain available remedies and procedures
+- Explain available remedies and procedures with continuous step numbering (Step 1, Step 2, Step 3, etc.)
 - Provide practical guidance for implementation
 - Include relevant limitations and considerations
+
+IMPORTANT: Always use continuous step numbering (Step 1, Step 2, Step 3, etc.) for procedural guidance. Do not use section numbers as step numbers.
 
 Remember: Constitutional law requires precision and adherence to established precedents. Always encourage consultation with constitutional law experts for complex matters."""
 
@@ -477,11 +479,13 @@ RESPONSE GUIDELINES:
 
 RESPONSE FORMAT:
 - Identify the relevant court and procedure
-- Explain step-by-step procedural requirements
+- Explain step-by-step procedural requirements with continuous numbering (Step 1, Step 2, Step 3, etc.)
 - Address documentation and filing requirements
 - Include timelines and deadlines
 - Provide practical tips and considerations
 - Address potential challenges and solutions
+
+IMPORTANT: Always use continuous step numbering (Step 1, Step 2, Step 3, etc.) for procedural guidance. Do not use section numbers as step numbers.
 
 Remember: Court procedures require strict compliance. Always emphasize the importance of following proper procedures and seeking legal assistance when needed."""
 
@@ -567,7 +571,7 @@ Please provide a comprehensive constitutional law analysis based on the provided
 3. **Precedent Integration**: Include relevant Supreme Court and High Court precedents
 4. **Remedy Guidance**: Explain available constitutional remedies and procedures
 5. **Rights Analysis**: Analyze fundamental rights implications
-6. **Procedural Steps**: Provide step-by-step guidance for constitutional remedies
+6. **Procedural Steps**: Provide step-by-step guidance for constitutional remedies with continuous numbering (Step 1, Step 2, Step 3, etc.)
 7. **Limitations**: Address any constitutional limitations or exceptions
 8. **Practical Considerations**: Include practical implications and considerations
 
@@ -655,13 +659,15 @@ Legal Context:
 Please provide comprehensive procedural guidance based on the provided context. Make sure to:
 
 1. **Court Identification**: Identify the relevant court and jurisdiction
-2. **Procedural Requirements**: Explain step-by-step procedural requirements
+2. **Procedural Requirements**: Explain step-by-step procedural requirements with continuous numbering (Step 1, Step 2, Step 3, etc.)
 3. **Documentation**: Address required documents and filing procedures
 4. **Timelines**: Include relevant timelines and deadlines
 5. **Court Procedures**: Explain court processes and requirements
 6. **Fee Structure**: Address court fees and payment requirements
 7. **Practical Tips**: Provide practical tips and considerations
 8. **Compliance**: Emphasize the importance of procedural compliance
+
+IMPORTANT: When providing step-by-step procedures, use continuous numbering (Step 1, Step 2, Step 3, etc.) regardless of section numbers. Do not use section numbers as step numbers.
 
 Format your response with clear sections and practical procedural guidance.
 
@@ -681,7 +687,7 @@ Please provide a comprehensive legal analysis based on the provided context. Mak
 2. **Legal Analysis**: Provide detailed legal reasoning and analysis
 3. **Proper Citations**: Include specific case numbers, court names, dates, and legal provisions
 4. **Precedent References**: Cite relevant case law and legal precedents
-5. **Procedural Guidance**: Include any relevant procedural steps or requirements
+5. **Procedural Guidance**: Include any relevant procedural steps or requirements with continuous numbering (Step 1, Step 2, Step 3, etc.)
 6. **Context Integration**: Reference previous conversation context when relevant
 7. **Professional Structure**: Organize your answer with clear headings and logical flow
 8. **Practical Implications**: Explain what this means for the user's situation

@@ -39,11 +39,11 @@ class ContextPacker:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         
-        # Configuration
-        self.max_tokens = self.config.get('max_tokens', 2000)
-        self.max_chunks = self.config.get('max_chunks', 12)
-        self.min_chunk_tokens = self.config.get('min_chunk_tokens', 50)
-        self.max_chunk_tokens = self.config.get('max_chunk_tokens', 400)
+        # Configuration - More generous limits for better context selection
+        self.max_tokens = self.config.get('max_tokens', 4000)  # Increased from 2000
+        self.max_chunks = self.config.get('max_chunks', 15)    # Increased from 12
+        self.min_chunk_tokens = self.config.get('min_chunk_tokens', 20)  # Decreased from 50
+        self.max_chunk_tokens = self.config.get('max_chunk_tokens', 600)  # Increased from 400
         
         # Source type priorities (higher = more important)
         self.source_priorities = {
@@ -379,17 +379,22 @@ class ContextPacker:
         selected_chunks = []
         total_tokens = 0
         
-        for chunk in chunks:
-            # Check token limit
-            if total_tokens + chunk.token_count > self.max_tokens:
-                break
-            
-            # Check chunk count limit
+        # If no chunks, return empty list
+        if not chunks:
+            logger.warning("No chunks provided for selection")
+            return selected_chunks
+        
+        logger.info(f"Selecting from {len(chunks)} chunks with limits: max_tokens={self.max_tokens}, max_chunks={self.max_chunks}")
+        
+        for i, chunk in enumerate(chunks):
+            # Check chunk count limit first
             if len(selected_chunks) >= self.max_chunks:
+                logger.info(f"Reached max chunks limit ({self.max_chunks})")
                 break
             
-            # Check minimum token requirement (relaxed for testing)
-            if chunk.token_count < 10:  # Very low threshold for testing
+            # Check minimum token requirement (very relaxed)
+            if chunk.token_count < 5:  # Even more relaxed threshold
+                logger.debug(f"Skipping chunk {i} - too few tokens: {chunk.token_count}")
                 continue
             
             # Check maximum token limit per chunk
@@ -398,11 +403,37 @@ class ContextPacker:
                 truncated_content = self._truncate_content(chunk.content, self.max_chunk_tokens)
                 chunk.content = truncated_content
                 chunk.token_count = self._count_tokens(truncated_content)
+                logger.debug(f"Truncated chunk {i} to {chunk.token_count} tokens")
             
-            selected_chunks.append(chunk)
-            total_tokens += chunk.token_count
+            # Check if adding this chunk would exceed token limit
+            if total_tokens + chunk.token_count > self.max_tokens:
+                # If we have no chunks yet, take this one anyway (better than nothing)
+                if len(selected_chunks) == 0:
+                    logger.info(f"Taking first chunk despite token limit: {chunk.token_count} tokens")
+                    selected_chunks.append(chunk)
+                    total_tokens += chunk.token_count
+                else:
+                    logger.info(f"Token limit reached: {total_tokens} + {chunk.token_count} > {self.max_tokens}")
+                    break
+            else:
+                selected_chunks.append(chunk)
+                total_tokens += chunk.token_count
+                logger.debug(f"Added chunk {i}: {chunk.token_count} tokens (total: {total_tokens})")
         
         logger.info(f"Selected {len(selected_chunks)} chunks with {total_tokens} tokens")
+        
+        # Ensure we always return at least one chunk if available
+        if len(selected_chunks) == 0 and len(chunks) > 0:
+            logger.warning("No chunks selected, taking first available chunk")
+            first_chunk = chunks[0]
+            if first_chunk.token_count > self.max_chunk_tokens:
+                truncated_content = self._truncate_content(first_chunk.content, self.max_chunk_tokens)
+                first_chunk.content = truncated_content
+                first_chunk.token_count = self._count_tokens(truncated_content)
+            selected_chunks.append(first_chunk)
+            total_tokens = first_chunk.token_count
+            logger.info(f"Fallback: Selected 1 chunk with {total_tokens} tokens")
+        
         return selected_chunks
     
     def _truncate_content(self, content: str, max_tokens: int) -> str:

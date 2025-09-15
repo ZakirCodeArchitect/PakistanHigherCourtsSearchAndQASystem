@@ -3,214 +3,801 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Question Answering System - Pakistan Higher Courts</title>
+    <title>Pakistan Legal AI Assistant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Cache bust: 2024-12-19 15:40 - Force reload to apply teal blue to send button */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            background-color: #f8f9fa;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
         }
-        .qa-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 60px;
+            background-color: #2d2d2d;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 0;
+            border-right: 1px solid #3d3d3d;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .sidebar:hover {
+            width: 280px;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-icon:hover {
+            background-color: #3d3d3d;
+        }
+        
+        .sidebar-icon.active {
+            background-color: #666666;
+        }
+        
+        .sidebar-text {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar:hover .sidebar-text {
+            opacity: 1;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-section-title {
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0 16px;
+            margin-bottom: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar:hover .sidebar-section-title {
+            opacity: 1;
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 2px 8px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            color: #ffffff;
+            background-color: transparent !important;
+        }
+        
+        .chat-item:hover {
+            background-color: #3d3d3d !important;
+        }
+        
+        .chat-item.active {
+            background-color: #666666 !important;
+        }
+        
+        /* Force all chat items to use white text and icons */
+        .chat-item,
+        .chat-item *,
+        .chat-item i,
+        .chat-item .chat-icon,
+        .chat-item .chat-title {
+            color: #ffffff !important;
+        }
+        
+        /* Specific overrides for Quick Actions */
+        .sidebar-bottom .chat-item,
+        .sidebar-bottom .chat-item *,
+        .sidebar-bottom .chat-item i,
+        .sidebar-bottom .chat-item .chat-icon,
+        .sidebar-bottom .chat-item .chat-title {
+            color: #ffffff !important;
+        }
+        
+        /* Override any blue colors in sidebar */
+        .sidebar * {
+            color: #ffffff !important;
+        }
+        
+        .sidebar i {
+            color: #ffffff !important;
+        }
+        
+        .chat-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .chat-title {
+            font-size: 13px;
+            margin-left: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar:hover .chat-title {
+            opacity: 1;
+        }
+        
+        .new-chat-button {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 0 8px 16px 8px;
+            background-color: #20B2AA !important;
+            color: #ffffff !important;
+            border: 1px solid #20B2AA !important;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            min-height: 40px;
+        }
+        
+        .new-chat-button:hover {
+            background-color: #1A9B94 !important;
+            border-color: #1A9B94 !important;
+        }
+        
+        .new-chat-text {
+            margin-left: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar:hover .new-chat-text {
+            opacity: 1;
+        }
+        
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+        }
+        
+        .nav-menu-button {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 0 8px 16px 8px;
+            background-color: transparent !important;
+            color: #ffffff !important;
+            border: 1px solid #4d4d4d !important;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 40px;
+        }
+        
+        .nav-menu-button:hover {
+            background-color: #3d3d3d !important;
+            border-color: #666666 !important;
+        }
+        
+        .nav-menu-text {
+            margin-left: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar:hover .nav-menu-text {
+            opacity: 1;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #1a1a1a;
+        }
+        
+        /* Header */
+        .header {
+            height: 60px;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #3d3d3d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .model-selector {
+            background-color: #3d3d3d;
+            border: 1px solid #4d4d4d;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-btn {
+            background-color: #666666;
             color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .qa-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
+        
+        .header-btn:hover {
+            background-color: #777777;
         }
+        
+        .profile-icon {
+            width: 32px;
+            height: 32px;
+            background-color: #666666;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Chat Area */
         .chat-container {
-            height: 500px;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
+            flex: 1;
             overflow-y: auto;
-            padding: 1rem;
-            background: #f8f9fa;
+            padding: 20px;
+            background-color: #1a1a1a;
         }
+        
         .message {
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
         }
-        .user-message {
-            background: #007bff;
-            color: white;
-            margin-left: 20%;
-        }
-        .bot-message {
-            background: white;
-            border: 1px solid #dee2e6;
-            margin-right: 20%;
-        }
-        .system-message {
-            background: #e9ecef;
-            color: #6c757d;
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
             text-align: center;
+            line-height: 1;
+        }
+        
+        .user-avatar {
+            background-color: #666666;
+            color: white;
+        }
+        
+        .bot-avatar {
+            background-color: #20B2AA;
+            color: white;
+        }
+        
+        .message-content {
+            flex: 1;
+            max-width: 80%;
+        }
+        
+        .user-message .message-content {
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .message-bubble {
+            background-color: #2d2d2d;
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        
+        .user-message .message-bubble {
+            background-color: #3d3d3d;
+            color: #ffffff;
+            border: 1px solid #4d4d4d;
+            margin-left: auto;
+            max-width: fit-content;
+            width: fit-content;
+        }
+        
+        .bot-message .message-bubble {
+            background-color: #2d2d2d;
+        }
+        
+        /* Response Content Styling */
+        .response-content {
+            line-height: 1.7;
+            font-size: 14px;
+        }
+        
+        .response-content h1,
+        .response-content h2,
+        .response-content h3,
+        .response-content h4,
+        .response-content h5,
+        .response-content h6 {
+            color: #ffffff;
+            margin: 20px 0 12px 0;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        .response-content h1 {
+            font-size: 20px;
+            border-bottom: 2px solid #4d4d4d;
+            padding-bottom: 8px;
+        }
+        
+        .response-content h2 {
+            font-size: 18px;
+            border-bottom: 1px solid #3d3d3d;
+            padding-bottom: 6px;
+        }
+        
+        .response-content h3 {
+            font-size: 16px;
+            color: #cccccc;
+        }
+        
+        .response-content h4 {
+            font-size: 15px;
+            color: #aaaaaa;
+        }
+        
+        .response-content h5,
+        .response-content h6 {
+            font-size: 14px;
+            color: #999999;
+        }
+        
+        .response-content p {
+            margin: 12px 0;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .response-content ul,
+        .response-content ol {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        
+        .response-content li {
+            margin: 6px 0;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        
+        .response-content ul li {
+            list-style-type: disc;
+        }
+        
+        .response-content ol li {
+            list-style-type: decimal;
+        }
+        
+        .response-content strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        .response-content em {
+            color: #b0b0b0;
             font-style: italic;
         }
-        .input-group {
-            margin-top: 1rem;
+        
+        .response-content .numbered-item {
+            margin: 8px 0;
+            padding: 6px 0;
+            color: #e0e0e0;
+            line-height: 1.5;
         }
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
+        
+        .response-content .numbered-item strong {
+            color: #cccccc;
+        }
+        
+        .response-content blockquote {
+            border-left: 3px solid #666666;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #b0b0b0;
+            font-style: italic;
+            background-color: #2a2a2a;
+            padding: 12px 16px;
+            border-radius: 4px;
+        }
+        
+        .response-content code {
+            background-color: #3d3d3d;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #cccccc;
+            font-size: 13px;
+        }
+        
+        .response-content pre {
+            background-color: #2a2a2a;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 16px 0;
+            border: 1px solid #3d3d3d;
+        }
+        
+        .response-content pre code {
+            background: none;
+            padding: 0;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        
+        /* Ensure proper spacing between sections */
+        .response-content > *:first-child {
+            margin-top: 0;
+        }
+        
+        .response-content > *:last-child {
+            margin-bottom: 0;
+        }
+        
+        .system-message {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            margin: 20px 0;
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-top: 1px solid #3d3d3d;
+        }
+        
+        .input-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .input-field {
+            width: 100%;
+            background-color: #2d2d2d;
+            border: 1px solid #4d4d4d;
+            border-radius: 24px;
+            padding: 12px 50px 12px 20px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .input-field:focus {
+            border-color: #666666;
+        }
+        
+        .input-field::placeholder {
+            color: #888;
+        }
+        
+        .send-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background-color: #20B2AA !important;
+            border: none;
             border-radius: 50%;
-            margin-right: 0.5rem;
+            color: white !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
         }
-        .status-online {
-            background-color: #28a745;
+        
+        .send-button:hover {
+            background-color: #1A9B94 !important;
         }
-        .status-offline {
-            background-color: #dc3545;
+        
+        .send-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        
+        .input-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+        
+        .tool-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .tool-icon:hover {
+            background-color: #3d3d3d;
+        }
+        
+        .disclaimer {
+            text-align: center;
+            color: #888;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+        
+        /* Loading Animation */
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+        
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #666666;
+            border-radius: 50%;
+            animation: loading 1.4s infinite ease-in-out;
+        }
+        
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes loading {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        
+        /* Sources */
+        .sources {
+            margin-top: 16px;
+            padding: 12px;
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            border-left: 3px solid #666666;
+        }
+        
+        .sources h6 {
+            color: #cccccc;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .source-item {
+            margin: 6px 0;
+            padding: 8px;
+            background-color: #3d3d3d;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .source-title {
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .source-meta {
+            color: #888;
+            font-size: 11px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4d4d4d;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5d5d5d;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="qa-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1><i class="fas fa-robot me-3"></i>Legal Question Answering System</h1>
-                    <p class="mb-0">AI-powered legal research assistant for Pakistani law and court procedures</p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <div class="status-indicator status-online"></div>
-                    <span>System Online</span>
-                </div>
-            </div>
-        </div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Navigation Menu Button -->
+            <div class="nav-menu-button" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+                <span class="nav-menu-text">Menu</span>
     </div>
 
-    <div class="container">
-        <div class="row">
-            <!-- Quick Start Panel -->
-            <div class="col-lg-4">
-                <div class="qa-card">
-                    <h5><i class="fas fa-rocket me-2"></i>Quick Start</h5>
-                    
-                    <div class="mb-3">
-                        <h6>Ask About:</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('cases')">
-                                <i class="fas fa-gavel me-1"></i>Cases
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('laws')">
-                                <i class="fas fa-book me-1"></i>Laws
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('judges')">
-                                <i class="fas fa-user-tie me-1"></i>Judges
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="setQuestionType('procedures')">
-                                <i class="fas fa-clipboard-list me-1"></i>Procedures
-                            </button>
+            <!-- New Chat Button -->
+            <a href="#" class="new-chat-button" onclick="newSession(); return false;">
+                <i class="fas fa-edit"></i>
+                <span class="new-chat-text">New chat</span>
+            </a>
+            
+            <!-- Recent Chats Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Recent</div>
+                <div id="recentChats">
+                    <!-- Recent chats will be populated here -->
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <h6>Sample Questions:</h6>
-                        <div class="list-group list-group-flush">
-                            <button class="list-group-item list-group-item-action" onclick="askQuestion('What is the law regarding bail in Pakistan?')">
-                                <i class="fas fa-question-circle me-2"></i>
-                                What is the law regarding bail in Pakistan?
-                            </button>
-                            <button class="list-group-item list-group-item-action" onclick="askQuestion('How to file a writ petition in High Court?')">
-                                <i class="fas fa-question-circle me-2"></i>
-                                How to file a writ petition in High Court?
-                            </button>
-                            <button class="list-group-item list-group-item-action" onclick="askQuestion('What are the recent judgments on constitutional rights?')">
-                                <i class="fas fa-question-circle me-2"></i>
-                                What are the recent judgments on constitutional rights?
-                            </button>
+            <!-- Bottom Actions Section -->
+            <div class="sidebar-bottom">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Quick Actions</div>
+                    <a href="#" class="chat-item" onclick="clearChat(); return false;">
+                        <div class="chat-icon">
+                            <i class="fas fa-trash"></i>
                         </div>
+                        <span class="chat-title">Clear Chat</span>
+                    </a>
+                    <a href="#" class="chat-item" onclick="showSettings(); return false;">
+                        <div class="chat-icon">
+                            <i class="fas fa-cog"></i>
                     </div>
-                    
-                    <div>
-                        <h6>System Status:</h6>
-                        <div class="d-flex flex-column gap-2">
-                            <div class="d-flex align-items-center">
-                                <div class="status-indicator status-online"></div>
-                                <span>Knowledge Base</span>
+                        <span class="chat-title">Settings</span>
+                    </a>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <div class="status-indicator status-online"></div>
-                                <span>AI Engine</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <div class="status-indicator status-online"></div>
-                                <span>Search Index</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             
-            <!-- Chat Interface -->
-            <div class="col-lg-8">
-                <div class="qa-card">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5><i class="fas fa-comments me-2"></i>Legal Research Assistant</h5>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearChat()">
-                                <i class="fas fa-trash me-1"></i>Clear
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <div class="logo">Pakistan Legal AI</div>
+                    <select class="model-selector" id="modelSelector">
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="llama-3.1-70b">LLaMA 3.1 70B</option>
+                        <option value="llama-3.1-8b">LLaMA 3.1 8B</option>
+                    </select>
+                </div>
+                <div class="header-right">
+                    <button class="header-btn" onclick="upgradeAccount()">
+                        <i class="fas fa-star"></i> Upgrade
                             </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="newSession()">
-                                <i class="fas fa-plus me-1"></i>New Session
-                            </button>
+                    <div class="profile-icon" onclick="showProfile()">U</div>
                         </div>
                     </div>
                     
-                    <!-- Chat Messages -->
+            <!-- Chat Container -->
                     <div class="chat-container" id="chatMessages">
-                        <div class="message system-message">
-                            <div class="text-center">
-                                <h6>Welcome to the Legal Question Answering System!</h6>
-                                <p>I can help you with:</p>
-                                <ul class="list-unstyled">
-                                    <li>• Legal research and case law analysis</li>
-                                    <li>• Court procedures and filing requirements</li>
-                                    <li>• Judicial decisions and precedents</li>
-                                    <li>• Statutory provisions and legal principles</li>
-                                </ul>
-                                <p>Ask me a question to get started!</p>
-                            </div>
+                <div class="system-message">
+                    Welcome to Pakistan Legal AI Assistant. I can help you with legal research, case law analysis, and court procedures.
                         </div>
                     </div>
                     
-                    <!-- Chat Input -->
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="questionInput" 
-                               placeholder="Ask a legal question..." maxlength="1000">
-                        <button class="btn btn-primary" type="button" onclick="sendQuestion()">
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <input type="text" class="input-field" id="questionInput" 
+                           placeholder="Ask a legal question..." maxlength="2000">
+                    <button class="send-button" id="sendButton" onclick="sendQuestion()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Press Enter to send, Shift+Enter for new line
-                    </small>
+                <div class="input-tools">
+                    <div class="tool-icon" title="Attach File">
+                        <i class="fas fa-plus"></i>
                 </div>
+                    <div class="tool-icon" title="Tools">
+                        <i class="fas fa-wrench"></i>
             </div>
+                    <div class="tool-icon" title="Voice Input">
+                        <i class="fas fa-microphone"></i>
         </div>
     </div>
-
-    <!-- Loading Overlay -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body text-center">
-                    <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Processing your question...</p>
-                    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="hideLoading()">
-                        Cancel
-                    </button>
+                <div class="disclaimer">
+                    Pakistan Legal AI can make mistakes, so double-check important information.
                 </div>
             </div>
         </div>
@@ -218,11 +805,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Simple QA Interface JavaScript
+        // Professional QA Interface JavaScript
         let currentSessionId = 'session_' + Date.now();
         let isLoading = false;
         let userId = 'anonymous';
         let conversationHistory = [];
+        let chatSessions = [];
+        let currentChatTitle = '';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -234,21 +823,144 @@
                 }
             });
             
+            // Load chat sessions from storage
+            loadChatSessionsFromStorage();
+            
             // Create initial session
             newSession();
         });
 
-        function setQuestionType(type) {
-            // Update UI to show selected question type
-            document.querySelectorAll('.btn-outline-primary').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+        function showSettings() {
+            alert('Settings panel coming soon!');
         }
 
-        function askQuestion(question) {
-            document.getElementById('questionInput').value = question;
-            sendQuestion();
+        function upgradeAccount() {
+            alert('Upgrade feature coming soon!');
+        }
+
+        function showProfile() {
+            alert('Profile panel coming soon!');
+        }
+
+        function toggleSidebar() {
+            // Toggle sidebar functionality - can be expanded later
+            console.log('Sidebar menu clicked');
+            // For now, just show an alert, but this can be expanded to show additional menu options
+            alert('Navigation menu clicked! Additional menu options can be added here.');
+        }
+
+        function generateChatTitle(question) {
+            // Generate a title from the first question
+            const words = question.split(' ').slice(0, 4);
+            return words.join(' ') + (question.split(' ').length > 4 ? '...' : '');
+        }
+
+        function addChatToHistory(sessionId, title, timestamp) {
+            // Add to chat sessions array
+            const chatSession = {
+                id: sessionId,
+                title: title,
+                timestamp: timestamp,
+                messages: []
+            };
+            
+            // Remove if already exists
+            chatSessions = chatSessions.filter(chat => chat.id !== sessionId);
+            
+            // Add to beginning
+            chatSessions.unshift(chatSession);
+            
+            // Keep only last 10 chats
+            if (chatSessions.length > 10) {
+                chatSessions = chatSessions.slice(0, 10);
+            }
+            
+            // Update sidebar
+            updateRecentChats();
+            
+            // Save to localStorage
+            localStorage.setItem('chatSessions', JSON.stringify(chatSessions));
+        }
+
+        function updateRecentChats() {
+            const recentChatsContainer = document.getElementById('recentChats');
+            recentChatsContainer.innerHTML = '';
+            
+            chatSessions.forEach(chat => {
+                const chatItem = document.createElement('a');
+                chatItem.href = '#';
+                chatItem.className = 'chat-item';
+                if (chat.id === currentSessionId) {
+                    chatItem.classList.add('active');
+                }
+                
+                chatItem.innerHTML = `
+                    <div class="chat-icon">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <span class="chat-title">${chat.title}</span>
+                `;
+                
+                chatItem.onclick = (e) => {
+                    e.preventDefault();
+                    loadChatSession(chat.id);
+                };
+                
+                recentChatsContainer.appendChild(chatItem);
+            });
+        }
+
+        function loadChatSession(sessionId) {
+            if (sessionId === currentSessionId) return;
+            
+            // Find the chat session
+            const chatSession = chatSessions.find(chat => chat.id === sessionId);
+            if (!chatSession) return;
+            
+            // Update current session
+            currentSessionId = sessionId;
+            currentChatTitle = chatSession.title;
+            
+            // Clear current chat
+            clearChat();
+            
+            // Load chat messages
+            if (chatSession.messages && chatSession.messages.length > 0) {
+                chatSession.messages.forEach(message => {
+                    if (message.type === 'user') {
+                        addUserMessage(message.content);
+                    } else if (message.type === 'bot') {
+                        addBotMessage(message.data);
+                    }
+                });
+            } else {
+                addSystemMessage(`Loaded chat: ${chatSession.title}`);
+            }
+            
+            // Update sidebar
+            updateRecentChats();
+        }
+
+        function saveCurrentChat() {
+            // Save current conversation to the chat session
+            const chatSession = chatSessions.find(chat => chat.id === currentSessionId);
+            if (chatSession) {
+                chatSession.messages = [...conversationHistory];
+                localStorage.setItem('chatSessions', JSON.stringify(chatSessions));
+            }
+        }
+
+        function loadChatSessionsFromStorage() {
+            const saved = localStorage.getItem('chatSessions');
+            if (saved) {
+                try {
+                    chatSessions = JSON.parse(saved);
+                    updateRecentChats();
+                } catch (e) {
+                    console.error('Error loading chat sessions:', e);
+                    chatSessions = [];
+                }
+            }
         }
 
         async function newSession() {
@@ -270,6 +982,7 @@
                     const data = await response.json();
                     currentSessionId = data.session_id;
                     conversationHistory = [];
+                    currentChatTitle = '';
                     clearChat();
                     addSystemMessage('New session created. You can start asking legal questions!');
                     console.log('New session created:', currentSessionId);
@@ -280,6 +993,8 @@
                 console.error('Error creating session:', error);
                 // Fallback to local session
                 currentSessionId = 'session_' + Date.now();
+                conversationHistory = [];
+                currentChatTitle = '';
                 console.log('Using fallback session ID:', currentSessionId);
                 clearChat();
                 addSystemMessage('New session created (local). You can start asking legal questions!');
@@ -303,7 +1018,9 @@
             questionInput.value = '';
             
             // Show loading
-            showLoading();
+            isLoading = true;
+            addLoadingMessage();
+            document.getElementById('sendButton').disabled = true;
             
             try {
                 console.log('Sending question:', question);
@@ -318,6 +1035,7 @@
                         session_id: currentSessionId,
                         question: question,
                         use_ai: true,
+                        use_advanced_rag: true,
                         user_id: userId
                     })
                 });
@@ -328,14 +1046,29 @@
                     const data = await response.json();
                     console.log('Response data:', data);
                     
+                    // Remove loading message
+                    removeLoadingMessage();
+                    
                     // Add to conversation history
                     conversationHistory.push({
-                        query: question,
-                        response: data.answer,
-                        timestamp: new Date().toISOString(),
-                        session_id: data.session_id,
-                        is_follow_up: data.is_follow_up || false
+                        type: 'user',
+                        content: question,
+                        timestamp: new Date().toISOString()
                     });
+                    conversationHistory.push({
+                        type: 'bot',
+                        data: data,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // Generate chat title from first question if not set
+                    if (!currentChatTitle) {
+                        currentChatTitle = generateChatTitle(question);
+                        addChatToHistory(currentSessionId, currentChatTitle, new Date().toISOString());
+                    }
+                    
+                    // Save current chat
+                    saveCurrentChat();
                     
                     addBotMessage(data);
                 } else {
@@ -343,6 +1076,7 @@
                 }
             } catch (error) {
                 console.error('Error sending question:', error);
+                removeLoadingMessage();
                 addBotMessage({
                     answer: 'I apologize, but I encountered an error while processing your question. Please try again.',
                     answer_type: 'explanation',
@@ -350,8 +1084,8 @@
                     sources: []
                 });
             } finally {
-                console.log('Hiding loading modal');
-                hideLoading();
+                isLoading = false;
+                document.getElementById('sendButton').disabled = false;
             }
         }
 
@@ -360,12 +1094,9 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message user-message';
             messageDiv.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong>You:</strong><br>
-                        ${escapeHtml(message)}
-                    </div>
-                    <small class="text-light">${new Date().toLocaleTimeString()}</small>
+                <div class="message-avatar user-avatar">U</div>
+                <div class="message-content">
+                    <div class="message-bubble">${escapeHtml(message)}</div>
                 </div>
             `;
             chatMessages.appendChild(messageDiv);
@@ -380,46 +1111,29 @@
             let sourcesHtml = '';
             if (data.sources && data.sources.length > 0) {
                 sourcesHtml = `
-                    <div class="mt-3 p-2 bg-light rounded">
-                        <h6>Sources:</h6>
+                    <div class="sources">
+                        <h6>Sources</h6>
                         ${data.sources.map(source => `
-                            <div class="mb-2">
-                                <strong>${source.title || 'Legal Document'}</strong>
-                                ${source.court ? `<br><small>Court: ${source.court}</small>` : ''}
-                                ${source.case_number ? `<br><small>Case: ${source.case_number}</small>` : ''}
+                            <div class="source-item">
+                                <div class="source-title">${source.title || 'Legal Document'}</div>
+                                <div class="source-meta">
+                                    ${source.court ? `Court: ${source.court}` : ''}
+                                    ${source.case_number ? ` | Case: ${source.case_number}` : ''}
+                                    ${source.date ? ` | Date: ${source.date}` : ''}
+                                </div>
                             </div>
                         `).join('')}
                     </div>
                 `;
             }
             
-            // Enhanced message display with conversation context
-            let contextInfo = '';
-            if (data.is_follow_up) {
-                contextInfo = '<span class="badge bg-info me-2">Follow-up</span>';
-            }
-            if (data.session_id) {
-                contextInfo += `<span class="badge bg-secondary me-2">Session: ${data.session_id.substring(0, 8)}</span>`;
-            }
-            
             messageDiv.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="mb-2">
-                            <strong>Legal Assistant:</strong>
-                            ${contextInfo}
-                        </div>
-                        ${formatAnswer(data.answer)}
+                <div class="message-avatar bot-avatar">AI</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="response-content">${formatAnswer(data.answer)}</div>
                         ${sourcesHtml}
                     </div>
-                    <small class="text-muted">${new Date().toLocaleTimeString()}</small>
-                </div>
-                <div class="mt-2">
-                    <small class="text-muted">
-                        Confidence: ${data.confidence ? (data.confidence * 100).toFixed(0) : 'N/A'}% | 
-                        Model: ${data.model_used || 'Unknown'} | 
-                        Documents: ${data.documents_found || 0}
-                    </small>
                 </div>
             `;
             chatMessages.appendChild(messageDiv);
@@ -429,41 +1143,64 @@
         function addSystemMessage(message) {
             const chatMessages = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message system-message';
+            messageDiv.className = 'system-message';
+            messageDiv.innerHTML = escapeHtml(message);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addLoadingMessage() {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            messageDiv.id = 'loadingMessage';
             messageDiv.innerHTML = `
-                <div class="text-center">
-                    <i class="fas fa-info-circle me-2"></i>
-                    ${escapeHtml(message)}
-                    <br><small>${new Date().toLocaleTimeString()}</small>
+                <div class="message-avatar bot-avatar">AI</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="loading-dots">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                    </div>
                 </div>
             `;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        function removeLoadingMessage() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
         function formatAnswer(answer) {
-            // Since backend now sends HTML, we don't need to escape it
+            // Backend already provides properly formatted HTML from markdown
+            // We just need to do minimal cleanup and ensure proper styling
+            
             let formatted = answer;
             
-            // The answer is already HTML formatted from the backend
-            formatted = formatted.replace(/^### (.*$)/gm, '<h5 class="mt-2 mb-1 text-secondary">$1</h5>');
+            // Remove generic headings that don't add value
+            formatted = formatted.replace(/<h[1-6][^>]*>Direct Answer<\/h[1-6]>/gi, '');
+            formatted = formatted.replace(/<h[1-6][^>]*>Brief List:.*?<\/h[1-6]>/gi, '');
             
-            // Convert bold text
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Ensure proper spacing between elements
+            formatted = formatted.replace(/(<\/h[1-6]>)(<h[1-6])/gi, '$1\n$2');
+            formatted = formatted.replace(/(<\/p>)(<p>)/gi, '$1\n$2');
+            formatted = formatted.replace(/(<\/ul>)(<ul>)/gi, '$1\n$2');
+            formatted = formatted.replace(/(<\/ol>)(<ol>)/gi, '$1\n$2');
             
-            // Convert lists
-            formatted = formatted.replace(/^- (.*$)/gm, '<li class="mb-1">$1</li>');
-            formatted = formatted.replace(/(<li.*<\/li>)/gs, '<ul class="mb-2">$1</ul>');
+            // Clean up excessive whitespace but preserve structure
+            formatted = formatted.replace(/\s+/g, ' ');
+            formatted = formatted.replace(/>\s+</g, '><');
             
-            // Convert numbered lists
-            formatted = formatted.replace(/^(\d+)\. \*\*(.*?)\*\*: (.*$)/gm, '<div class="mb-2"><strong>$1. $2:</strong> $3</div>');
-            formatted = formatted.replace(/^(\d+)\. (.*$)/gm, '<div class="mb-1">$1. $2</div>');
+            // Remove empty paragraphs
+            formatted = formatted.replace(/<p>\s*<\/p>/g, '');
             
-            // Convert line breaks
-            formatted = formatted.replace(/\n/g, '<br>');
-            
-            return formatted;
+            return formatted.trim();
         }
 
         function escapeHtml(text) {
@@ -475,51 +1212,11 @@
         function clearChat() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = `
-                <div class="message system-message">
-                    <div class="text-center">
-                        <h6>Welcome to the Legal Question Answering System!</h6>
-                        <p>I can help you with:</p>
-                        <ul class="list-unstyled">
-                            <li>• Legal research and case law analysis</li>
-                            <li>• Court procedures and filing requirements</li>
-                            <li>• Judicial decisions and precedents</li>
-                            <li>• Statutory provisions and legal principles</li>
-                        </ul>
-                        <p>Ask me a question to get started!</p>
-                    </div>
+                <div class="system-message">
+                    Welcome to Pakistan Legal AI Assistant. I can help you with legal research, case law analysis, and court procedures.
                 </div>
             `;
-        }
-
-        function showLoading() {
-            isLoading = true;
-            const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
-            modal.show();
-            
-            // Auto-hide after 10 seconds as a safety measure
-            setTimeout(() => {
-                if (isLoading) {
-                    console.log('Auto-hiding loading modal after timeout');
-                    hideLoading();
-                }
-            }, 10000);
-        }
-
-        function hideLoading() {
-            isLoading = false;
-            const modalElement = document.getElementById('loadingModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            } else {
-                // Force hide the modal if instance doesn't exist
-                modalElement.style.display = 'none';
-                document.body.classList.remove('modal-open');
-                const backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) {
-                    backdrop.remove();
-                }
-            }
+            conversationHistory = [];
         }
 
         function getCookie(name) {
