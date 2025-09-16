@@ -161,7 +161,15 @@ class FastRankingService:
             # Calculate weighted base score
             vector_weight = self.default_config['vector_weight']
             keyword_weight = self.default_config['keyword_weight']
-            base_score = (vector_score * vector_weight) + (keyword_score * keyword_weight)
+            
+            # IMPROVED: For semantic search mode, if keyword_score is very low (0.01), 
+            # treat it as pure semantic search and use vector_score as the primary score
+            if keyword_score <= 0.01 and vector_score > 0:
+                # Pure semantic search - use vector score as primary with minimal keyword contribution
+                base_score = vector_score * 0.9 + keyword_score * 0.1
+            else:
+                # Hybrid search - use normal weighting
+                base_score = (vector_score * vector_weight) + (keyword_score * keyword_weight)
             
             # Apply simple boosting based on query (no database queries)
             total_boost = self._calculate_simple_boost(result, query)

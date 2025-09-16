@@ -1,0 +1,901 @@
+COMPREHENSIVE SEMANTIC SEARCH TEST RESULTS
+================================================================================
+Test Date: 2025-09-17 03:47:13
+Total Steps: 55
+================================================================================
+
+STEP 1: Model Initialization
+Timestamp: 03:46:51.131
+Duration: 6060.06ms
+Data: {
+  "success": true,
+  "model_name": "SentenceTransformer(\n  (0): Transformer({'max_seq_length': 384, 'do_lower_case': False, 'architecture': 'MPNetModel'})\n  (1): Pooling({'word_embedding_dimension': 768, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})\n  (2): Normalize()\n)",
+  "model_dimension": 768
+}
+----------------------------------------
+
+STEP 2: Query Embedding Generation
+Timestamp: 03:46:51.375
+Duration: 243.0ms
+Data: {
+  "query": "death sentence in criminal cases",
+  "embedding_shape": [
+    1,
+    768
+  ],
+  "embedding_type": "<class 'numpy.ndarray'>",
+  "embedding_dtype": "float32",
+  "embedding_min": -0.1087542176246643,
+  "embedding_max": 0.13172900676727295,
+  "embedding_mean": 0.00027677370235323906,
+  "embedding_std": 0.03608332946896553,
+  "sample_values": [
+    0.06994365900754929,
+    0.037186745554208755,
+    0.001874237204901874,
+    0.016775425523519516,
+    -0.05260751396417618,
+    0.0270005501806736,
+    -0.013728884980082512,
+    -0.008048152551054955,
+    -0.010645028203725815,
+    0.01644263043999672
+  ],
+  "embedding_norm": 1.0
+}
+----------------------------------------
+
+STEP 3: Embedding Generation Complete
+Timestamp: 03:46:51.377
+Duration: 6306.08ms
+Data: {
+  "total_duration_ms": 6306.08,
+  "embedding_ready": true
+}
+----------------------------------------
+
+STEP 4: Pinecone Initialization
+Timestamp: 03:46:56.158
+Duration: 8.6ms
+Data: {
+  "success": true,
+  "index_name": "legal-cases-index",
+  "index_exists": true
+}
+----------------------------------------
+
+STEP 5: Pinecone Vector Search
+Timestamp: 03:47:01.552
+Duration: 5392.98ms
+Data: {
+  "query": "death sentence in criminal cases",
+  "results_count": 10,
+  "search_duration_ms": 5392.98
+}
+----------------------------------------
+
+STEP 6: Search Results Analysis
+Timestamp: 03:47:01.553
+Data: {
+  "total_results": 10,
+  "similarity_range": [
+    0.42893171265,
+    0.50183959035
+  ],
+  "average_similarity": 0.463507210425,
+  "top_3_cases": [
+    {
+      "case_number": "E.F.A. 1/2021 Banking (SB)",
+      "similarity": 0.50183959035,
+      "title": "Mst. Abida Zakir VS Raja Aman Ullah Khan..."
+    },
+    {
+      "case_number": "E.F.A. 1/2021 Banking (SB)",
+      "similarity": 0.4933450704,
+      "title": "Mst. Abida Zakir VS Raja Aman Ullah Khan..."
+    },
+    {
+      "case_number": "Crl. Appeal 3/2025 Acquittal Other (SB)",
+      "similarity": 0.4808180811,
+      "title": "Rida Naheed VS Samar Abbas..."
+    }
+  ]
+}
+----------------------------------------
+
+STEP 7: Pinecone Search Complete
+Timestamp: 03:47:01.555
+Duration: 10178.15ms
+Data: {
+  "total_duration_ms": 10178.15,
+  "results_found": 10
+}
+----------------------------------------
+
+STEP 8: Query Normalization
+Timestamp: 03:47:01.555
+Data: {
+  "original_query": "death sentence in criminal cases",
+  "normalized_query": "{'original_query': 'death sentence in criminal cases', 'normalized_query': 'death sentence in criminal cases', 'citations': [], 'exact_identifiers': [], 'boost_signals': {'citation_boost': 0.0, 'exact_match_boost': 0.0, 'legal_term_boost': 0.0, 'total_boost': 0.0}, 'processing_metadata': {'has_citations': False, 'has_exact_matches': False, 'citation_count': 0, 'identifier_count': 0}}",
+  "changes_made": true
+}
+----------------------------------------
+
+STEP 9: Query Intelligence Analysis
+Timestamp: 03:47:01.573
+Duration: 18.69ms
+Data: {
+  "query_type": "unknown",
+  "query_complexity": "unknown",
+  "detected_entities": [],
+  "legal_terms": [],
+  "confidence": 0.5
+}
+----------------------------------------
+
+STEP 10: Query Processing Complete
+Timestamp: 03:47:01.574
+Duration: 19.57ms
+Data: {
+  "total_duration_ms": 19.57
+}
+----------------------------------------
+
+STEP 11: API Request Creation
+Timestamp: 03:47:01.575
+Data: {
+  "query": "death sentence in criminal cases",
+  "mode": "semantic",
+  "limit": 5,
+  "request_method": "GET",
+  "request_params": {
+    "q": [
+      "death sentence in criminal cases"
+    ],
+    "mode": [
+      "semantic"
+    ],
+    "limit": [
+      "5"
+    ]
+  }
+}
+----------------------------------------
+
+STEP 12: API Processing
+Timestamp: 03:47:02.183
+Duration: 606.27ms
+Data: {
+  "status_code": 200,
+  "response_type": "Response",
+  "processing_duration_ms": 606.27
+}
+----------------------------------------
+
+STEP 13: API Response Analysis
+Timestamp: 03:47:02.183
+Data: {
+  "results_count": 5,
+  "total_results": 0,
+  "search_mode": "unknown",
+  "query_time": 0,
+  "index_status": {}
+}
+----------------------------------------
+
+STEP 14: Top Results Analysis
+Timestamp: 03:47:02.184
+Data: {
+  "top_3_results": [
+    {
+      "rank": 1,
+      "case_number": "E.F.A. 1/2021 Banking (SB)",
+      "vector_score": 0.5018,
+      "keyword_score": 0.01,
+      "final_score": 0.4527,
+      "title": "Mst. Abida Zakir VS Raja Aman Ullah Khan..."
+    },
+    {
+      "rank": 2,
+      "case_number": "Crl. Appeal 3/2025 Acquittal Other (SB)",
+      "vector_score": 0.4808,
+      "keyword_score": 0.01,
+      "final_score": 0.4337,
+      "title": "Rida Naheed VS Samar Abbas..."
+    },
+    {
+      "rank": 3,
+      "case_number": "Crl. Appeal 1/2022 Against Convct. PPC Upto 7 years (DB)",
+      "vector_score": 0.48,
+      "keyword_score": 0.01,
+      "final_score": 0.433,
+      "title": "Gul Taj VS The State..."
+    }
+  ],
+  "score_distribution": {
+    "vector_scores": [
+      0.5018,
+      0.4808,
+      0.48,
+      0.4702,
+      0.4457
+    ],
+    "keyword_scores": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ],
+    "final_scores": [
+      0.4527,
+      0.4337,
+      0.433,
+      0.4241,
+      0.4021
+    ]
+  }
+}
+----------------------------------------
+
+STEP 15: Semantic Search API Complete
+Timestamp: 03:47:02.185
+Duration: 609.81ms
+Data: {
+  "total_duration_ms": 609.81,
+  "success": true
+}
+----------------------------------------
+
+STEP 16: Ranking Service Processing
+Timestamp: 03:47:02.186
+Data: {
+  "input_vector_results": 10,
+  "input_keyword_results": 0,
+  "output_ranked_results": 5,
+  "ranking_duration_ms": 0.0
+}
+----------------------------------------
+
+STEP 17: Ranking Results Analysis
+Timestamp: 03:47:02.188
+Data: {
+  "ranking_algorithm": "FastRankingService",
+  "top_3_ranked": [
+    {
+      "rank": 1,
+      "case_id": 353.0,
+      "vector_score": 0.50183959035,
+      "keyword_score": 0.01,
+      "final_score": 0.45265563131500003,
+      "ranking_method": "semantic_only"
+    },
+    {
+      "rank": 2,
+      "case_id": 71.0,
+      "vector_score": 0.4808180811,
+      "keyword_score": 0.01,
+      "final_score": 0.43373627299,
+      "ranking_method": "semantic_only"
+    },
+    {
+      "rank": 3,
+      "case_id": 336.0,
+      "vector_score": 0.47995190670000004,
+      "keyword_score": 0.01,
+      "final_score": 0.43295671603,
+      "ranking_method": "semantic_only"
+    }
+  ],
+  "score_calculation": "vector_score * 0.9 + keyword_score * 0.1 (semantic mode)"
+}
+----------------------------------------
+
+STEP 18: Ranking Analysis Complete
+Timestamp: 03:47:02.189
+Duration: 3.0ms
+Data: {
+  "total_duration_ms": 3.0
+}
+----------------------------------------
+
+STEP 19: Model Initialization
+Timestamp: 03:47:05.920
+Duration: 3728.51ms
+Data: {
+  "success": true,
+  "model_name": "SentenceTransformer(\n  (0): Transformer({'max_seq_length': 384, 'do_lower_case': False, 'architecture': 'MPNetModel'})\n  (1): Pooling({'word_embedding_dimension': 768, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})\n  (2): Normalize()\n)",
+  "model_dimension": 768
+}
+----------------------------------------
+
+STEP 20: Query Embedding Generation
+Timestamp: 03:47:06.175
+Duration: 253.24ms
+Data: {
+  "query": "contract breach remedies",
+  "embedding_shape": [
+    1,
+    768
+  ],
+  "embedding_type": "<class 'numpy.ndarray'>",
+  "embedding_dtype": "float32",
+  "embedding_min": -0.1115616112947464,
+  "embedding_max": 0.11294376105070114,
+  "embedding_mean": -0.00026724147028289735,
+  "embedding_std": 0.0360834002494812,
+  "sample_values": [
+    0.01815897226333618,
+    0.058368980884552,
+    -0.017330249771475792,
+    -0.04281646013259888,
+    -0.04594561830163002,
+    0.015123351477086544,
+    -0.0413699671626091,
+    0.05621666461229324,
+    0.031134815886616707,
+    -0.035256583243608475
+  ],
+  "embedding_norm": 1.0
+}
+----------------------------------------
+
+STEP 21: Embedding Generation Complete
+Timestamp: 03:47:06.175
+Duration: 3983.54ms
+Data: {
+  "total_duration_ms": 3983.54,
+  "embedding_ready": true
+}
+----------------------------------------
+
+STEP 22: Pinecone Initialization
+Timestamp: 03:47:06.923
+Duration: 2.01ms
+Data: {
+  "success": true,
+  "index_name": "legal-cases-index",
+  "index_exists": true
+}
+----------------------------------------
+
+STEP 23: Pinecone Vector Search
+Timestamp: 03:47:07.290
+Duration: 366.02ms
+Data: {
+  "query": "contract breach remedies",
+  "results_count": 10,
+  "search_duration_ms": 366.02
+}
+----------------------------------------
+
+STEP 24: Search Results Analysis
+Timestamp: 03:47:07.290
+Data: {
+  "total_results": 10,
+  "similarity_range": [
+    0.295097381,
+    0.369997054
+  ],
+  "average_similarity": 0.3256709396,
+  "top_3_cases": [
+    {
+      "case_number": "C.O.S. 1/2023 Recovery (SB)",
+      "similarity": 0.369997054,
+      "title": "MCB VS Adeel Shahbaz..."
+    },
+    {
+      "case_number": "Cr.Obj. 1/2024 (SB)",
+      "similarity": 0.358316451,
+      "title": "MSF (Medicines Sans Frontiers) and others VS Shahn..."
+    },
+    {
+      "case_number": "C.M. A 1/2021 (DB)",
+      "similarity": 0.3424187,
+      "title": "M/s Utility Stores Corporation of Pakistan VS NICL..."
+    }
+  ]
+}
+----------------------------------------
+
+STEP 25: Pinecone Search Complete
+Timestamp: 03:47:07.290
+Duration: 1114.66ms
+Data: {
+  "total_duration_ms": 1114.66,
+  "results_found": 10
+}
+----------------------------------------
+
+STEP 26: Query Normalization
+Timestamp: 03:47:07.290
+Data: {
+  "original_query": "contract breach remedies",
+  "normalized_query": "{'original_query': 'contract breach remedies', 'normalized_query': 'contract breach remedies', 'citations': [], 'exact_identifiers': [], 'boost_signals': {'citation_boost': 0.0, 'exact_match_boost': 0.0, 'legal_term_boost': 0.0, 'total_boost': 0.0}, 'processing_metadata': {'has_citations': False, 'has_exact_matches': False, 'citation_count': 0, 'identifier_count': 0}}",
+  "changes_made": true
+}
+----------------------------------------
+
+STEP 27: Query Intelligence Analysis
+Timestamp: 03:47:07.299
+Duration: 2.12ms
+Data: {
+  "query_type": "unknown",
+  "query_complexity": "unknown",
+  "detected_entities": [],
+  "legal_terms": [],
+  "confidence": 0.5
+}
+----------------------------------------
+
+STEP 28: Query Processing Complete
+Timestamp: 03:47:07.300
+Duration: 10.53ms
+Data: {
+  "total_duration_ms": 10.53
+}
+----------------------------------------
+
+STEP 29: API Request Creation
+Timestamp: 03:47:07.303
+Duration: 1.0ms
+Data: {
+  "query": "contract breach remedies",
+  "mode": "semantic",
+  "limit": 5,
+  "request_method": "GET",
+  "request_params": {
+    "q": [
+      "contract breach remedies"
+    ],
+    "mode": [
+      "semantic"
+    ],
+    "limit": [
+      "5"
+    ]
+  }
+}
+----------------------------------------
+
+STEP 30: API Processing
+Timestamp: 03:47:07.691
+Duration: 385.91ms
+Data: {
+  "status_code": 200,
+  "response_type": "Response",
+  "processing_duration_ms": 385.91
+}
+----------------------------------------
+
+STEP 31: API Response Analysis
+Timestamp: 03:47:07.693
+Data: {
+  "results_count": 5,
+  "total_results": 0,
+  "search_mode": "unknown",
+  "query_time": 0,
+  "index_status": {}
+}
+----------------------------------------
+
+STEP 32: Top Results Analysis
+Timestamp: 03:47:07.694
+Data: {
+  "top_3_results": [
+    {
+      "rank": 1,
+      "case_number": "C.O.S. 1/2023 Recovery (SB)",
+      "vector_score": 0.37,
+      "keyword_score": 0.01,
+      "final_score": 0.334,
+      "title": "MCB VS Adeel Shahbaz..."
+    },
+    {
+      "rank": 2,
+      "case_number": "Cr.Obj. 1/2024 (SB)",
+      "vector_score": 0.3583,
+      "keyword_score": 0.01,
+      "final_score": 0.3235,
+      "title": "MSF (Medicines Sans Frontiers) and others VS Shahnaz Rafiq a..."
+    },
+    {
+      "rank": 3,
+      "case_number": "C.M. A 1/2021 (DB)",
+      "vector_score": 0.3424,
+      "keyword_score": 0.01,
+      "final_score": 0.3092,
+      "title": "M/s Utility Stores Corporation of Pakistan VS NICL,..."
+    }
+  ],
+  "score_distribution": {
+    "vector_scores": [
+      0.37,
+      0.3583,
+      0.3424,
+      0.3358,
+      0.3328
+    ],
+    "keyword_scores": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ],
+    "final_scores": [
+      0.334,
+      0.3235,
+      0.3092,
+      0.3032,
+      0.3005
+    ]
+  }
+}
+----------------------------------------
+
+STEP 33: Semantic Search API Complete
+Timestamp: 03:47:07.694
+Duration: 391.91ms
+Data: {
+  "total_duration_ms": 391.91,
+  "success": true
+}
+----------------------------------------
+
+STEP 34: Ranking Service Processing
+Timestamp: 03:47:07.697
+Data: {
+  "input_vector_results": 10,
+  "input_keyword_results": 0,
+  "output_ranked_results": 5,
+  "ranking_duration_ms": 0.0
+}
+----------------------------------------
+
+STEP 35: Ranking Results Analysis
+Timestamp: 03:47:07.699
+Data: {
+  "ranking_algorithm": "FastRankingService",
+  "top_3_ranked": [
+    {
+      "rank": 1,
+      "case_id": 200.0,
+      "vector_score": 0.369997054,
+      "keyword_score": 0.01,
+      "final_score": 0.3339973486,
+      "ranking_method": "semantic_only"
+    },
+    {
+      "rank": 2,
+      "case_id": 172.0,
+      "vector_score": 0.358316451,
+      "keyword_score": 0.01,
+      "final_score": 0.3234848059,
+      "ranking_method": "semantic_only"
+    },
+    {
+      "rank": 3,
+      "case_id": 343.0,
+      "vector_score": 0.3424187,
+      "keyword_score": 0.01,
+      "final_score": 0.30917683,
+      "ranking_method": "semantic_only"
+    }
+  ],
+  "score_calculation": "vector_score * 0.9 + keyword_score * 0.1 (semantic mode)"
+}
+----------------------------------------
+
+STEP 36: Ranking Analysis Complete
+Timestamp: 03:47:07.699
+Duration: 2.09ms
+Data: {
+  "total_duration_ms": 2.09
+}
+----------------------------------------
+
+STEP 37: Model Initialization
+Timestamp: 03:47:11.519
+Duration: 3816.85ms
+Data: {
+  "success": true,
+  "model_name": "SentenceTransformer(\n  (0): Transformer({'max_seq_length': 384, 'do_lower_case': False, 'architecture': 'MPNetModel'})\n  (1): Pooling({'word_embedding_dimension': 768, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})\n  (2): Normalize()\n)",
+  "model_dimension": 768
+}
+----------------------------------------
+
+STEP 38: Query Embedding Generation
+Timestamp: 03:47:11.723
+Duration: 202.46ms
+Data: {
+  "query": "constitutional rights violation",
+  "embedding_shape": [
+    1,
+    768
+  ],
+  "embedding_type": "<class 'numpy.ndarray'>",
+  "embedding_dtype": "float32",
+  "embedding_min": -0.10227930545806885,
+  "embedding_max": 0.1138642206788063,
+  "embedding_mean": 5.002723264624365e-05,
+  "embedding_std": 0.036084357649087906,
+  "sample_values": [
+    0.006282472983002663,
+    0.013147428631782532,
+    0.01660296693444252,
+    0.006705167703330517,
+    -0.002306955633684993,
+    0.051345907151699066,
+    -0.00967784970998764,
+    -0.04788844659924507,
+    -0.020977048203349113,
+    -0.02350839413702488
+  ],
+  "embedding_norm": 1.0
+}
+----------------------------------------
+
+STEP 39: Embedding Generation Complete
+Timestamp: 03:47:11.725
+Duration: 4024.54ms
+Data: {
+  "total_duration_ms": 4024.54,
+  "embedding_ready": true
+}
+----------------------------------------
+
+STEP 40: Pinecone Initialization
+Timestamp: 03:47:12.563
+Duration: 5.91ms
+Data: {
+  "success": true,
+  "index_name": "legal-cases-index",
+  "index_exists": true
+}
+----------------------------------------
+
+STEP 41: Pinecone Vector Search
+Timestamp: 03:47:12.928
+Duration: 364.51ms
+Data: {
+  "query": "constitutional rights violation",
+  "results_count": 10,
+  "search_duration_ms": 364.51
+}
+----------------------------------------
+
+STEP 42: Search Results Analysis
+Timestamp: 03:47:12.928
+Data: {
+  "total_results": 10,
+  "similarity_range": [
+    0.382885963,
+    0.4312659099
+  ],
+  "average_similarity": 0.39962273263500003,
+  "top_3_cases": [
+    {
+      "case_number": "Crl. Rev. 5/2025 Against Interim Order (SB)",
+      "similarity": 0.4312659099,
+      "title": "Imran Ahmed Khan Niazi VS Superintendent Central J..."
+    },
+    {
+      "case_number": "P.S.L.A. 1/2022 Other (SB)",
+      "similarity": 0.42335214600000004,
+      "title": "Shahid Amin Minhas VS The State,..."
+    },
+    {
+      "case_number": "CR 1/2021 Against Judgement & Decree (SB)",
+      "similarity": 0.42265419945000005,
+      "title": "Muhammad Hafeez etc VS Ali Asghar alias Aksar Khan..."
+    }
+  ]
+}
+----------------------------------------
+
+STEP 43: Pinecone Search Complete
+Timestamp: 03:47:12.929
+Duration: 1202.56ms
+Data: {
+  "total_duration_ms": 1202.56,
+  "results_found": 10
+}
+----------------------------------------
+
+STEP 44: Query Normalization
+Timestamp: 03:47:12.930
+Data: {
+  "original_query": "constitutional rights violation",
+  "normalized_query": "{'original_query': 'constitutional rights violation', 'normalized_query': 'constitutional rights violation', 'citations': [], 'exact_identifiers': [], 'boost_signals': {'citation_boost': 0.0, 'exact_match_boost': 0.0, 'legal_term_boost': 0.0, 'total_boost': 0.0}, 'processing_metadata': {'has_citations': False, 'has_exact_matches': False, 'citation_count': 0, 'identifier_count': 0}}",
+  "changes_made": true
+}
+----------------------------------------
+
+STEP 45: Query Intelligence Analysis
+Timestamp: 03:47:12.931
+Data: {
+  "query_type": "unknown",
+  "query_complexity": "unknown",
+  "detected_entities": [],
+  "legal_terms": [],
+  "confidence": 0.5
+}
+----------------------------------------
+
+STEP 46: Query Processing Complete
+Timestamp: 03:47:12.931
+Duration: 1.37ms
+Data: {
+  "total_duration_ms": 1.37
+}
+----------------------------------------
+
+STEP 47: API Request Creation
+Timestamp: 03:47:12.932
+Data: {
+  "query": "constitutional rights violation",
+  "mode": "semantic",
+  "limit": 5,
+  "request_method": "GET",
+  "request_params": {
+    "q": [
+      "constitutional rights violation"
+    ],
+    "mode": [
+      "semantic"
+    ],
+    "limit": [
+      "5"
+    ]
+  }
+}
+----------------------------------------
+
+STEP 48: API Processing
+Timestamp: 03:47:13.239
+Duration: 306.68ms
+Data: {
+  "status_code": 200,
+  "response_type": "Response",
+  "processing_duration_ms": 306.68
+}
+----------------------------------------
+
+STEP 49: API Response Analysis
+Timestamp: 03:47:13.239
+Data: {
+  "results_count": 5,
+  "total_results": 0,
+  "search_mode": "unknown",
+  "query_time": 0,
+  "index_status": {}
+}
+----------------------------------------
+
+STEP 50: Top Results Analysis
+Timestamp: 03:47:13.240
+Data: {
+  "top_3_results": [
+    {
+      "rank": 1,
+      "case_number": "Crl. Rev. 5/2025 Against Interim Order (SB)",
+      "vector_score": 0.4313,
+      "keyword_score": 0.01,
+      "final_score": 0.3891,
+      "title": "Imran Ahmed Khan Niazi VS Superintendent Central Jail, Adial..."
+    },
+    {
+      "rank": 2,
+      "case_number": "P.S.L.A. 1/2022 Other (SB)",
+      "vector_score": 0.4234,
+      "keyword_score": 0.01,
+      "final_score": 0.382,
+      "title": "Shahid Amin Minhas VS The State,..."
+    },
+    {
+      "rank": 3,
+      "case_number": "CR 1/2021 Against Judgement & Decree (SB)",
+      "vector_score": 0.4227,
+      "keyword_score": 0.01,
+      "final_score": 0.3814,
+      "title": "Muhammad Hafeez etc VS Ali Asghar alias Aksar Khan..."
+    }
+  ],
+  "score_distribution": {
+    "vector_scores": [
+      0.4313,
+      0.4234,
+      0.4227,
+      0.3947,
+      0.3905
+    ],
+    "keyword_scores": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ],
+    "final_scores": [
+      0.3891,
+      0.382,
+      0.3814,
+      0.3562,
+      0.3525
+    ]
+  }
+}
+----------------------------------------
+
+STEP 51: Semantic Search API Complete
+Timestamp: 03:47:13.240
+Duration: 308.08ms
+Data: {
+  "total_duration_ms": 308.08,
+  "success": true
+}
+----------------------------------------
+
+STEP 52: Ranking Service Processing
+Timestamp: 03:47:13.241
+Data: {
+  "input_vector_results": 10,
+  "input_keyword_results": 0,
+  "output_ranked_results": 5,
+  "ranking_duration_ms": 0.0
+}
+----------------------------------------
+
+STEP 53: Ranking Results Analysis
+Timestamp: 03:47:13.241
+Data: {
+  "ranking_algorithm": "FastRankingService",
+  "top_3_ranked": [
+    {
+      "rank": 1,
+      "case_id": 249.0,
+      "vector_score": 0.4312659099,
+      "keyword_score": 0.01,
+      "final_score": 0.38913931891000003,
+      "ranking_method": "semantic_only"
+    },
+    {
+      "rank": 2,
+      "case_id": 322.0,
+      "vector_score": 0.42335214600000004,
+      "keyword_score": 0.01,
+      "final_score": 0.38201693140000004,
+      "ranking_method": "semantic_only"
+    },
+    {
+      "rank": 3,
+      "case_id": 356.0,
+      "vector_score": 0.42265419945000005,
+      "keyword_score": 0.01,
+      "final_score": 0.38138877950500005,
+      "ranking_method": "semantic_only"
+    }
+  ],
+  "score_calculation": "vector_score * 0.9 + keyword_score * 0.1 (semantic mode)"
+}
+----------------------------------------
+
+STEP 54: Ranking Analysis Complete
+Timestamp: 03:47:13.241
+Data: {
+  "total_duration_ms": 0.0
+}
+----------------------------------------
+
+STEP 55: TEST COMPLETE
+Timestamp: 03:47:13.242
+Duration: 28171.51ms
+Data: {
+  "total_duration_seconds": 28.17,
+  "queries_tested": 3,
+  "total_steps_logged": 54,
+  "test_status": "SUCCESS"
+}
+----------------------------------------
+

@@ -75,7 +75,7 @@ class HybridIndexingService:
         return {
             'chunk_size': 512,
             'chunk_overlap': 50,
-            'embedding_model': 'all-MiniLM-L6-v2',
+            'embedding_model': 'all-mpnet-base-v2',
             'vector_weight': 0.6,
             'keyword_weight': 0.4,
             'facet_boost': 1.5,

@@ -11,8 +11,8 @@ class IndexingConfig(models.Model):
     # Indexing configuration
     chunk_size = models.IntegerField(default=500, help_text="Number of tokens per chunk")
     chunk_overlap = models.IntegerField(default=50, help_text="Overlap between chunks")
-    embedding_model = models.CharField(max_length=100, default="all-MiniLM-L6-v2")
-    embedding_dimension = models.IntegerField(default=384)
+    embedding_model = models.CharField(max_length=100, default="all-mpnet-base-v2")
+    embedding_dimension = models.IntegerField(default=768)
     
     # Processing configuration
     batch_size = models.IntegerField(default=32)
