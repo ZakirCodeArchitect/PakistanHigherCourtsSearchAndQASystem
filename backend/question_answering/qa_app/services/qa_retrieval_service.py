@@ -89,7 +89,8 @@ class QARetrievalService:
             self.pinecone_client = Pinecone(api_key=api_key)
             
             # Use QA-specific index
-            index_name = "qa-legal-knowledge"
+            from core.settings import PINECONE_INDEX_NAME
+            index_name = PINECONE_INDEX_NAME
             if index_name in self.pinecone_client.list_indexes().names():
                 self.pinecone_index = self.pinecone_client.Index(index_name)
                 logger.info(f"Connected to QA Pinecone index: {index_name}")
