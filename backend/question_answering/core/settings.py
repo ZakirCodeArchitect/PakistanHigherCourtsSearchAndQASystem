@@ -139,7 +139,7 @@ QA_SETTINGS = {
 # Pinecone settings
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY', '')
 PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT', 'us-west1-gcp')
-PINECONE_INDEX_NAME = 'legal-knowledge-base'
+PINECONE_INDEX_NAME = 'pakistan-legal-qa'
 
 # OpenAI settings
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY_a')

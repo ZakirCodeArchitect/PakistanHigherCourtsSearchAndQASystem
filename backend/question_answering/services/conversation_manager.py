@@ -437,110 +437,92 @@ class CitationFormatter:
     def _generate_better_title(self, source: Dict[str, Any], metadata: Dict[str, Any]) -> str:
         """Generate a better title for the source based on available information"""
         try:
-            # First, try to get a proper case title
+            # Get source type to determine formatting strategy
+            source_type = source.get('source_type', '') or metadata.get('source_type', '')
+            
+            # Get case title from BOTH source and metadata (retrieval service puts it in both places)
             case_title = source.get('case_title') or metadata.get('case_title')
-            if case_title and case_title not in ['Unknown Case', 'N/A', '']:
+            
+            # SIMPLE APPROACH: Just show the original case title and document info
+            
+            # For document chunks and document texts, show case title + document info
+            if source_type in ['document_chunk', 'document_text']:
+                return self._format_simple_document_title(source, metadata, case_title)
+            
+            # For unified_case_view and case_metadata, use case title directly
+            if source_type in ['unified_case_view', 'case_metadata']:
+                if case_title and case_title not in ['Unknown Case', 'N/A', '', 'Document Content']:
+                    return case_title
+            
+            # FALLBACK: If we have a proper case title but no source type, use the case title
+            if case_title and case_title not in ['Unknown Case', 'N/A', '', 'Document Content']:
                 return case_title
             
-            # Try to get title from source
-            title = source.get('title')
-            if title and title not in ['Unknown Case', 'N/A', '']:
-                return title
-            
-            # For document chunks and text content, try to extract meaningful info
-            content_type = source.get('content_type', '')
-            case_id = source.get('case_id', '')
-            document_id = source.get('document_id', '')
-            
-            # If it's a document chunk, try to create a meaningful title
-            if 'chunk' in content_type.lower() or 'chunk' in str(source.get('source_id', '')):
-                if case_id and case_id != 'unknown':
-                    return f"Legal Document - Case {case_id}"
-                elif document_id and document_id != 'unknown':
-                    return f"Legal Document - Doc {document_id}"
-                else:
-                    return "Legal Document Content"
-            
-            # If it's document text, try to create a meaningful title
-            if 'text' in content_type.lower() or 'text' in str(source.get('source_id', '')):
-                if case_id and case_id != 'unknown':
-                    return f"Legal Text - Case {case_id}"
-                elif document_id and document_id != 'unknown':
-                    return f"Legal Text - Doc {document_id}"
-                else:
-                    return "Legal Text Content"
-            
-            # Try to extract from text content if available
-            text_content = source.get('text', '')
-            if text_content and len(text_content) > 50:
-                # Enhanced content analysis for better title extraction
-                extracted_title = self._extract_title_from_content(text_content)
-                if extracted_title:
-                    return extracted_title
-            
-            # Fallback to generic title
+            # Final fallback to generic title
             return "Legal Document"
             
         except Exception as e:
             self.logger.error(f"Error generating better title: {str(e)}")
             return "Legal Document"
     
-    def _extract_title_from_content(self, text_content: str) -> str:
-        """Enhanced content analysis to extract meaningful titles"""
+    def _format_simple_document_title(self, source: Dict[str, Any], metadata: Dict[str, Any], case_title: str) -> str:
+        """Simple formatting: show original case title + document info"""
         try:
-            lines = text_content.split('\n')
+            source_type = source.get('source_type', '') or metadata.get('source_type', '')
             
-            # Look for case titles in the first 15 lines
-            for i, line in enumerate(lines[:15]):
-                line = line.strip()
-                if len(line) < 20:
-                    continue
-                
-                # Pattern 1: Direct case names with VS
-                if ' vs ' in line.lower() or ' versus ' in line.lower():
-                    # Clean and format the case name
-                    clean_title = self._clean_case_title(line)
-                    if clean_title and len(clean_title) > 10:
-                        return clean_title
-                
-                # Pattern 2: Petition titles
-                if any(keyword in line.lower() for keyword in ['petition', 'writ petition', 'constitutional petition']):
-                    clean_title = self._clean_case_title(line)
-                    if clean_title and len(clean_title) > 15:
-                        return clean_title
-                
-                # Pattern 3: Court case references
-                if any(keyword in line.lower() for keyword in ['plaintiff', 'defendant', 'appellant', 'respondent']):
-                    clean_title = self._clean_case_title(line)
-                    if clean_title and len(clean_title) > 15:
-                        return clean_title
-                
-                # Pattern 4: Legal document headers
-                if any(keyword in line.lower() for keyword in ['in the matter of', 'in re:', 'case no', 'case number']):
-                    clean_title = self._clean_case_title(line)
-                    if clean_title and len(clean_title) > 15:
-                        return clean_title
+            # Check if case_title is generic (like "Document 133 - Text Content")
+            is_generic_title = (case_title and case_title != '' and
+                              ('Document' in case_title and 'Text Content' in case_title) or
+                              case_title.startswith('Document ') or
+                              case_title == 'Document Content')
             
-            # Look for meaningful content in the middle of the document
-            middle_start = len(lines) // 3
-            middle_end = middle_start + 10
+            # Get document information
+            document_info = self._get_document_info(source, metadata)
             
-            for i, line in enumerate(lines[middle_start:middle_end]):
-                line = line.strip()
-                if len(line) < 30:
-                    continue
-                
-                # Look for case references in the middle
-                if any(keyword in line.lower() for keyword in ['case', 'matter', 'petition', 'application']):
-                    clean_title = self._clean_case_title(line)
-                    if clean_title and len(clean_title) > 20:
-                        return clean_title
+            # SIMPLE LOGIC: Just show the case title if we have it!
+            if case_title and case_title not in ['Unknown Case', 'N/A', ''] and not is_generic_title:
+                # We have a proper case title - just show it (don't worry about file names)
+                return case_title
+            else:
+                # No proper case title - try to get case number as fallback (check both locations)
+                case_number = source.get('case_number') or metadata.get('case_number')
+                if case_number and case_number not in ['N/A', '']:
+                    return f"Legal Document - Case {case_number}"
+                else:
+                    return "Legal Document"
+                    
+        except Exception as e:
+            self.logger.error(f"Error formatting simple document title: {str(e)}")
+            return "Legal Document"
+    
+    def _get_document_info(self, source: Dict[str, Any], metadata: Dict[str, Any]) -> str:
+        """Get document information for formatting"""
+        try:
+            # Try to get document info from metadata
+            document_id = source.get('document_id') or metadata.get('document_id')
+            file_name = source.get('file_name') or metadata.get('file_name')
+            page_number = source.get('page_number') or metadata.get('page_number')
             
-            return None
+            # If we have document info, format it nicely
+            if file_name and file_name != 'N/A':
+                # Clean up the file name
+                clean_filename = file_name.replace('_', ' ').replace('.pdf', '').title()
+                if page_number and page_number != 'N/A':
+                    return f"{clean_filename} (Page {page_number})"
+                else:
+                    return clean_filename
+            
+            # Try to get chunk/page info
+            chunk_index = source.get('chunk_index') or metadata.get('chunk_index')
+            if chunk_index is not None:
+                return f"Document (Chunk {chunk_index})"
+            
+            return ""
             
         except Exception as e:
-            self.logger.error(f"Error extracting title from content: {str(e)}")
-            return None
+            self.logger.error(f"Error getting document info: {str(e)}")
+            return ""
+    
     
     def _clean_case_title(self, title: str) -> str:
         """Clean and format case titles"""
@@ -597,14 +579,24 @@ class CitationFormatter:
                 'case_number': 'N/A',
                 'court': 'Unknown Court',
                 'date': 'N/A',
-                'judge': 'Unknown Judge'
+                'judge': 'Unknown Judge',
+                'document_id': 'N/A',
+                'file_name': 'N/A',
+                'page_number': 'N/A',
+                'chunk_index': 'N/A'
             }
             
             # Try to get metadata from source first
             case_number = source.get('case_number') or metadata.get('case_number')
             court = source.get('court') or metadata.get('court')
             date = source.get('date_decided') or metadata.get('institution_date') or source.get('institution_date')
-            judge = source.get('judge_name')
+            judge = source.get('judge_name') or metadata.get('judge')
+            
+            # Document-specific metadata
+            document_id = source.get('document_id') or metadata.get('document_id')
+            file_name = source.get('file_name') or metadata.get('file_name')
+            page_number = source.get('page_number') or metadata.get('page_number')
+            chunk_index = source.get('chunk_index') or metadata.get('chunk_index')
             
             # If we have good metadata, use it
             if case_number and case_number not in ['N/A', '']:
@@ -615,6 +607,16 @@ class CitationFormatter:
                 enhanced_metadata['date'] = date
             if judge and judge not in ['Unknown Judge', 'N/A', '']:
                 enhanced_metadata['judge'] = judge
+            
+            # Document metadata
+            if document_id and document_id not in ['N/A', '']:
+                enhanced_metadata['document_id'] = document_id
+            if file_name and file_name not in ['N/A', '']:
+                enhanced_metadata['file_name'] = file_name
+            if page_number and page_number not in ['N/A', '']:
+                enhanced_metadata['page_number'] = page_number
+            if chunk_index is not None and chunk_index != 'N/A':
+                enhanced_metadata['chunk_index'] = chunk_index
             
             # If metadata is missing, try to extract from content
             text_content = source.get('text', '')
@@ -642,7 +644,11 @@ class CitationFormatter:
                 'case_number': 'N/A',
                 'court': 'Unknown Court',
                 'date': 'N/A',
-                'judge': 'Unknown Judge'
+                'judge': 'Unknown Judge',
+                'document_id': 'N/A',
+                'file_name': 'N/A',
+                'page_number': 'N/A',
+                'chunk_index': 'N/A'
             }
     
     def _extract_metadata_from_content(self, text_content: str) -> Dict[str, str]:
