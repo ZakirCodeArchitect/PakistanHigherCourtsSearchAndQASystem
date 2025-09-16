@@ -40,11 +40,11 @@ class VectorIndexingService:
         self.config = {
             'chunk_size': 512,
             'chunk_overlap': 50,
-            'embedding_model': 'all-MiniLM-L6-v2',
+            'embedding_model': 'all-mpnet-base-v2',
             'batch_size': 32
         }
         
-    def initialize_model(self, model_name: str = "all-MiniLM-L6-v2"):
+    def initialize_model(self, model_name: str = "all-mpnet-base-v2"):
         """Initialize the sentence transformer model"""
         try:
             if self.model is None:
@@ -195,8 +195,10 @@ class VectorIndexingService:
             embeddings_array = np.array(embeddings).astype('float32')
             dimension = embeddings_array.shape[1]
             
-            # Create FAISS index
+            # Create FAISS index with cosine similarity
             index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
+            # Normalize embeddings for cosine similarity
+            faiss.normalize_L2(embeddings_array)
             
             # Add vectors to index
             index.add(embeddings_array)
@@ -538,13 +540,15 @@ class VectorIndexingService:
             
             # Create query embedding
             query_embedding = self.model.encode([query])
+            # Normalize query embedding for cosine similarity
+            faiss.normalize_L2(query_embedding)
             
             # Search using cached index
             scores, indices = self.faiss_index.search(query_embedding, top_k)
             
             # FIXED: Get results with similarity threshold to prevent irrelevant results
             results = []
-            min_similarity_threshold = 0.5  # Only return results with meaningful similarity
+            min_similarity_threshold = 0.3  # Threshold for normalized cosine similarity
             
             for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
                 if idx != -1 and float(score) >= min_similarity_threshold:  # Valid result with meaningful similarity

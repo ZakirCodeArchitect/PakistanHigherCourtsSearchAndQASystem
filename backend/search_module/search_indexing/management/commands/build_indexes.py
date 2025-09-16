@@ -129,7 +129,7 @@ class Command(BaseCommand):
                 VectorIndex.objects.filter(is_active=True).update(is_built=False)
             
             # Build vector index
-            stats = service.build_vector_index()
+            stats = service.build_hybrid_index(vector_only=True, force=options['force'])
             
             self.stdout.write(
                 self.style.SUCCESS('[SUCCESS] Vector indexes built successfully!')
@@ -153,7 +153,7 @@ class Command(BaseCommand):
                 KeywordIndex.objects.filter(is_active=True).update(is_built=False)
             
             # Build keyword index
-            stats = service.build_keyword_index()
+            stats = service.build_hybrid_index(keyword_only=True, force=options['force'])
             
             self.stdout.write(
                 self.style.SUCCESS('[SUCCESS] Keyword indexes built successfully!')
@@ -180,7 +180,7 @@ class Command(BaseCommand):
                 KeywordIndex.objects.filter(is_active=True).update(is_built=False)
             
             # Build hybrid indexes
-            stats = service.build_hybrid_index()
+            stats = service.build_hybrid_index(force=options['force'])
             
             execution_time = time.time() - start_time
             

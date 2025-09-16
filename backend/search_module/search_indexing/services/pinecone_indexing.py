@@ -48,9 +48,9 @@ class PineconeIndexingService:
         self.config = {
             'chunk_size': 512,
             'chunk_overlap': 50,
-            'embedding_model': 'all-MiniLM-L6-v2',
+            'embedding_model': 'all-mpnet-base-v2',
             'batch_size': 100,  # Pinecone batch limit
-            'dimension': 384
+            'dimension': 768
         }
         
     def initialize_pinecone(self, api_key: str = None, environment: str = "gcp-starter"):
@@ -77,7 +77,7 @@ class PineconeIndexingService:
             logger.error(f"Error initializing Pinecone: {str(e)}")
             return False
     
-    def initialize_model(self, model_name: str = "all-MiniLM-L6-v2"):
+    def initialize_model(self, model_name: str = "all-mpnet-base-v2"):
         """Initialize the sentence transformer model"""
         try:
             logger.info(f"Loading sentence transformer model: {model_name}")
@@ -629,39 +629,42 @@ class PineconeIndexingService:
                 filter=pinecone_filter
             )
             
-            # FIXED: Format results with intelligent filtering to prevent irrelevant results
+            # FIXED: Format results with semantic similarity focus
             search_results = []
-            min_similarity_threshold = 0.2  # Basic similarity threshold
+            min_similarity_threshold = 0.1  # Lower threshold for semantic search
             
             for i, match in enumerate(results.matches):
                 if match.score >= min_similarity_threshold:
                     metadata = match.metadata
                     
-                    # FIXED: Additional validation - check if result actually contains query terms
+                    # For semantic search, trust the vector similarity scores
+                    # Only apply basic validation for obvious mismatches
                     case_number = metadata.get('case_number', '').lower()
                     case_title = metadata.get('case_title', '').lower()
-                    case_status = metadata.get('status', '').lower()
-                    chunk_text = metadata.get('chunk_text_preview', '').lower()
                     query_lower = query.lower()
                     
-                    # Check if the result actually contains the query terms
-                    contains_query = (
-                        query_lower in case_number or
-                        query_lower in case_title or
-                        query_lower in case_status or  # FIXED: Added status field validation
-                        query_lower in chunk_text
-                    )
-                    
-                    # For single-word queries (like years), be more strict
+                    # Only filter out completely irrelevant results (e.g., year queries matching wrong years)
+                    is_relevant = True
                     if len(query.split()) == 1 and query.isdigit():
-                        # For year queries, only return if it's in case number or title
-                        contains_query = query_lower in case_number or query_lower in case_title
+                        # For year queries, check if it's a reasonable match
+                        year = query.strip()
+                        if len(year) == 4:  # Full year
+                            is_relevant = year in case_number or year in case_title
                     
-                    # Only include results that actually contain the query
-                    if contains_query:
+                    if is_relevant:
+                        # IMPROVED: Normalize similarity score to make it more meaningful
+                        # Pinecone cosine similarity ranges from 0 to 1, but we can enhance it
+                        normalized_similarity = match.score
+                        
+                        # Apply slight boost for very good matches to make scores more distinguishable
+                        if normalized_similarity > 0.6:
+                            normalized_similarity = min(1.0, normalized_similarity * 1.1)
+                        elif normalized_similarity > 0.4:
+                            normalized_similarity = min(1.0, normalized_similarity * 1.05)
+                        
                         search_results.append({
                             'rank': i + 1,
-                            'similarity': match.score,
+                            'similarity': normalized_similarity,
                             'case_id': metadata.get('case_id'),
                             'chunk_id': metadata.get('chunk_id'),
                             'chunk_text': metadata.get('chunk_text_preview', ''),

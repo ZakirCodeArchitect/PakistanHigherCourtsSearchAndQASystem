@@ -689,6 +689,37 @@ class KeywordIndexingService:
                                     'matched_term': term
                                 })
                         
+                        # ENHANCED: Try expanded legal terms if no results found
+                        if len(partial_results) == 0:
+                            expanded_terms = self._get_expanded_legal_terms(term)
+                            for expanded_term in expanded_terms:
+                                if expanded_term != term:  # Don't search the same term again
+                                    expanded_results = queryset.filter(
+                                        Q(case_number_normalized__icontains=expanded_term) |
+                                        Q(case_title_normalized__icontains=expanded_term) |
+                                        Q(parties_normalized__icontains=expanded_term) |
+                                        Q(status_normalized__icontains=expanded_term)
+                                    )[:top_k]
+                                    
+                                    for result in expanded_results:
+                                        # Calculate relevance score for expanded terms
+                                        score = 0
+                                        if expanded_term.lower() in result.case_number_normalized.lower():
+                                            score += 8  # Slightly lower than original term
+                                        if expanded_term.lower() in result.case_title_normalized.lower():
+                                            score += 4
+                                        if expanded_term.lower() in result.parties_normalized.lower():
+                                            score += 2
+                                        if expanded_term.lower() in result.status_normalized.lower():
+                                            score += 3
+                                        
+                                        if score > 0:
+                                            partial_results.append({
+                                                'result': result,
+                                                'score': score,
+                                                'matched_term': expanded_term
+                                            })
+                        
                         # FIXED: Disable document chunk search for single-term queries to prevent irrelevant results
                         # Document chunk search should only be used for multi-term queries where we need to find
                         # cases that contain multiple terms in their content
@@ -764,6 +795,29 @@ class KeywordIndexingService:
         except Exception as e:
             logger.error(f"Error in keyword search: {str(e)}")
             return []
+    
+    def _get_expanded_legal_terms(self, term: str) -> List[str]:
+        """Get expanded legal terms for better matching"""
+        legal_term_mappings = {
+            'constitutional': ['constitution', 'constitutional', 'fundamental'],
+            'rights': ['right', 'rights', 'entitlement', 'privilege'],
+            'violation': ['violation', 'breach', 'infringement', 'transgression'],
+            'contract': ['contract', 'agreement', 'pact', 'covenant'],
+            'breach': ['breach', 'violation', 'infringement', 'default'],
+            'remedies': ['remedy', 'remedies', 'relief', 'compensation'],
+            'criminal': ['criminal', 'penal', 'offence', 'crime'],
+            'procedure': ['procedure', 'process', 'proceeding', 'method'],
+            'code': ['code', 'act', 'law', 'statute'],
+            'civil': ['civil', 'civilian', 'non-criminal'],
+            'family': ['family', 'domestic', 'marriage', 'divorce'],
+            'property': ['property', 'land', 'real estate', 'asset'],
+            'employment': ['employment', 'job', 'work', 'labor'],
+            'tax': ['tax', 'taxation', 'revenue', 'duty'],
+            'banking': ['bank', 'banking', 'financial', 'credit'],
+            'insurance': ['insurance', 'coverage', 'policy', 'claim']
+        }
+        
+        return legal_term_mappings.get(term.lower(), [])
     
     def search_by_facet(self, facet_type: str, term: str, top_k: int = 10) -> List[Dict[str, any]]:
         """Search using facet index"""

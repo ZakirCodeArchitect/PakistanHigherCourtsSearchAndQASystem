@@ -1,0 +1,200 @@
+{
+  "timestamp": "2025-09-17T03:58:10.393771",
+  "overall_status": "CRITICAL",
+  "components": {
+    "Database Integrity": {
+      "status": "PASS",
+      "details": {
+        "vector_index": {
+          "total_indexes": 1,
+          "active_index": {
+            "name": "legal_cases_vector",
+            "is_active": true,
+            "is_built": true,
+            "total_vectors": 545,
+            "embedding_model": "768",
+            "embedding_dimension": 768,
+            "created_at": "2025-08-30T21:38:56.526414+00:00",
+            "updated_at": "2025-09-16T22:50:53.421261+00:00"
+          }
+        },
+        "keyword_index": {
+          "total_indexes": 1,
+          "active_index": {
+            "name": "legal_cases_keyword",
+            "is_active": true,
+            "is_built": true,
+            "total_documents": 341,
+            "created_at": "2025-08-30T21:38:57.932972+00:00"
+          }
+        },
+        "search_metadata": {
+          "total_metadata": 355,
+          "indexed_metadata": 341,
+          "indexing_coverage": 96.05633802816902
+        },
+        "indexing_logs": {
+          "total_logs": 43,
+          "recent_operations": [
+            {
+              "operation_type": "build",
+              "index_type": "pinecone",
+              "is_successful": true,
+              "completed_at": "2025-09-16T22:32:01.408780+00:00",
+              "documents_processed": 355
+            },
+            {
+              "operation_type": "build",
+              "index_type": "hybrid",
+              "is_successful": true,
+              "completed_at": "2025-09-16T22:15:43.429976+00:00",
+              "documents_processed": 355
+            },
+            {
+              "operation_type": "build",
+              "index_type": "vector",
+              "is_successful": true,
+              "completed_at": "2025-09-16T22:15:43.404982+00:00",
+              "documents_processed": 355
+            },
+            {
+              "operation_type": "build",
+              "index_type": "hybrid",
+              "is_successful": true,
+              "completed_at": "2025-09-01T17:20:40.489039+00:00",
+              "documents_processed": 0
+            },
+            {
+              "operation_type": "build",
+              "index_type": "keyword",
+              "is_successful": true,
+              "completed_at": "2025-09-01T17:20:40.484012+00:00",
+              "documents_processed": 0
+            }
+          ]
+        },
+        "cases": {
+          "total_cases": 355,
+          "cases_with_documents": 81,
+          "document_coverage": 22.816901408450704
+        }
+      },
+      "issues": [],
+      "timestamp": "2025-09-17T03:58:10.527696"
+    },
+    "Embedding Services": {
+      "status": "ERROR",
+      "details": {
+        "error": "'numpy.ndarray' object has no attribute 'norm'"
+      },
+      "issues": [
+        "Embedding services audit failed: 'numpy.ndarray' object has no attribute 'norm'"
+      ],
+      "timestamp": "2025-09-17T03:58:22.289628"
+    },
+    "Search Services": {
+      "status": "PASS",
+      "details": {
+        "query_normalization": {
+          "original_query": "constitutional rights violation",
+          "normalized_result": "{'original_query': 'constitutional rights violation', 'normalized_query': 'constitutional rights violation', 'citations': [], 'exact_identifiers': [], 'boost_signals': {'citation_boost': 0.0, 'exact_match_boost': 0.0, 'legal_term_boost': 0.0, 'total_boost': 0.0}, 'processing_metadata': {'has_citations': False, 'has_exact_matches': False, 'citation_count': 0, 'identifier_count': 0}}",
+          "processing_successful": true
+        },
+        "query_intelligence": {
+          "analysis_successful": true,
+          "analysis_type": "QueryAnalysis"
+        },
+        "ranking_service": {
+          "service_initialized": true,
+          "default_config": {
+            "vector_weight": 0.6,
+            "keyword_weight": 0.4,
+            "exact_match_boost": 2.0,
+            "max_boost": 3.0
+          }
+        },
+        "pinecone_search": {
+          "search_successful": true,
+          "results_count": 5,
+          "search_time_ms": 3261.38,
+          "top_similarity": 0.4312659099,
+          "average_similarity": 0.41250210427
+        }
+      },
+      "issues": [],
+      "timestamp": "2025-09-17T03:58:30.175975"
+    },
+    "API Endpoints": {
+      "status": "PASS",
+      "details": {
+        "semantic_search": {
+          "status_code": 200,
+          "response_time_ms": 612.22,
+          "results_count": 3,
+          "has_metadata": false,
+          "success": true
+        },
+        "hybrid_search": {
+          "status_code": 200,
+          "response_time_ms": 544.9,
+          "results_count": 3,
+          "has_metadata": false,
+          "success": true
+        },
+        "lexical_search": {
+          "status_code": 200,
+          "response_time_ms": 16.16,
+          "results_count": 3,
+          "has_metadata": false,
+          "success": true
+        }
+      },
+      "issues": [],
+      "timestamp": "2025-09-17T03:58:31.351306"
+    },
+    "Performance Metrics": {
+      "status": "PASS",
+      "details": {
+        "embedding_generation": {
+          "average_time_ms": 107.18,
+          "min_time_ms": 72.6,
+          "max_time_ms": 189.31
+        },
+        "search_performance": {
+          "average_time_ms": 359.1,
+          "min_time_ms": 301.51,
+          "max_time_ms": 420.92
+        },
+        "result_quality": {
+          "average_results": 5.0,
+          "min_results": 5,
+          "max_results": 5
+        }
+      },
+      "issues": [],
+      "timestamp": "2025-09-17T03:58:38.449867"
+    }
+  },
+  "issues": [
+    "Embedding Services: Embedding services audit failed: 'numpy.ndarray' object has no attribute 'norm'"
+  ],
+  "recommendations": [],
+  "performance_metrics": {
+    "embedding_generation": {
+      "average_time_ms": 107.18,
+      "min_time_ms": 72.6,
+      "max_time_ms": 189.31
+    },
+    "search_performance": {
+      "average_time_ms": 359.1,
+      "min_time_ms": 301.51,
+      "max_time_ms": 420.92
+    },
+    "result_quality": {
+      "average_results": 5.0,
+      "min_results": 5,
+      "max_results": 5
+    }
+  },
+  "audit_duration_seconds": 28.06
+}
