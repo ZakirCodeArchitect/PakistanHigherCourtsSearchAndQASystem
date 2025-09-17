@@ -1,0 +1,660 @@
+{% extends 'law_information/base.html' %}
+
+{% block title %}Search Laws - Law Information Resource{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Search Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-search me-2"></i>Search Laws</h1>
+                <a href="{% url 'law_information:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-home me-1"></i>Home
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" action="{% url 'law_information:search' %}">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input 
+                                        type="text" 
+                                        class="form-control search-box" 
+                                        name="q" 
+                                        value="{{ query }}"
+                                        placeholder="Search for laws (e.g., 'theft punishment', 'hit and run')"
+                                    >
+                                    <button class="btn btn-primary" type="submit" id="search-btn">
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="type" class="form-select">
+                                    <option value="all" {% if search_type == 'all' %}selected{% endif %}>All Fields</option>
+                                    <option value="title" {% if search_type == 'title' %}selected{% endif %}>Title Only</option>
+                                    <option value="sections" {% if search_type == 'sections' %}selected{% endif %}>Sections</option>
+                                    <option value="tags" {% if search_type == 'tags' %}selected{% endif %}>Tags</option>
+                                    <option value="jurisdiction" {% if search_type == 'jurisdiction' %}selected{% endif %}>Jurisdiction</option>
+                                    <option value="gpt" {% if search_type == 'gpt' %}selected{% endif %}>🤖 AI Enhanced Search</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Results -->
+    <div class="row">
+        <div class="col-lg-8">
+            {% if query %}
+                <!-- Results Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>
+                        {% if total_results > 0 %}
+                            {{ total_results }} result{{ total_results|pluralize }} for "{{ query }}"
+                        {% else %}
+                            No results found for "{{ query }}"
+                        {% endif %}
+                    </h3>
+                    {% if total_results > 0 %}
+                        <small class="text-muted">Search type: {{ search_type|title }}</small>
+                    {% endif %}
+                </div>
+                
+                <!-- GPT Enhanced Search Results -->
+                <div id="gpt-results" class="mb-4 mt-3" style="display: none;">
+                    <!-- GPT results will be loaded here via JavaScript -->
+                </div>
+                
+                <!-- Fallback GPT Results Container (in case main one fails) -->
+                <div id="gpt-results-fallback" class="mb-4" style="display: none;">
+                    <!-- Fallback container for GPT results -->
+                </div>
+                
+                <!-- Results -->
+                {% if laws %}
+                    {% for law in laws %}
+                        <div class="law-card card mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-gavel me-2"></i>
+                                    {{ law.title }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-list me-1"></i>Sections:</strong> 
+                                            {{ law.get_sections_display }}
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-building me-1"></i>Jurisdiction:</strong> 
+                                            {{ law.jurisdiction }}
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-exclamation-triangle me-1"></i>Punishment:</strong>
+                                        </p>
+                                        <p class="text-muted small">
+                                            {{ law.punishment_summary|truncatewords:20 }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tags -->
+                                {% if law.get_tags_display %}
+                                    <div class="mb-3">
+                                        {% for tag in law.get_tags_display %}
+                                            <span class="tag-badge">{{ tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Rights Summary -->
+                                {% if law.rights_summary %}
+                                    <div class="mb-3">
+                                        <strong><i class="fas fa-shield-alt me-1"></i>Key Rights:</strong>
+                                        <ul class="mb-0 mt-1">
+                                            {% for right in law.get_rights_list|slice:":3" %}
+                                                <li class="small">{{ right }}</li>
+                                            {% endfor %}
+                                            {% if law.get_rights_list|length > 3 %}
+                                                <li class="small text-muted">... and more</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'law_information:law_detail' law.slug %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-info-circle me-1"></i>View Full Details
+                                </a>
+                                <small class="text-muted ms-3">
+                                    <i class="fas fa-clock me-1"></i>Updated {{ law.updated_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <!-- Pagination -->
+                    {% if laws.has_other_pages %}
+                        <nav aria-label="Search results pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if laws.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&type={{ search_type }}&page={{ laws.previous_page_number }}">
+                                            <i class="fas fa-chevron-left"></i> Previous
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in laws.paginator.page_range %}
+                                    {% if laws.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > laws.number|add:'-3' and num < laws.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&type={{ search_type }}&page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if laws.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&type={{ search_type }}&page={{ laws.next_page_number }}">
+                                            Next <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                    
+                {% else %}
+                    <!-- No Results -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No laws found</h4>
+                        <p class="text-muted">
+                            Try different keywords or search in different fields.
+                        </p>
+                        <div class="mt-4">
+                            <h5>Search Tips:</h5>
+                            <ul class="list-unstyled text-muted">
+                                <li><i class="fas fa-lightbulb me-2"></i>Try broader terms (e.g., "theft" instead of "theft under PPC 379")</li>
+                                <li><i class="fas fa-lightbulb me-2"></i>Search by tags or jurisdiction</li>
+                                <li><i class="fas fa-lightbulb me-2"></i>Check spelling and try synonyms</li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- No Search Query -->
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Search for Laws</h4>
+                    <p class="text-muted">
+                        Enter your search terms above to find relevant legal information.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Featured Laws -->
+            {% if featured_laws %}
+                <div class="sidebar">
+                    <h4><i class="fas fa-star me-2"></i>Featured Laws</h4>
+                    <div class="list-group list-group-flush">
+                        {% for law in featured_laws %}
+                            <a href="{% url 'law_information:law_detail' law.slug %}" 
+                               class="list-group-item list-group-item-action border-0 px-0">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ law.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-star text-warning"></i>
+                                    </small>
+                                </div>
+                                <p class="mb-1 text-muted">{{ law.jurisdiction }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Popular Tags -->
+            {% if popular_tags %}
+                <div class="sidebar">
+                    <h4><i class="fas fa-tags me-2"></i>Popular Categories</h4>
+                    <div class="mb-3">
+                        {% for tag, count in popular_tags %}
+                            <a href="?q={{ tag|urlencode }}&type=tags" 
+                               class="tag-badge text-decoration-none">
+                                {{ tag }} ({{ count }})
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Search Tips -->
+            <div class="sidebar">
+                <h4><i class="fas fa-lightbulb me-2"></i>Search Tips</h4>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Use specific terms like "theft", "murder", "fraud"
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Search by legal sections (e.g., "PPC 379")
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Try jurisdiction names (e.g., "Sessions Court")
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Use tags for broader categories
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.ai-explanation {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+    text-align: justify;
+    line-height: 1.6;
+}
+
+.law-card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.law-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header.bg-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.alert-info {
+    border-left: 4px solid #007bff;
+    border-radius: 8px;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25em 0.5em;
+}
+
+.search-terms-container {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+/* AI Search Full Width Styles */
+.col-12 .law-card {
+    max-width: 100%;
+}
+
+.col-12 .ai-explanation {
+    max-width: none;
+}
+
+/* Ensure proper spacing in full-width mode */
+.col-12 .container {
+    max-width: 100%;
+    padding: 0 15px;
+}
+
+/* AI Search Results Spacing */
+#gpt-results {
+    margin-top: 1.5rem !important;
+}
+
+#gpt-results .alert-success {
+    margin-top: 1rem !important;
+    margin-bottom: 1.5rem !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing GPT search...');
+    
+    // Handle GPT search
+    const searchForm = document.querySelector('form');
+    const searchTypeSelect = document.querySelector('select[name="type"]');
+    const searchInput = document.querySelector('input[name="q"]');
+    
+    // Check if elements exist
+    if (!searchForm || !searchTypeSelect || !searchInput) {
+        console.error('Required elements not found:', {
+            searchForm: !!searchForm,
+            searchTypeSelect: !!searchTypeSelect,
+            searchInput: !!searchInput
+        });
+        return;
+    }
+    
+    console.log('All elements found, setting up event listeners...');
+    
+    // Add a test function to window for debugging
+    window.testGPTSearch = function() {
+        console.log('Testing GPT search manually...');
+        performGPTSearch();
+    };
+    
+    // Function to restore sidebar
+    function restoreSidebar() {
+        const sidebar = document.querySelector('.col-lg-4');
+        if (sidebar) {
+            sidebar.style.display = 'block';
+        }
+        
+        const mainContent = document.querySelector('.col-12');
+        if (mainContent) {
+            mainContent.className = 'col-lg-8';
+        }
+        
+        // Hide GPT results container
+        const gptResults = document.getElementById('gpt-results');
+        if (gptResults) {
+            gptResults.style.display = 'none';
+        }
+    }
+    
+    // Function to hide sidebar for AI search
+    function hideSidebarForAI() {
+        const sidebar = document.querySelector('.col-lg-4');
+        if (sidebar) {
+            sidebar.style.display = 'none';
+        }
+        
+        const mainContent = document.querySelector('.col-lg-8');
+        if (mainContent) {
+            mainContent.className = 'col-12';
+        }
+    }
+    
+    searchForm.addEventListener('submit', function(e) {
+        console.log('Form submitted, search type:', searchTypeSelect.value);
+        if (searchTypeSelect.value === 'gpt') {
+            e.preventDefault();
+            console.log('Preventing default and starting GPT search');
+            performGPTSearch();
+        }
+    });
+    
+    // Also add click event to search button for better UX
+    const searchButton = document.querySelector('button[type="submit"]');
+    if (searchButton) {
+        searchButton.addEventListener('click', function(e) {
+            console.log('Search button clicked, search type:', searchTypeSelect.value);
+            if (searchTypeSelect.value === 'gpt') {
+                e.preventDefault();
+                console.log('Preventing default and starting GPT search from button click');
+                performGPTSearch();
+            }
+        });
+    }
+    
+    // Add visual feedback when GPT search is selected
+    searchTypeSelect.addEventListener('change', function() {
+        console.log('Search type changed to:', this.value);
+        if (this.value === 'gpt') {
+            searchButton.innerHTML = '<i class="fas fa-robot me-2"></i>AI Search';
+            searchButton.classList.add('btn-success');
+            searchButton.classList.remove('btn-primary');
+        } else {
+            searchButton.innerHTML = '<i class="fas fa-search me-2"></i>Search';
+            searchButton.classList.add('btn-primary');
+            searchButton.classList.remove('btn-success');
+            
+            // Restore sidebar when switching back to regular search
+            restoreSidebar();
+        }
+    });
+    
+    // Initialize button state
+    if (searchTypeSelect.value === 'gpt') {
+        searchButton.innerHTML = '<i class="fas fa-robot me-2"></i>AI Search';
+        searchButton.classList.add('btn-success');
+        searchButton.classList.remove('btn-primary');
+    }
+    
+    function performGPTSearch() {
+        const query = searchInput.value.trim();
+        console.log('GPT Search query:', query);
+        if (!query) {
+            console.log('No query provided');
+            alert('Please enter a search query');
+            return;
+        }
+        
+        // Try to find the results container with fallback
+        let resultsContainer = document.getElementById('gpt-results');
+        if (!resultsContainer) {
+            console.warn('Main GPT results container not found, trying fallback...');
+            resultsContainer = document.getElementById('gpt-results-fallback');
+        }
+        
+        if (!resultsContainer) {
+            console.error('No GPT results container found, creating one...');
+            // Create a new container if none exists
+            resultsContainer = document.createElement('div');
+            resultsContainer.id = 'gpt-results-dynamic';
+            resultsContainer.className = 'mb-4';
+            resultsContainer.style.display = 'block';
+            
+            // Insert it after the search form
+            const searchForm = document.querySelector('form');
+            if (searchForm && searchForm.parentNode) {
+                searchForm.parentNode.insertBefore(resultsContainer, searchForm.nextSibling);
+            } else {
+                // Last resort: append to body
+                document.body.appendChild(resultsContainer);
+            }
+        }
+        
+        console.log('Results container found/created:', resultsContainer);
+        
+        // Hide any existing results and default content
+        const existingResults = document.querySelector('.law-card');
+        if (existingResults) {
+            existingResults.style.display = 'none';
+        }
+        
+        // Hide the default "Search for Laws" section
+        const defaultSearchSection = document.querySelector('.text-center.py-5');
+        if (defaultSearchSection) {
+            defaultSearchSection.style.display = 'none';
+        }
+        
+        // Hide the sidebar when AI search is active
+        hideSidebarForAI();
+        
+        // Show the container and loading state
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">🤖 AI is processing your query...</p>
+                <small class="text-muted">This may take a few seconds...</small>
+            </div>
+        `;
+        
+        // Use relative URL to match current port
+        const apiUrl = `/api/gpt-search/?q=${encodeURIComponent(query)}`;
+        console.log('Making API call to:', apiUrl);
+        console.log('Current location:', window.location.href);
+        
+        // Make API call to GPT search endpoint
+        fetch(apiUrl)
+            .then(response => {
+                console.log('API response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API response data:', data);
+                displayGPTResults(data);
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                
+                // Re-find the container in case it became null
+                let errorContainer = document.getElementById('gpt-results') || 
+                                   document.getElementById('gpt-results-fallback') || 
+                                   document.getElementById('gpt-results-dynamic');
+                
+                if (!errorContainer) {
+                    console.error('No container found for error display');
+                    alert('Error: ' + error.message + '\nPlease refresh the page and try again.');
+                    return;
+                }
+                
+                errorContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error processing your query.</strong>
+                        <br>Please try again or check if the server is running.
+                        <br><small>Error: ${error.message}</small>
+                        <br><small>URL: ${apiUrl}</small>
+                    </div>
+                `;
+            });
+    }
+    
+    function displayGPTResults(data) {
+        // Re-find the container in case it became null
+        let resultsContainer = document.getElementById('gpt-results') || 
+                              document.getElementById('gpt-results-fallback') || 
+                              document.getElementById('gpt-results-dynamic');
+        
+        if (!resultsContainer) {
+            console.error('No container found for results display');
+            alert('Error: Cannot display results. Please refresh the page and try again.');
+            return;
+        }
+        
+        if (data.results && data.results.length > 0) {
+            let html = `
+                <div class="alert alert-success mb-4 mt-4">
+                    <i class="fas fa-robot me-2"></i>
+                    <strong>AI Enhanced Search Results:</strong> Found ${data.total_results} relevant laws
+                </div>
+            `;
+            
+            data.results.forEach((result, index) => {
+                // Keep AI explanation as one paragraph (no line breaks)
+                const formattedExplanation = result.explanation;
+                
+                html += `
+                    <div class="law-card card mb-4 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-gavel me-2"></i>
+                                ${result.title}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong><i class="fas fa-list me-1 text-primary"></i>Sections:</strong> 
+                                        <span class="text-muted">${result.sections ? result.sections.join(', ') : 'N/A'}</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong><i class="fas fa-building me-1 text-primary"></i>Jurisdiction:</strong> 
+                                        <span class="text-muted">${result.jurisdiction}</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong><i class="fas fa-exclamation-triangle me-1 text-primary"></i>Punishment:</strong>
+                                    </p>
+                                    <p class="text-muted small">
+                                        ${result.punishment_summary ? result.punishment_summary.substring(0, 150) + '...' : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- GPT Explanation -->
+                            <div class="alert alert-info mt-3 border-0" style="background-color: #e3f2fd;">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-robot me-2 text-primary"></i>
+                                    <strong>AI Explanation:</strong>
+                                </h6>
+                                <div class="ai-explanation">
+                                    ${formattedExplanation}
+                                </div>
+                            </div>
+                            
+                            <!-- Search Terms Used -->
+                            <div class="mt-3 search-terms-container">
+                                <small class="text-muted">
+                                    <strong><i class="fas fa-search me-1"></i>Search Terms Used:</strong> 
+                                    <span class="badge bg-secondary me-1">${result.search_terms_used.join('</span> <span class="badge bg-secondary me-1">')}</span>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top">
+                            <a href="/${result.slug}/" class="btn btn-primary btn-sm">
+                                <i class="fas fa-info-circle me-1"></i>View Full Details
+                            </a>
+                            <small class="text-muted ms-3">
+                                <i class="fas fa-star me-1 text-warning"></i>Result ${index + 1} of ${data.results.length}
+                            </small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = html;
+        } else {
+            resultsContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-search me-2"></i>
+                    No relevant laws found for your query. Try rephrasing your question or using different keywords.
+                </div>
+            `;
+        }
+    }
+});
+</script>
+{% endblock %}
