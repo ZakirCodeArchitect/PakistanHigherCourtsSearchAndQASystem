@@ -53,6 +53,14 @@ def search_module(request):
     return render(request, 'frontend/search_module.html')
 
 
+@login_required
+def qa_module(request):
+    """QA module interface - Legal Knowledge Resource"""
+    # Redirect to the question answering module (separate Django project)
+    # The QA module runs on a different port/project
+    return redirect('/qa/')
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def search_api(request):
