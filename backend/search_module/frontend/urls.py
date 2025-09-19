@@ -13,6 +13,9 @@ urlpatterns = [
     # Search module
     path('search/', views.search_module, name='search_module'),
     
+    # QA module (Legal Knowledge Resource)
+    path('qa/', views.qa_module, name='qa_module'),
+    
     # Authentication
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
