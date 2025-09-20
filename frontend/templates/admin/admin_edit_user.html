@@ -1,0 +1,482 @@
+{% extends 'search/base.html' %}
+
+{% block title %}Edit User - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-edit-user-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Header -->
+                <div class="admin-header">
+                    <div class="admin-header-content">
+                        <h1 class="admin-dashboard-title">
+                            <i class="fas fa-user-edit me-3"></i>
+                            Edit User
+                        </h1>
+                        <p class="admin-dashboard-subtitle">Update user account information</p>
+                    </div>
+                    <div class="admin-header-actions">
+                        <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Users
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Edit User Form -->
+                <div class="admin-section">
+                    <form method="post" class="admin-form">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="username" class="form-label">
+                                        <i class="fas fa-user me-2"></i>
+                                        Username *
+                                    </label>
+                                    <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">
+                                        <i class="fas fa-envelope me-2"></i>
+                                        Email Address *
+                                    </label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="first_name" class="form-label">
+                                        <i class="fas fa-id-card me-2"></i>
+                                        First Name
+                                    </label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="last_name" class="form-label">
+                                        <i class="fas fa-id-card me-2"></i>
+                                        Last Name
+                                    </label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>
+                                New Password
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password">
+                            <small class="form-text text-muted">Leave blank to keep current password</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="user_role" class="form-label">
+                                        <i class="fas fa-user-tag me-2"></i>
+                                        User Role *
+                                    </label>
+                                    <select class="form-control" id="user_role" name="user_role" required>
+                                        <option value="">Select Role</option>
+                                        <option value="lawyer" {% if user.profile and user.profile.role == 'lawyer' %}selected{% endif %}>Lawyer</option>
+                                        <option value="general_public" {% if user.profile and user.profile.role == 'general_public' %}selected{% endif %}>General Public</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="identifier" class="form-label">
+                                        <i class="fas fa-id-badge me-2"></i>
+                                        <span id="identifier-label">Identifier</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="identifier" name="identifier" 
+                                           value="{% if user.profile %}{{ user.profile.get_identifier }}{% endif %}">
+                                    <small class="form-text text-muted" id="identifier-help">
+                                        Enter license number, CNIC, or student ID
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Info Display -->
+                        <div class="user-info-section">
+                            <h5 class="info-title">
+                                <i class="fas fa-info-circle me-2"></i>
+                                User Information
+                            </h5>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">User ID:</span>
+                                    <span class="info-value">{{ user.id }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Date Joined:</span>
+                                    <span class="info-value">{{ user.date_joined|date:"M d, Y H:i" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Last Login:</span>
+                                    <span class="info-value">
+                                        {% if user.last_login %}
+                                            {{ user.last_login|date:"M d, Y H:i" }}
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Status:</span>
+                                    <span class="info-value">
+                                        {% if user.is_active %}
+                                            <span class="status-badge status-active">Active</span>
+                                        {% else %}
+                                            <span class="status-badge status-inactive">Inactive</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #fd7e14, #e55a00) !important; color: white !important; border: none !important;">
+                                <i class="fas fa-save me-2" style="color: white !important;"></i>
+                                <span style="color: white !important;">Update User</span>
+                            </button>
+                            <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-edit-user-container {
+    background: var(--secondary-gray);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.admin-header {
+    background: var(--primary-white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.admin-dashboard-subtitle {
+    color: var(--text-gray);
+    margin: 0.5rem 0 0 0;
+    font-size: 1.1rem;
+}
+
+.admin-section {
+    background: var(--primary-white);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+}
+
+.admin-form {
+    max-width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-label i {
+    color: var(--accent-orange);
+}
+
+.form-control {
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-small);
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+    outline: none;
+}
+
+.form-text {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-top: 0.25rem;
+}
+
+.user-info-section {
+    background: var(--secondary-gray);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-small);
+    margin: 2rem 0;
+}
+
+.info-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--primary-white);
+    border-radius: var(--border-radius-small);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.info-value {
+    color: var(--text-gray);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-small);
+    font-weight: 600;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: var(--gradient-orange) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.2);
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+
+.btn-primary * {
+    color: white !important;
+}
+
+.btn-primary:hover {
+    background: var(--accent-orange) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(253, 126, 20, 0.3);
+    color: white !important;
+}
+
+.btn-primary:hover * {
+    color: white !important;
+}
+
+.btn-primary:focus {
+    background: var(--accent-orange) !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+.btn-primary:focus * {
+    color: white !important;
+}
+
+/* Additional specificity for button content */
+button.btn-primary,
+button.btn-primary i,
+button.btn-primary span {
+    color: white !important;
+}
+
+/* Ultra-specific override for Bootstrap CSS interference */
+form .btn-primary,
+.admin-edit-card .btn-primary,
+.form-actions .btn-primary,
+button.btn-primary.btn {
+    background: linear-gradient(135deg, #fd7e14, #e55a00) !important;
+    color: white !important;
+    border-color: #fd7e14 !important;
+}
+
+form .btn-primary *,
+.admin-edit-card .btn-primary *,
+.form-actions .btn-primary *,
+button.btn-primary.btn * {
+    color: white !important;
+}
+
+/* Override Bootstrap's default button colors */
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active {
+    background: #e55a00 !important;
+    color: white !important;
+    border-color: #e55a00 !important;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--text-gray);
+    border: 2px solid var(--border-light);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--secondary-gray);
+    color: var(--text-dark);
+    border-color: var(--accent-gray);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .admin-dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .admin-section {
+        padding: 1.5rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('user_role');
+    const identifierLabel = document.getElementById('identifier-label');
+    const identifierHelp = document.getElementById('identifier-help');
+    
+    function updateIdentifierField() {
+        const role = roleSelect.value;
+        const identifierInput = document.getElementById('identifier');
+        
+        switch(role) {
+            case 'lawyer':
+                identifierLabel.textContent = 'Advocate License Number *';
+                identifierHelp.textContent = 'Enter the advocate license number';
+                identifierInput.required = true;
+                identifierInput.placeholder = 'e.g., LHR-12345';
+                break;
+            case 'judge':
+                identifierLabel.textContent = 'CNIC Number *';
+                identifierHelp.textContent = 'Enter the CNIC number';
+                identifierInput.required = true;
+                identifierInput.placeholder = 'e.g., 12345-1234567-1';
+                break;
+            case 'student':
+                identifierLabel.textContent = 'Student ID';
+                identifierHelp.textContent = 'Enter the student ID (optional)';
+                identifierInput.required = false;
+                identifierInput.placeholder = 'e.g., 2023-LAW-001';
+                break;
+            case 'public':
+                identifierLabel.textContent = 'Contact Number';
+                identifierHelp.textContent = 'Enter contact number (optional)';
+                identifierInput.required = false;
+                identifierInput.placeholder = 'e.g., +92-300-1234567';
+                break;
+            default:
+                identifierLabel.textContent = 'Identifier';
+                identifierHelp.textContent = 'Enter license number, CNIC, or student ID';
+                identifierInput.required = false;
+                identifierInput.placeholder = '';
+        }
+    }
+    
+    roleSelect.addEventListener('change', updateIdentifierField);
+    
+    // Initialize on page load
+    updateIdentifierField();
+});
+</script>
+{% endblock %}
