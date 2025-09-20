@@ -25,7 +25,7 @@ urlpatterns = [
     path("api/search/", include('search_indexing.urls')),
     path("api/search/benchmarking/", include('search_benchmarking.urls', namespace='api_benchmarking')),
     path("search/benchmarking/", include('search_benchmarking.urls', namespace='benchmarking')),  # Frontend routes for benchmarking
-    path("", include('frontend.urls')),  # Frontend routes
+    path("", include('frontend.urls')),  # New frontend routes
 ]
 
 # Serve media files during development

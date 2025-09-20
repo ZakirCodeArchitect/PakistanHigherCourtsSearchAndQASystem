@@ -1,1 +1,1 @@
-# Frontend app for UI components
+# Frontend Django App

@@ -18,7 +18,7 @@ class SimpleQAView(View):
     
     def get(self, request):
         """Render the QA interface"""
-        return render(request, 'question_answering/simple_qa_interface.html', {
+        return render(request, 'qa/simple_qa_interface.html', {
             'title': 'Question Answering System',
             'message': 'Welcome to the QA System!'
         })

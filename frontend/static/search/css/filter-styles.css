@@ -1,0 +1,406 @@
+/**
+ * Filter Styles for Legal Case Search
+ * Integrates with existing Bootstrap design
+ */
+
+/* Filter Container */
+.filter-container {
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-header h6 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+/* Filter Sections */
+.filter-section {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--background-white);
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-section .filter-header {
+    background: var(--background-light);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.filter-section .filter-header:hover {
+    background: #f3f4f6;
+}
+
+.filter-section .filter-header h6 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.filter-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.filter-toggle:hover {
+    background: #e5e7eb;
+}
+
+.toggle-icon {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+
+.filter-content {
+    padding: 1rem;
+    display: none;
+}
+
+.filter-content.active {
+    display: block;
+}
+
+/* Filter Search */
+.filter-search {
+    margin-bottom: 1rem;
+}
+
+.filter-search-input {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: border-color 0.2s ease;
+}
+
+.filter-search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1);
+}
+
+/* Filter Options */
+.filter-options {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--background-white);
+    padding: 0.5rem;
+}
+
+.filter-option {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.filter-option:last-child {
+    border-bottom: none;
+}
+
+.filter-option:hover {
+    background: #f9fafb;
+}
+
+.filter-option .form-check-input {
+    margin-right: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--primary-color);
+}
+
+.filter-option .form-check-label {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.option-text {
+    flex: 1;
+}
+
+.option-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--background-light);
+    padding: 0.125rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+}
+
+/* Filter Actions */
+.filter-actions button {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.select-all-btn {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.select-all-btn:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+.clear-all-btn {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.clear-all-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+/* Active Filter Indicators */
+.active-filters {
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.active-filters h6 {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.filter-tag {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    margin: 0.125rem;
+    font-weight: 500;
+}
+
+.filter-tag .remove-filter {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.filter-tag .remove-filter:hover {
+    color: #fecaca;
+}
+
+/* Clear All Filters Button */
+.clear-all-filters-btn {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.clear-all-filters-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .filter-container {
+        position: static;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-content {
+        padding: 0.75rem;
+    }
+    
+    .filter-options {
+        max-height: 150px;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .filter-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-container {
+        padding: 1rem;
+    }
+    
+    .filter-content {
+        padding: 0.5rem;
+    }
+    
+    .filter-option {
+        padding: 0.375rem;
+    }
+}
+
+/* Integration with existing search interface */
+.search-types-panel {
+    margin-bottom: 1.5rem;
+}
+
+/* Filter toggle button in search types panel */
+.filter-toggle-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.filter-toggle-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+.filter-toggle-btn.active {
+    background: var(--primary-light);
+}
+
+/* Filter count indicator */
+.filter-count {
+    background: #dc2626;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+/* Loading state for filters */
+.filter-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.filter-loading .spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.15rem;
+}
+
+/* Error state for filters */
+.filter-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+/* Success state for filters */
+.filter-success {
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+/* Loading state for filters */
+.filter-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.filter-loading .spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.15rem;
+}
+
+/* Error state for filters */
+.filter-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
