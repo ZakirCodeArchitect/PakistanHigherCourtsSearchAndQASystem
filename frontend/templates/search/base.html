@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Pakistan Higher Courts Search & QA System{% endblock %}</title>
+    <title>{% block title %}Pakistan's Higher Court and Question-Answering System{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,12 +17,14 @@
 </head>
 <body>
     <!-- Header Component -->
-    <header class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <header class="navbar navbar-expand-lg navbar-dark modern-navbar">
         <div class="container-fluid">
             <!-- Logo/Brand -->
             <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
-                <i class="fas fa-balance-scale me-2"></i>
-                <span class="fw-bold">Pakistan Courts</span>
+                <div class="brand-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <span class="brand-text">PHC search and QA system</span>
             </a>
             
             <!-- Mobile Toggle -->
@@ -34,49 +36,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
-                        <!-- Module Selection -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-th-large me-1"></i>
-                                Modules
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'search_module' %}">
-                                        <i class="fas fa-search me-2"></i>
-                                        Legal Cases Search
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'qa_module' %}">
-                                        <i class="fas fa-brain me-2"></i>
-                                        Legal Knowledge
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/qa/sessions/">
-                                        <i class="fas fa-history me-2"></i>
-                                        QA Sessions
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/qa/analytics/">
-                                        <i class="fas fa-chart-line me-2"></i>
-                                        QA Analytics
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item disabled" href="#">
-                                        <i class="fas fa-chart-bar me-2"></i>
-                                        Analytics Dashboard
-                                        <span class="badge bg-secondary ms-2">Coming Soon</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        
-                        <!-- Quick Actions -->
+                        <!-- Dashboard Link -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'dashboard' %}">
                                 <i class="fas fa-home me-1"></i>
@@ -95,19 +55,6 @@
                                 {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-user me-2"></i>
-                                        Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-cog me-2"></i>
-                                        Settings
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item" href="{% url 'logout' %}">
                                         <i class="fas fa-sign-out-alt me-2"></i>
@@ -135,18 +82,18 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-light py-4 mt-5">
+    <footer class="modern-footer py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="mb-0 text-muted">
-                        <i class="fas fa-balance-scale me-1"></i>
-                        Pakistan Higher Courts Search & QA System
+                    <p class="mb-0 footer-text">
+                        <i class="fas fa-balance-scale me-2"></i>
+                        Pakistan's Higher Court and Question-Answering System
                     </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0 text-muted">
-                        <i class="fas fa-code me-1"></i>
+                    <p class="mb-0 footer-text">
+                        <i class="fas fa-code me-2"></i>
                         Powered by Django & AI
                     </p>
                 </div>
@@ -162,5 +109,319 @@
     <script src="{% static 'search/js/filter-presets.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
+    
+    <style>
+    /* Global Light Theme Styles for Base Template */
+    :root {
+        --primary-white: #ffffff;
+        --secondary-gray: #f8f9fa;
+        --accent-gray: #6c757d;
+        --text-dark: #212529;
+        --text-gray: #6c757d;
+        --accent-orange: #fd7e14;
+        --accent-blue: #0d6efd;
+        --accent-green: #198754;
+        --border-light: #e9ecef;
+        --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+        --shadow-medium: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    body {
+        background-color: var(--primary-white);
+        color: var(--text-dark);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.6;
+    }
+
+    /* Modern Navbar */
+    .modern-navbar {
+        background: var(--primary-white) !important;
+        border-bottom: 1px solid var(--border-light);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        position: relative;
+    }
+
+    .navbar-brand {
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+        transform: translateY(-1px);
+    }
+
+    .brand-icon {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-orange), #e55a00);
+        border-radius: 8px;
+        margin-right: 12px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(253, 126, 20, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .brand-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+        border-radius: 12px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .navbar-brand:hover .brand-icon {
+        transform: scale(1.05) translateY(-1px);
+        box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
+    }
+
+    .navbar-brand:hover .brand-icon::before {
+        opacity: 1;
+    }
+
+    .brand-text {
+        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 500;
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+    }
+    
+    @media (max-width: 768px) {
+        .brand-text {
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .brand-text {
+            font-size: 0.9rem;
+            line-height: 1.1;
+        }
+    }
+
+    .navbar-nav .nav-link {
+        color: var(--text-gray) !important;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0.75rem 1.25rem !important;
+        border-radius: 10px;
+        margin: 0 0.25rem;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .navbar-nav .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, var(--accent-orange), #e55a00);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 10px;
+        z-index: -1;
+    }
+
+    .navbar-nav .nav-link:hover {
+        color: white !important;
+        background: transparent;
+        transform: translateY(-1px);
+        position: relative;
+        z-index: 2;
+    }
+
+    .navbar-nav .nav-link:hover::before {
+        opacity: 1;
+    }
+
+    .navbar-nav .nav-link i {
+        position: relative;
+        z-index: 3;
+        transition: transform 0.3s ease;
+        margin-right: 0.5rem;
+        color: inherit;
+    }
+
+    .navbar-nav .nav-link:hover i {
+        transform: translateX(3px);
+    }
+
+    .dropdown-menu {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        padding: 0.5rem;
+        backdrop-filter: blur(20px);
+        margin-top: 0.25rem;
+        z-index: 9999 !important;
+        position: relative;
+        min-width: 200px;
+        max-width: 250px;
+    }
+
+    .dropdown-item {
+        color: var(--text-gray) !important;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .dropdown-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, var(--accent-orange), #e55a00);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        border-radius: 8px;
+    }
+
+    .dropdown-item:hover {
+        background: transparent !important;
+        color: white !important;
+        transform: translateX(2px);
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item:hover i,
+    .dropdown-item:hover span {
+        color: white !important;
+    }
+
+    .dropdown-item:hover::before {
+        opacity: 1;
+    }
+
+    .dropdown-item i {
+        position: relative;
+        z-index: 2;
+        transition: transform 0.2s ease;
+        margin-right: 0.5rem;
+        width: 16px;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    .dropdown-item {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dropdown-item:hover i {
+        transform: translateX(1px);
+        color: white !important;
+    }
+
+    .dropdown-item:hover {
+        color: white !important;
+    }
+
+    .dropdown-item:hover * {
+        color: white !important;
+    }
+
+    .dropdown-divider {
+        margin: 0.25rem 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        opacity: 0.5;
+    }
+
+    .navbar-toggler {
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 0.5rem;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+    }
+
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833, 37, 41, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    /* Modern Footer */
+    .modern-footer {
+        background: var(--secondary-gray);
+        border-top: 1px solid var(--border-light);
+    }
+
+    .footer-text {
+        color: var(--text-gray);
+        font-size: 0.9rem;
+    }
+
+    .footer-text i {
+        color: var(--accent-orange);
+    }
+
+    /* Main Content */
+    main {
+        background: var(--primary-white);
+        min-height: calc(100vh - 200px);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 991.98px) {
+        .navbar-collapse {
+            background: var(--primary-white);
+            border-radius: 16px;
+            margin-top: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+        
+        .navbar-nav .nav-link {
+            margin: 0.25rem 0;
+            padding: 0.75rem 1rem !important;
+        }
+        
+        .brand-text {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .brand-text {
+            font-size: 0.9rem;
+        }
+        
+        .brand-icon {
+            width: 30px;
+            height: 30px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+    }
+    </style>
 </body>
 </html>

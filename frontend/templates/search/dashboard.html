@@ -3,551 +3,746 @@
 {% block title %}Dashboard - Pakistan Higher Courts Search & QA System{% endblock %}
 
 {% block content %}
-<div class="dashboard-container py-4">
+<div class="dashboard-container">
+    <!-- Hero Welcome Section -->
+    <section class="hero-welcome">
     <div class="container">
-        <!-- Welcome Section -->
-        <div class="welcome-section mb-5">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="display-5 fw-bold text-primary mb-3">
-                        <i class="fas fa-home me-3"></i>
-                        Welcome, {{ user.username }}!
+            <div class="welcome-content">
+                <div class="welcome-text">
+                    <h1 class="welcome-title">
+                        Welcome back, <span class="highlight-text">{{ user.username }}</span>!
                     </h1>
-                    <p class="lead text-muted">
-                        Access powerful legal research tools and advanced search capabilities
+                <p class="welcome-subtitle">
+                    Access your comprehensive legal search platform with advanced AI-powered tools
                     </p>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <div class="current-time">
-                        <i class="fas fa-clock me-2"></i>
-                        <span id="currentTime"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Quick Stats -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-3">
-                <div class="stat-card bg-primary text-white">
-                    <div class="stat-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number" id="totalCases">--</h3>
-                        <p class="stat-label">Total Cases</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card bg-success text-white">
-                    <div class="stat-icon">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number" id="indexedCases">--</h3>
-                        <p class="stat-label">Indexed Cases</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card bg-warning text-white">
-                    <div class="stat-icon">
+                <div class="welcome-visual">
+                    <div class="legal-icon">
                         <i class="fas fa-balance-scale"></i>
                     </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number" id="activeCourts">--</h3>
-                        <p class="stat-label">Active Courts</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Modules Section -->
+    <section class="modules-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Choose Your Legal Search Tool</h2>
+                <p class="section-subtitle">Select from our comprehensive suite of AI-powered legal search modules</p>
+        </div>
+        
+            <!-- Modern Module Tiles -->
+            <div class="modules-showcase">
+                <!-- Case Search Module -->
+                <div class="module-tile search-module" data-module="search">
+                    <div class="tile-background">
+                        <div class="tile-pattern"></div>
+                    </div>
+                    <div class="tile-content">
+                        <div class="tile-header">
+                            <div class="tile-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                            <div class="tile-badge">
+                                <span>AI-Powered</span>
+                    </div>
+                </div>
+                        <div class="tile-body">
+                            <h3 class="tile-title">Case Search</h3>
+                            <p class="tile-description">
+                                Advanced legal case search with semantic understanding and hybrid indexing
+                            </p>
+                            <div class="tile-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-brain"></i>
+                                    <span>Smart Search</span>
+            </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-quote-left"></i>
+                                    <span>Legal Citations</span>
+                    </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-filter"></i>
+                                    <span>Advanced Filters</span>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card bg-info text-white">
-                    <div class="stat-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number" id="qaSessions">--</h3>
-                        <p class="stat-label">QA Sessions</p>
+                        <div class="tile-footer">
+                            <a href="{% url 'search_module' %}" class="tile-action">
+                                <span>Start Searching</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                            <div class="tile-status">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Ready</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Module Selection -->
-        <div class="modules-section mb-5">
-            <h2 class="h3 fw-bold mb-4">
-                <i class="fas fa-th-large me-2"></i>
-                Available Modules
-            </h2>
-            
-            <div class="row g-4">
-                <!-- Legal Cases Search Module -->
-                <div class="col-lg-6">
-                    <div class="module-card active-module">
-                        <div class="module-header">
-                            <div class="module-icon bg-primary">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <div class="module-info">
-                                <h4 class="module-title">Legal Cases Search</h4>
-                                <p class="module-description">
-                                    Advanced search with AI-powered semantic understanding
-                                </p>
-                            </div>
-                        </div>
-                        <div class="module-features">
-                            <div class="feature-tag">Smart Search</div>
-                            <div class="feature-tag">Legal Citations</div>
-                            <div class="feature-tag">Advanced Filtering</div>
-                        </div>
-                        <div class="module-actions">
-                            <a href="{% url 'search_module' %}" class="btn btn-primary">
-                                <i class="fas fa-arrow-right me-2"></i>
-                                Access Module
-                            </a>
-                            <span class="module-status">
-                                <i class="fas fa-check-circle text-success me-1"></i>
-                                Available
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Query Benchmark Console Module -->
-                <div class="col-lg-6">
-                    <div class="module-card active-module">
-                        <div class="module-header">
-                            <div class="module-icon bg-success">
-                                <i class="fas fa-tachometer-alt"></i>
-                            </div>
-                            <div class="module-info">
-                                <h4 class="module-title">Query Benchmark Console</h4>
-                                <p class="module-description">
-                                    Comprehensive search performance testing and analysis
-                                </p>
-                            </div>
-                        </div>
-                        <div class="module-features">
-                            <div class="feature-tag">Performance Testing</div>
-                            <div class="feature-tag">Query Analysis</div>
-                            <div class="feature-tag">Benchmark Reports</div>
-                        </div>
-                        <div class="module-actions">
-                            <a href="/search/benchmarking/" class="btn btn-success">
-                                <i class="fas fa-arrow-right me-2"></i>
-                                Access Console
-                            </a>
-                            <span class="module-status">
-                                <i class="fas fa-check-circle text-success me-1"></i>
-                                Available
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Question Answering Module -->
-                <div class="col-lg-6">
-                    <div class="module-card active-module">
-                        <div class="module-header">
-                            <div class="module-icon bg-info">
-                                <i class="fas fa-robot"></i>
+                <div class="module-tile qa-module" data-module="qa">
+                    <div class="tile-background">
+                        <div class="tile-pattern"></div>
+                    </div>
+                    <div class="tile-content">
+                        <div class="tile-header">
+                            <div class="tile-icon">
+                                <i class="fas fa-comments"></i>
                             </div>
-                            <div class="module-info">
-                                <h4 class="module-title">Question Answering System</h4>
-                                <p class="module-description">
-                                    AI-powered legal question answering with chatbot interface
-                                </p>
+                            <div class="tile-badge">
+                                <span>llama 3.1 8b</span>
                             </div>
                         </div>
-                        <div class="module-features">
-                            <div class="feature-tag">Natural Language</div>
-                            <div class="feature-tag">Legal Context</div>
-                            <div class="feature-tag">Citation Support</div>
-                            <div class="feature-tag">Chat Interface</div>
+                        <div class="tile-body">
+                            <h3 class="tile-title">Question Answering</h3>
+                            <p class="tile-description">
+                                AI-powered legal question answering with intelligent chatbot interface
+                            </p>
+                            <div class="tile-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-language"></i>
+                                    <span>Natural Language</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Legal Context</span>
                         </div>
-                        <div class="module-actions">
-                            <a href="/qa/" class="btn btn-info">
-                                <i class="fas fa-arrow-right me-2"></i>
-                                Access QA System
+                                <div class="feature-item">
+                                    <i class="fas fa-link"></i>
+                                    <span>Citation Support</span>
+                        </div>
+                    </div>
+                </div>
+                        <div class="tile-footer">
+                            <a href="{% url 'qa_module' %}" class="tile-action">
+                                <span>Ask Questions</span>
+                                <i class="fas fa-arrow-right"></i>
                             </a>
-                            <span class="module-status">
-                                <i class="fas fa-check-circle text-success me-1"></i>
-                                Available
-                            </span>
+                            <div class="tile-status">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Ready</span>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Analytics Dashboard Module -->
-                <div class="col-lg-6">
-                    <div class="module-card disabled-module">
-                        <div class="module-header">
-                            <div class="module-icon bg-secondary">
-                                <i class="fas fa-chart-bar"></i>
+                <!-- Law Information Module -->
+                <div class="module-tile law-module" data-module="law">
+                    <div class="tile-background">
+                        <div class="tile-pattern"></div>
                             </div>
-                            <div class="module-info">
-                                <h4 class="module-title">Analytics Dashboard</h4>
-                                <p class="module-description">
-                                    Comprehensive legal research analytics and insights
-                                </p>
+                    <div class="tile-content">
+                        <div class="tile-header">
+                            <div class="tile-icon">
+                                <i class="fas fa-book"></i>
                             </div>
+                            <div class="tile-badge">
+                                <span>Public Access</span>
                         </div>
-                        <div class="module-features">
-                            <div class="feature-tag">Data Visualization</div>
-                            <div class="feature-tag">Trend Analysis</div>
-                            <div class="feature-tag">Performance Metrics</div>
+                    </div>
+                        <div class="tile-body">
+                            <h3 class="tile-title">Law Information</h3>
+                            <p class="tile-description">
+                                Comprehensive legal information and public-friendly legal guidance resources
+                            </p>
+                            <div class="tile-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-compass"></i>
+                                    <span>Legal Guidance</span>
+                            </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Public Resources</span>
                         </div>
-                        <div class="module-actions">
-                            <button class="btn btn-secondary" disabled>
-                                <i class="fas fa-clock me-2"></i>
-                                Coming Soon
-                            </button>
-                            <span class="module-status">
-                                <i class="fas fa-clock text-warning me-1"></i>
-                                In Development
-                            </span>
+                                <div class="feature-item">
+                                    <i class="fas fa-list-ol"></i>
+                                    <span>Step-by-step Help</span>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Document Management Module -->
-                <div class="col-lg-6">
-                    <div class="module-card disabled-module">
-                        <div class="module-header">
-                            <div class="module-icon bg-secondary">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="module-info">
-                                <h4 class="module-title">Document Management</h4>
-                                <p class="module-description">
-                                    Organize and manage legal documents and cases
-                                </p>
-                            </div>
-                        </div>
-                        <div class="module-features">
-                            <div class="feature-tag">Document Storage</div>
-                            <div class="feature-tag">Version Control</div>
-                            <div class="feature-tag">Collaboration</div>
-                        </div>
-                        <div class="module-actions">
-                            <button class="btn btn-secondary" disabled>
-                                <i class="fas fa-clock me-2"></i>
-                                Coming Soon
-                            </button>
-                            <span class="module-status">
-                                <i class="fas fa-clock text-warning me-1"></i>
-                                In Development
-                            </span>
+                        <div class="tile-footer">
+                            <a href="{% url 'law_info_module' %}" class="tile-action">
+                                <span>Explore Resources</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                            <div class="tile-status">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Ready</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Recent Activity -->
-        <div class="recent-activity mb-5">
-            <h2 class="h3 fw-bold mb-4">
-                <i class="fas fa-history me-2"></i>
-                Recent Activity
-            </h2>
-            
-            <div class="activity-timeline">
-                <div class="activity-item">
-                    <div class="activity-icon bg-success">
-                        <i class="fas fa-sign-in-alt"></i>
-                    </div>
-                    <div class="activity-content">
-                        <h6>Login Successful</h6>
-                        <p class="text-muted mb-1">You successfully logged into the system</p>
-                        <small class="text-muted">Just now</small>
-                    </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions Section -->
+    <section class="quick-actions-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Quick Actions</h2>
+                <p class="section-subtitle">Get started with your legal search</p>
                 </div>
                 
-                <div class="activity-item">
-                    <div class="activity-icon bg-info">
+            <div class="quick-actions-grid">
+                <a href="{% url 'search_module' %}" class="quick-action-card">
+                    <div class="action-icon">
                         <i class="fas fa-search"></i>
                     </div>
-                    <div class="activity-content">
-                        <h6>Search Module Available</h6>
-                        <p class="text-muted mb-1">Legal Cases Search module is ready for use</p>
-                        <small class="text-muted">2 minutes ago</small>
+                    <div class="action-content">
+                        <h4 class="action-title">Start Searching</h4>
+                        <p class="action-description">Begin your legal case search</p>
                     </div>
-                </div>
+                </a>
                 
-                <div class="activity-item">
-                    <div class="activity-icon bg-success">
-                        <i class="fas fa-tachometer-alt"></i>
+                <a href="{% url 'qa_module' %}" class="quick-action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-question-circle"></i>
                     </div>
-                    <div class="activity-content">
-                        <h6>Query Benchmark Console Available</h6>
-                        <p class="text-muted mb-1">Performance testing and analysis tools are ready</p>
-                        <small class="text-muted">3 minutes ago</small>
+                    <div class="action-content">
+                        <h4 class="action-title">Ask Questions</h4>
+                        <p class="action-description">Get AI-powered legal answers</p>
                     </div>
-                </div>
+                </a>
                 
-                <div class="activity-item">
-                    <div class="activity-icon bg-warning">
-                        <i class="fas fa-database"></i>
+                <a href="{% url 'law_info_module' %}" class="quick-action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-info-circle"></i>
                     </div>
-                    <div class="activity-content">
-                        <h6>System Status</h6>
-                        <p class="text-muted mb-1">All systems are running normally</p>
-                        <small class="text-muted">5 minutes ago</small>
-                    </div>
+                    <div class="action-content">
+                        <h4 class="action-title">Legal Information</h4>
+                        <p class="action-description">Access legal guidance and resources</p>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <h2 class="h3 fw-bold mb-4">
-                <i class="fas fa-bolt me-2"></i>
-                Quick Actions
-            </h2>
-            
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <a href="{% url 'search_module' %}" class="quick-action-card">
-                        <i class="fas fa-search"></i>
-                        <span>Start Searching</span>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/search/benchmarking/" class="quick-action-card">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Benchmark Console</span>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="#" class="quick-action-card">
-                        <i class="fas fa-bookmark"></i>
-                        <span>Saved Searches</span>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="#" class="quick-action-card">
-                        <i class="fas fa-download"></i>
-                        <span>Export Results</span>
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
+    </section>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+/* Dashboard Container */
 .dashboard-container {
-    background-color: #f8f9fa;
-    min-height: calc(100vh - 200px);
+    background: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.welcome-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Hero Welcome Section */
+.hero-welcome {
+    background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+    padding: 4rem 0;
     color: white;
-    padding: 2rem;
-    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.hero-welcome::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.welcome-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+}
+
+.welcome-text {
+    flex: 1;
+    max-width: 600px;
+}
+
+.welcome-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.highlight-text {
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.welcome-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+.welcome-visual {
+    flex: 0 0 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.legal-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: float 3s ease-in-out infinite;
+}
+
+.legal-icon i {
+    font-size: 3rem;
+    color: white;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Modules Section */
+.modules-section {
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.modules-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="%23fd7e14" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+    opacity: 0.3;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    position: relative;
+    z-index: 2;
+}
+
+.section-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #2c3e50, #fd7e14);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.section-subtitle {
+    font-size: 1.2rem;
+    color: #6c757d;
+    margin-bottom: 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.modules-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.module-tile {
+    position: relative;
+    background: white;
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border: 1px solid rgba(253, 126, 20, 0.1);
+    cursor: pointer;
+}
+
+.module-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(253, 126, 20, 0.05), rgba(229, 90, 0, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.module-tile:hover::before {
+    opacity: 1;
+}
+
+.module-tile:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+}
+
+.tile-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.tile-pattern {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(253, 126, 20, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.tile-content {
+    position: relative;
+    z-index: 2;
+    padding: 2.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 2rem;
 }
 
-.current-time {
-    font-size: 1.1rem;
-    opacity: 0.9;
-}
-
-.stat-card {
-    border-radius: 15px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+.tile-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1rem;
+    position: relative;
+    overflow: hidden;
 }
 
-.stat-icon i {
-    font-size: 1.5rem;
+.search-module .tile-icon {
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    box-shadow: 0 10px 30px rgba(253, 126, 20, 0.3);
 }
 
-.stat-number {
-    margin: 0;
+.qa-module .tile-icon {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+}
+
+.law-module .tile-icon {
+    background: linear-gradient(135deg, #6f42c1, #e83e8c);
+    box-shadow: 0 10px 30px rgba(111, 66, 193, 0.3);
+}
+
+.tile-icon i {
     font-size: 2rem;
-    font-weight: bold;
-}
-
-.stat-label {
-    margin: 0;
-    opacity: 0.9;
-}
-
-.module-card {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    height: 100%;
-}
-
-.module-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.active-module {
-    border-left: 4px solid #007bff;
-}
-
-.disabled-module {
-    opacity: 0.7;
-}
-
-.module-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.module-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
     color: white;
+    z-index: 2;
 }
 
-.module-icon i {
-    font-size: 1.2rem;
-}
-
-.module-title {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-.module-description {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.module-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.feature-tag {
-    background: #e9ecef;
-    color: #495057;
-    padding: 0.25rem 0.5rem;
+.tile-badge {
+    background: rgba(253, 126, 20, 0.1);
+    color: #fd7e14;
+    padding: 0.5rem 1rem;
     border-radius: 20px;
     font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(253, 126, 20, 0.2);
 }
 
-.module-actions {
+.tile-body {
+    flex: 1;
+    margin-bottom: 2rem;
+}
+
+.tile-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.tile-description {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.tile-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(253, 126, 20, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(253, 126, 20, 0.1);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(253, 126, 20, 0.1);
+    transform: translateX(4px);
+}
+
+.feature-item i {
+    color: #fd7e14;
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.feature-item span {
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.tile-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
 }
 
-.module-status {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.activity-timeline {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.activity-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+.tile-action {
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(253, 126, 20, 0.3);
+}
+
+.tile-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(253, 126, 20, 0.4);
     color: white;
-    flex-shrink: 0;
+    text-decoration: none;
 }
 
-.activity-content h6 {
-    margin: 0 0 0.5rem 0;
-    font-weight: bold;
+.tile-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #28a745;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
-.activity-content p {
-    margin: 0;
+.tile-status i {
+    font-size: 1rem;
+}
+
+/* Quick Actions Section */
+.quick-actions-section {
+    padding: 4rem 0;
+    background: #f8f9fa;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .quick-action-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     background: white;
-    border-radius: 15px;
-    padding: 2rem 1rem;
+    border-radius: 16px;
+    padding: 2rem;
     text-decoration: none;
-    color: #495057;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    color: #2c3e50;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    height: 120px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid #f1f3f4;
 }
 
 .quick-action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    color: #007bff;
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    color: #2c3e50;
+    text-decoration: none;
 }
 
-.quick-action-card i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    color: #007bff;
+.action-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.quick-action-card span {
-    font-weight: 500;
+.action-icon i {
+    font-size: 1.2rem;
+    color: white;
+}
+
+.action-content {
+    flex: 1;
+}
+
+.action-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+}
+
+.action-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .modules-showcase {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .welcome-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+    
+    .welcome-title {
+        font-size: 2.5rem;
+    }
+    
+    .welcome-visual {
+        flex: none;
+    }
+    
+    .modules-showcase {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+}
+
+.quick-action-card {
+    flex-direction: column;
     text-align: center;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+    }
+    
+    .tile-content {
+        padding: 2rem;
+    }
+    
+    .tile-icon {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .tile-icon i {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-welcome {
+        padding: 3rem 0;
+    }
+    
+    .welcome-title {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+    font-size: 2rem;
+    }
+    
+    .tile-content {
+        padding: 1.5rem;
+    }
+    
+    .tile-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .tile-icon i {
+        font-size: 1.5rem;
+    }
+    
+    .tile-title {
+        font-size: 1.5rem;
+    }
+    
+    .tile-action {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .quick-action-card {
+        padding: 1.5rem;
+    }
 }
 </style>
 {% endblock %}
@@ -555,46 +750,90 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Update current time
-    function updateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', {
-            hour12: true,
-            hour: 'numeric',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        document.getElementById('currentTime').textContent = timeString;
-    }
+    // Modern tile animations with staggered entrance
+    const moduleTiles = document.querySelectorAll('.module-tile');
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
     
-    updateTime();
-    setInterval(updateTime, 1000);
-    
-    // Load dashboard stats
-    loadDashboardStats();
-});
-
-async function loadDashboardStats() {
-    try {
-        // Load system status to get stats
-        const response = await fetch('/api/search/status/');
-        if (response.ok) {
-            const data = await response.json();
-            
-            // Update stats if available
-            if (data.health && data.health.database) {
-                document.getElementById('totalCases').textContent = 
-                    data.health.database.total_cases || '--';
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0) scale(1)';
+                }, index * 150); // Staggered animation
             }
+        });
+    }, observerOptions);
+    
+    moduleTiles.forEach(tile => {
+        tile.style.opacity = '0';
+        tile.style.transform = 'translateY(30px) scale(0.95)';
+        tile.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+        observer.observe(tile);
+    });
+    
+    // Enhanced tile interactions
+    moduleTiles.forEach(tile => {
+        // Add ripple effect on click
+        tile.addEventListener('click', function(e) {
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(253, 126, 20, 0.3)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = (e.clientX - tile.offsetLeft) + 'px';
+            ripple.style.top = (e.clientY - tile.offsetTop) + 'px';
+            ripple.style.width = ripple.style.height = '20px';
+            ripple.style.pointerEvents = 'none';
             
-            if (data.health && data.health.indexing) {
-                document.getElementById('indexedCases').textContent = 
-                    data.health.indexing.indexed_cases || '--';
+            tile.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+        
+        // Enhanced hover effects
+        tile.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-12px) scale(1.02)';
+            this.querySelector('.tile-pattern').style.animationDuration = '10s';
+        });
+        
+        tile.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.querySelector('.tile-pattern').style.animationDuration = '20s';
+        });
+    });
+    
+    // Quick action cards enhanced interactions
+    const quickActionCards = document.querySelectorAll('.quick-action-card');
+    quickActionCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-6px) scale(1.03)';
+            this.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.08)';
+        });
+    });
+    
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
             }
         }
-    } catch (error) {
-        console.log('Could not load dashboard stats:', error);
-    }
-}
+    `;
+    document.head.appendChild(style);
+});
 </script>
 {% endblock %}
