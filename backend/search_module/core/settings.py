@@ -21,6 +21,9 @@ PROJECT_ROOT = BASE_DIR.parent.parent  # Go up to the main project root
 import sys
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Add the law_information_project to Python path
+sys.path.insert(0, str(PROJECT_ROOT / "backend" / "law_information_project"))
+
 # Load environment variables
 PINECONE_API_KEY = config('PINECONE_API_KEY', default='')
 
@@ -53,6 +56,7 @@ INSTALLED_APPS = [
     "search_indexing",  # Search indexing app
     "search_benchmarking",  # Search benchmarking app
     "frontend",  # Frontend app
+    "law_information",  # Law Information Resource app
 ]
 
 MIDDLEWARE = [
@@ -101,8 +105,19 @@ DATABASES = {
         "PASSWORD": "zakirposgresql",  # Replace with your PostgreSQL password
         "HOST": "localhost",
         "PORT": "5432",
+    },
+    "law_information": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "law_information_db",
+        "USER": "postgres",
+        "PASSWORD": "zakirposgresql",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
+
+# Database routing for law_information app
+DATABASE_ROUTERS = ['core.database_router.LawInformationRouter']
 
 
 # Password validation

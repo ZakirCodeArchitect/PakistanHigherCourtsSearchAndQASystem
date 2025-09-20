@@ -92,10 +92,15 @@
                     </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0 footer-text">
-                        <i class="fas fa-code me-2"></i>
-                        Powered by Django & AI
-                    </p>
+                    <div class="footer-right">
+                        <p class="mb-0 footer-text d-inline me-3">
+                            <i class="fas fa-code me-2"></i>
+                            Powered by Django & AI
+                        </p>
+                        <a href="{% url 'admin_login' %}" class="admin-login-btn" title="Admin Login">
+                            <i class="fas fa-user-shield"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -380,6 +385,37 @@
 
     .footer-text i {
         color: var(--accent-orange);
+    }
+
+    /* Admin Login Button */
+    .admin-login-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: var(--accent-orange);
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(253, 126, 20, 0.2);
+    }
+
+    .admin-login-btn:hover {
+        background: #e55a00;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(253, 126, 20, 0.3);
+        text-decoration: none;
+    }
+
+    .footer-right {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 1rem;
     }
 
     /* Main Content */

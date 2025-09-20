@@ -1,0 +1,382 @@
+{% extends 'search/base.html' %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-users-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="admin-header-content">
+                        <h1 class="admin-dashboard-title">
+                            <i class="fas fa-users me-3"></i>
+                            User Management
+                        </h1>
+                        <p class="admin-dashboard-subtitle">Manage user accounts and permissions</p>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="admin-header-actions">
+                        <a href="{% url 'admin_add_user' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            Add New User
+                        </a>
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-list me-2"></i>
+                    All Users ({{ users|length }})
+                </h3>
+            </div>
+            
+            {% if users %}
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div class="user-details">
+                                                <h6 class="user-name">{{ user.get_full_name|default:user.username }}</h6>
+                                                <small class="user-username">@{{ user.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="email">{{ user.email|default:"Not provided" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="role-badge 
+                                            {% if user.is_superuser %}
+                                                role-admin
+                                            {% elif user.profile and user.profile.role == 'lawyer' %}
+                                                role-lawyer
+                                            {% elif user.profile and user.profile.role == 'general_public' %}
+                                                role-public
+                                            {% else %}
+                                                role-user
+                                            {% endif %}">
+                                            {% if user.is_superuser %}
+                                                <i class="fas fa-user-shield me-1"></i>
+                                                Admin
+                                            {% else %}
+                                                {% if user.profile %}
+                                                    {% if user.profile.role == 'lawyer' %}
+                                                        <i class="fas fa-gavel me-1"></i>
+                                                        Lawyer
+                                                    {% elif user.profile.role == 'general_public' %}
+                                                        <i class="fas fa-user me-1"></i>
+                                                        Public
+                                                    {% else %}
+                                                        <i class="fas fa-user me-1"></i>
+                                                        {{ user.profile.get_role_display|default:"User" }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    <i class="fas fa-user me-1"></i>
+                                                    User
+                                                {% endif %}
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="date">{{ user.date_joined|date:"M d, Y" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="date">
+                                            {% if user.last_login %}
+                                                {{ user.last_login|date:"M d, Y" }}
+                                            {% else %}
+                                                Never
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'admin_edit_user' user.id %}" class="btn btn-sm btn-outline-primary" title="Edit User">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'admin_delete_user' user.id %}" class="btn btn-sm btn-outline-danger" title="Delete User">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-data">
+                    <i class="fas fa-users fa-3x text-muted"></i>
+                    <h4>No Users Found</h4>
+                    <p>There are no users in the system yet.</p>
+                    <a href="{% url 'admin_add_user' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Add First User
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-users-container {
+    background: var(--secondary-gray);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.admin-header {
+    background: var(--primary-white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    margin-bottom: 2rem;
+}
+
+.admin-dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.admin-dashboard-subtitle {
+    color: var(--text-gray);
+    margin: 0.5rem 0 0 0;
+    font-size: 1.1rem;
+}
+
+.admin-section {
+    background: var(--primary-white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.admin-table thead th {
+    background: var(--secondary-gray);
+    color: var(--text-dark);
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border-light);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.admin-table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+    background: var(--secondary-gray);
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    font-size: 1rem;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.user-username {
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.email {
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Default role badge (Admin) */
+.role-badge.role-admin {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+/* Lawyer role badge */
+.role-badge.role-lawyer {
+    background: linear-gradient(135deg, rgba(253, 126, 20, 0.1), rgba(253, 126, 20, 0.2));
+    color: var(--accent-orange);
+    border: 1px solid rgba(253, 126, 20, 0.3);
+}
+
+/* Public role badge */
+.role-badge.role-public {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+/* User role badge */
+.role-badge.role-user {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.date {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-buttons .btn {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius-small);
+    transition: var(--transition);
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-1px);
+}
+
+.no-data {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-gray);
+}
+
+.no-data i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-data h4 {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.no-data p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.table-responsive {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .admin-header-actions {
+        margin-top: 1rem;
+        text-align: left !important;
+    }
+    
+    .admin-table {
+        font-size: 0.85rem;
+    }
+    
+    .admin-table thead th,
+    .admin-table tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .user-cell {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-avatar {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,445 @@
+{% extends 'search/base.html' %}
+
+{% block title %}Admin Dashboard - Pakistan's Higher Court System{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container">
+    <div class="container-fluid">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="admin-header-content">
+                        <h1 class="admin-dashboard-title">
+                            <i class="fas fa-tachometer-alt me-3"></i>
+                            Admin Dashboard
+                        </h1>
+                        <p class="admin-dashboard-subtitle">System administration and management</p>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="admin-header-actions">
+                        <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">{{ total_users }}</h3>
+                        <p class="stat-label">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">{{ admin_users }}</h3>
+                        <p class="stat-label">Admin Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">0</h3>
+                        <p class="stat-label">Benchmark Queries</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">0</h3>
+                        <p class="stat-label">Total Searches</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h3>
+                    <div class="quick-actions">
+                        <a href="{% url 'admin_users' %}" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Manage Users</h4>
+                                <p>Add, edit, or delete user accounts</p>
+                            </div>
+                        </a>
+                        <a href="{% url 'admin_law_info' %}" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Manage Law Information</h4>
+                                <p>Add, edit, or delete law information entries</p>
+                            </div>
+                        </a>
+                        <a href="{% url 'admin_benchmark' %}" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Query Benchmarks</h4>
+                                <p>Manage benchmark collection and queries</p>
+                            </div>
+                        </a>
+                        <a href="{% url 'benchmarking_module' %}" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>System Settings</h4>
+                                <p>Configure system parameters and settings</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-clock me-2"></i>
+                        Recent Users
+                    </h3>
+                    <div class="recent-users">
+                        {% if recent_users %}
+                            {% for user in recent_users %}
+                                <div class="user-item">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-info">
+                                        <h5>{{ user.get_full_name|default:user.username }}</h5>
+                                        <p>{{ user.email }}</p>
+                                        <small class="text-muted">Joined {{ user.date_joined|date:"M d, Y" }}</small>
+                                    </div>
+                                    <div class="user-actions">
+                                        <a href="{% url 'admin_edit_user' user.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-data">
+                                <i class="fas fa-users fa-3x text-muted"></i>
+                                <p>No users found</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        System Info
+                    </h3>
+                    <div class="system-info">
+                        <div class="info-item">
+                            <span class="info-label">System Version:</span>
+                            <span class="info-value">v1.0.0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Updated:</span>
+                            <span class="info-value">Today</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value status-active">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-dashboard-container {
+    background: var(--secondary-gray);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.admin-header {
+    background: var(--primary-white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    margin-bottom: 2rem;
+}
+
+.admin-dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.admin-dashboard-subtitle {
+    color: var(--text-gray);
+    margin: 0.5rem 0 0 0;
+    font-size: 1.1rem;
+}
+
+.stat-card {
+    background: var(--primary-white);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    display: flex;
+    align-items: center;
+    transition: var(--transition);
+    border-left: 4px solid var(--accent-orange);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-orange);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.stat-label {
+    color: var(--text-gray);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.admin-section {
+    background: var(--primary-white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.quick-action-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--secondary-gray);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.quick-action-card:hover {
+    background: var(--primary-white);
+    border-color: var(--accent-orange);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    color: inherit;
+    text-decoration: none;
+}
+
+.action-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--accent-orange);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    margin-right: 1rem;
+}
+
+.action-content h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.action-content p {
+    color: var(--text-gray);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.recent-users {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--secondary-gray);
+    border-radius: var(--border-radius-small);
+    transition: var(--transition);
+}
+
+.user-item:hover {
+    background: #f3f4f6;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-info h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.user-info p {
+    color: var(--text-gray);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.system-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--secondary-gray);
+    border-radius: var(--border-radius-small);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.info-value {
+    color: var(--text-gray);
+}
+
+.status-active {
+    color: var(--accent-green) !important;
+    font-weight: 600;
+}
+
+.no-data {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-gray);
+}
+
+.no-data p {
+    margin: 1rem 0 0 0;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}

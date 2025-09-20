@@ -1,0 +1,267 @@
+{% extends 'search/base.html' %}
+
+{% block title %}Admin Login - Pakistan's Higher Court System{% endblock %}
+
+{% block content %}
+<div class="admin-login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="admin-login-card">
+                    <div class="admin-login-header">
+                        <div class="admin-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h2 class="admin-title">Admin Login</h2>
+                        <p class="admin-subtitle">Access administrative controls</p>
+                    </div>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" class="admin-login-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-admin-login">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Login as Admin
+                        </button>
+                    </form>
+                    
+                    <div class="admin-login-footer">
+                        <a href="{% url 'landing_page' %}" class="back-to-site">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* CSS Variables for Admin Login */
+:root {
+    --primary-white: #ffffff;
+    --secondary-gray: #f8f9fa;
+    --accent-gray: #6c757d;
+    --text-dark: #212529;
+    --text-gray: #6c757d;
+    --accent-orange: #fd7e14;
+    --accent-blue: #0d6efd;
+    --accent-green: #198754;
+    --border-light: #e9ecef;
+    --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-medium: 0 4px 8px rgba(0,0,0,0.15);
+    --shadow-heavy: 0 8px 16px rgba(0,0,0,0.2);
+    --gradient-orange: linear-gradient(135deg, var(--accent-orange), #e55a00);
+    --border-radius: 12px;
+    --border-radius-small: 8px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-login-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+/* Ensure proper color inheritance */
+body {
+    color: var(--text-dark);
+    background-color: var(--primary-white);
+}
+
+.admin-login-card {
+    background: var(--primary-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-heavy);
+    padding: 2.5rem;
+    border: 1px solid var(--border-light);
+}
+
+.admin-login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.admin-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-orange);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 8px 20px rgba(253, 126, 20, 0.3);
+}
+
+.admin-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.admin-subtitle {
+    color: var(--text-gray);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.admin-login-form {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.input-group-text {
+    background: var(--secondary-gray);
+    border: 1px solid var(--border-light);
+    color: var(--text-gray);
+    border-right: none;
+    border-radius: var(--border-radius-small) 0 0 var(--border-radius-small);
+}
+
+.form-control {
+    border: 1px solid var(--border-light);
+    border-radius: 0 var(--border-radius-small) var(--border-radius-small) 0;
+    padding: 0.75rem;
+    transition: var(--transition);
+    background: var(--primary-white);
+    color: var(--text-dark);
+}
+
+.input-group {
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+}
+
+.form-control:focus {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+.btn-admin-login {
+    width: 100%;
+    background: var(--gradient-orange);
+    color: white !important;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--border-radius-small);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.2);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-admin-login:hover {
+    background: var(--accent-orange);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(253, 126, 20, 0.3);
+    color: white !important;
+}
+
+.btn-admin-login:focus {
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+    color: white !important;
+}
+
+.admin-login-footer {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.back-to-site {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.back-to-site:hover {
+    color: var(--accent-orange);
+    text-decoration: none;
+}
+
+.alert {
+    border-radius: var(--border-radius-small);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+@media (max-width: 576px) {
+    .admin-login-card {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+    
+    .admin-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .admin-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

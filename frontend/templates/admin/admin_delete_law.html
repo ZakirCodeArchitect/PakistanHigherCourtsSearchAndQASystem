@@ -1,0 +1,484 @@
+{% extends 'search/base.html' %}
+
+{% block title %}Delete Law - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="container">
+        <!-- Header Section -->
+        <div class="admin-header">
+            <div class="header-content">
+                <h1 class="admin-title">
+                    <i class="fas fa-trash me-3"></i>
+                    Delete Law Information
+                </h1>
+                <p class="admin-subtitle">Confirm deletion of law information</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'admin_law_info' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Laws
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Delete Confirmation -->
+        <div class="admin-section">
+            <div class="delete-warning">
+                <div class="warning-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="warning-title">Are you sure you want to delete this law?</h3>
+                <p class="warning-text">
+                    This action cannot be undone. The law information will be permanently removed from the system.
+                </p>
+            </div>
+
+            <!-- Law Details -->
+            <div class="law-details-card">
+                <div class="law-header">
+                    <div class="law-icon">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <div class="law-info">
+                        <h4 class="law-title">{{ law.title }}</h4>
+                        <p class="law-slug">Slug: {{ law.slug }}</p>
+                    </div>
+                </div>
+
+                <div class="law-details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Sections:</span>
+                        <span class="detail-value">
+                            {% if law.sections %}
+                                {% for section in law.sections %}
+                                    <span class="badge badge-section">{{ section }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">No sections</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Category:</span>
+                        <span class="detail-value">
+                            {% if law.category %}
+                                <span class="category-badge">{{ law.category.name }}</span>
+                            {% else %}
+                                <span class="text-muted">No category</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Jurisdiction:</span>
+                        <span class="detail-value">{{ law.jurisdiction }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">
+                            <span class="status-badge status-{% if law.is_active %}active{% else %}inactive{% endif %}">
+                                <i class="fas fa-circle me-1"></i>
+                                {% if law.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Created:</span>
+                        <span class="detail-value">{{ law.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Last Updated:</span>
+                        <span class="detail-value">{{ law.updated_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                </div>
+
+                <!-- Law Content Preview -->
+                <div class="law-content-preview">
+                    <h5 class="preview-title">Punishment Summary</h5>
+                    <p class="preview-text">{{ law.punishment_summary|truncatewords:30 }}</p>
+
+                    <h5 class="preview-title">Rights Summary</h5>
+                    <p class="preview-text">{{ law.rights_summary|truncatewords:30 }}</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="delete-actions">
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>
+                        Yes, Delete Law
+                    </button>
+                </form>
+                <a href="{% url 'admin_law_info' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* CSS Variables for Delete Law */
+:root {
+    --primary-white: #ffffff;
+    --secondary-gray: #f8f9fa;
+    --accent-gray: #6c757d;
+    --text-dark: #212529;
+    --text-gray: #6c757d;
+    --accent-orange: #fd7e14;
+    --accent-blue: #0d6efd;
+    --accent-green: #198754;
+    --accent-red: #dc3545;
+    --border-light: #e9ecef;
+    --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-medium: 0 4px 8px rgba(0,0,0,0.15);
+    --gradient-orange: linear-gradient(135deg, var(--accent-orange), #e55a00);
+    --border-radius: 12px;
+    --border-radius-small: 8px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 2rem 0;
+}
+
+.admin-header {
+    background: var(--primary-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.admin-title i {
+    color: var(--accent-red);
+}
+
+.admin-subtitle {
+    color: var(--text-gray);
+    margin: 0.5rem 0 0 0;
+    font-size: 1.1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.admin-section {
+    background: var(--primary-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.delete-warning {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+    border-radius: var(--border-radius);
+    border: 2px solid rgba(220, 53, 69, 0.2);
+    margin-bottom: 2rem;
+}
+
+.warning-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--accent-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.warning-title {
+    color: var(--accent-red);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.warning-text {
+    color: var(--text-gray);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.law-details-card {
+    background: var(--secondary-gray);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--accent-orange);
+}
+
+.law-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.law-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--gradient-orange);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+.law-info {
+    flex: 1;
+}
+
+.law-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.law-slug {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.law-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--primary-white);
+    border-radius: var(--border-radius-small);
+    border-left: 3px solid var(--accent-orange);
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.detail-value {
+    font-weight: 500;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-section {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.law-content-preview {
+    background: var(--primary-white);
+    border-radius: var(--border-radius-small);
+    padding: 1.5rem;
+}
+
+.preview-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.preview-text {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.delete-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.btn-danger {
+    background: var(--accent-red);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--border-radius-small);
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+    color: white;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--text-gray);
+    border: 2px solid var(--border-light);
+    transition: var(--transition);
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--border-radius-small);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--secondary-gray);
+    border-color: var(--accent-gray);
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+.alert {
+    border-radius: var(--border-radius-small);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .delete-actions {
+        flex-direction: column;
+    }
+    
+    .btn-danger,
+    .btn-outline-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .law-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .law-header {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .law-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
