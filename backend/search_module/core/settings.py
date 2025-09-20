@@ -15,6 +15,11 @@ from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent.parent  # Go up to the main project root
+
+# Add the root frontend directory to Python path
+import sys
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # Load environment variables
 PINECONE_API_KEY = config('PINECONE_API_KEY', default='')
@@ -66,7 +71,10 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [
+            BASE_DIR / "templates",
+            PROJECT_ROOT / "frontend" / "templates",  # New frontend templates
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -133,6 +141,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
+    PROJECT_ROOT / "frontend" / "static",  # New frontend static files
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 

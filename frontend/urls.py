@@ -1,24 +1,14 @@
-from django.urls import path
-from . import views
+# Frontend URLs Aggregator
+from django.urls import path, include
 
 app_name = 'frontend'
 
 urlpatterns = [
-    # Landing page
-    path('', views.landing_page, name='landing_page'),
+    # Search module URLs
+    path('', include('frontend.urls.search_urls')),
     
-    # Dashboard after login
-    path('dashboard/', views.dashboard, name='dashboard'),
-    
-    # Search module
-    path('search/', views.search_module, name='search_module'),
-    
-    # Authentication
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    
-    # API endpoints for frontend
-    path('api/search/', views.search_api, name='search_api'),
-    path('api/suggestions/', views.suggestions_api, name='suggestions_api'),
-    path('api/filters/', views.filters_api, name='filters_api'),
+    # Other module URLs will be added as they are created
+    # path('qa/', include('frontend.urls.qa_urls')),
+    # path('law-info/', include('frontend.urls.law_info_urls')),
+    # path('benchmarking/', include('frontend.urls.benchmarking_urls')),
 ]

@@ -70,7 +70,7 @@ class LawSearchView(View):
             'total_results': laws.count() if query else 0,
         }
         
-        return render(request, 'law_information/search.html', context)
+        return render(request, 'law_info/search.html', context)
 
     def _apply_search_filters(self, queryset, query, search_type):
         """Apply enhanced search filters with Full-Text Search, ranking, and synonyms"""
@@ -147,7 +147,7 @@ class LawDetailView(View):
             'featured_laws': featured_laws,
         }
         
-        return render(request, 'law_information/detail.html', context)
+        return render(request, 'law_info/detail.html', context)
     
     def _get_related_laws(self, law):
         """Get related laws based on tags and jurisdiction"""
@@ -344,4 +344,4 @@ def law_home_view(request):
         'total_categories_count': total_categories_count,
     }
     
-    return render(request, 'law_information/home.html', context)
+    return render(request, 'law_info/home.html', context)

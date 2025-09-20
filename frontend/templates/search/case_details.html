@@ -1,0 +1,1184 @@
+{% extends 'search/base.html' %}
+{% load static %}
+
+{% block title %}Case Details - Pakistan Higher Courts Search & QA System{% endblock %}
+
+{% block content %}
+<div class="case-details-container">
+    <!-- Professional Header -->
+    <div class="case-header">
+        <div class="container">
+            <div class="row align-items-center py-4">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'search_module' %}">Legal Cases Search</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Case Details</li>
+                        </ol>
+                    </nav>
+                    <div class="case-title-section">
+                        <h1 class="case-title">
+                            <i class="fas fa-balance-scale me-3"></i>
+                            Case Details
+                        </h1>
+                        <p class="case-subtitle">
+                            Comprehensive legal case information and documentation
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'search_module' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Search
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        {% if case.error %}
+            <!-- Error State -->
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error:</strong> {{ case.error }}
+            </div>
+            <div class="text-center py-5">
+                <a href="{% url 'search_module' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Return to Search
+                </a>
+            </div>
+        {% else %}
+            <!-- Professional Case Layout -->
+            <div class="row">
+                <!-- Main Content Area -->
+                <div class="col-lg-8">
+                    <!-- Case Overview Section -->
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Case Overview
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="case-overview-grid">
+                                <div class="overview-item">
+                                    <div class="overview-label">Case Number</div>
+                                    <div class="overview-value">{{ case.case_number|default:"Not available" }}</div>
+                                </div>
+                                <div class="overview-item">
+                                    <div class="overview-label">SR Number</div>
+                                    <div class="overview-value">{{ case.sr_number|default:"Not available" }}</div>
+                                </div>
+                                <div class="overview-item">
+                                    <div class="overview-label">Court</div>
+                                    <div class="overview-value">{{ case.court|default:"Not available" }}</div>
+                                </div>
+                                <div class="overview-item">
+                                    <div class="overview-label">Status</div>
+                                    <div class="overview-value">
+                                        <span class="status-badge status-{{ case.status|lower|default:'unknown' }}">
+                                            {{ case.status|default:"Unknown" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="overview-item">
+                                    <div class="overview-label">Institution Date</div>
+                                    <div class="overview-value">{{ case.institution_date|default:"Not available" }}</div>
+                                </div>
+                                <div class="overview-item">
+                                    <div class="overview-label">Hearing Date</div>
+                                    <div class="overview-value">{{ case.hearing_date|default:"Not available" }}</div>
+                                </div>
+                                <div class="overview-item">
+                                    <div class="overview-label">Bench</div>
+                                    <div class="overview-value">{{ case.bench|default:"Not available" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Title Section -->
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-file-contract me-2"></i>
+                                Case Title & Parties
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="case-title-content">
+                                <h3 class="case-title-text">{{ case.case_title|default:"No title available" }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Details Section -->
+                    {% if case.case_detail %}
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-gavel me-2"></i>
+                                Legal Details
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="legal-details-grid">
+                                <div class="legal-item">
+                                    <div class="legal-label">Case Stage</div>
+                                    <div class="legal-value">{{ case.case_detail.case_stage|default:"Not available" }}</div>
+                                </div>
+                                <div class="legal-item">
+                                    <div class="legal-label">Short Order</div>
+                                    <div class="legal-value">{{ case.case_detail.short_order|default:"Not available" }}</div>
+                                </div>
+                                <div class="legal-item">
+                                    <div class="legal-label">Disposal Date</div>
+                                    <div class="legal-value">{{ case.case_detail.case_disposal_date|default:"Not available" }}</div>
+                                </div>
+                                <div class="legal-item full-width">
+                                    <div class="legal-label">Case Description</div>
+                                    <div class="legal-value">{{ case.case_detail.case_description|default:"Not available" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Representation Section -->
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-user-tie me-2"></i>
+                                Legal Representation
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="representation-grid">
+                                <div class="representation-item">
+                                    <div class="representation-label">Petitioner's Advocates</div>
+                                    <div class="representation-value">{{ case.case_detail.advocates_petitioner|default:"Not available" }}</div>
+                                </div>
+                                <div class="representation-item">
+                                    <div class="representation-label">Respondent's Advocates</div>
+                                    <div class="representation-value">{{ case.case_detail.advocates_respondent|default:"Not available" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Proceedings Section -->
+                    {% if case.case_cms_data and case.case_cms_data|length > 0 %}
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                Civil Miscellaneous Applications
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="proceedings-table-container">
+                                <table class="proceedings-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SR Number</th>
+                                            <th>Application Type</th>
+                                            <th>Institution Date</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cm in case.case_cms_data %}
+                                        <tr>
+                                            <td class="sr-number">{{ cm.sr_number|default:"N/A" }}</td>
+                                            <td class="application-type">{{ cm.cm|default:"N/A" }}</td>
+                                            <td class="institution-date">{{ cm.institution|default:"N/A" }}</td>
+                                            <td class="source">
+                                                <span class="source-badge">{{ cm.source_type|default:"main" }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Court Orders Section -->
+                    {% if case.orders_data and case.orders_data|length > 0 %}
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-gavel me-2"></i>
+                                Court Orders ({{ case.orders_data|length }})
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="document-info-notice">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Document Availability:</strong> Order documents are available for viewing and downloading. 
+                                <strong>Note:</strong> Due to the nature of legal proceedings, some orders may share the same underlying document. 
+                                This is normal and each order represents a distinct legal action or decision.
+                                <button class="btn btn-sm btn-outline-primary ms-3" onclick="refreshOrderInfo()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh Document Info
+                                </button>
+                            </div>
+                            
+                            <div class="orders-list">
+                                {% for order in case.orders_data %}
+                                <div class="order-item">
+                                    <div class="order-header">
+                                        <div class="order-number">Order #{{ order.sr_number }}</div>
+                                        <div class="order-date">{{ order.hearing_date|default:"Not available" }}</div>
+                                    </div>
+                                    <div class="order-details">
+                                        <div class="order-detail-item">
+                                            <span class="detail-label">Bench:</span>
+                                            <span class="detail-value">{{ order.bench|default:"Not available" }}</span>
+                                        </div>
+                                        <div class="order-detail-item">
+                                            <span class="detail-label">Stage:</span>
+                                            <span class="detail-value">{{ order.case_stage|default:"Not available" }}</span>
+                                        </div>
+                                        {% if order.short_order %}
+                                        <div class="order-detail-item full-width">
+                                            <span class="detail-label">Order:</span>
+                                            <span class="detail-value">{{ order.short_order }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="order-actions">
+                                        <div class="document-status">
+                                            <small class="text-muted">
+                                                <i class="fas fa-file-pdf me-1"></i>
+                                                <span id="doc-info-{{ order.id }}">Loading document info...</span>
+                                            </small>
+                                        </div>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDocument({{ case_id }}, {{ order.id }})">
+                                                <i class="fas fa-eye me-1"></i>View Document
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="downloadOrderDocument({{ case_id }}, {{ order.id }})">
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- FIR Information (for criminal cases) -->
+                    {% if case.case_detail and case.case_detail.fir_number %}
+                    <div class="case-section mb-4">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                FIR Information
+                            </h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="fir-details-grid">
+                                <div class="fir-item">
+                                    <div class="fir-label">FIR Number</div>
+                                    <div class="fir-value">{{ case.case_detail.fir_number }}</div>
+                                </div>
+                                <div class="fir-item">
+                                    <div class="fir-label">FIR Date</div>
+                                    <div class="fir-value">{{ case.case_detail.fir_date|default:"Not available" }}</div>
+                                </div>
+                                <div class="fir-item">
+                                    <div class="fir-label">Police Station</div>
+                                    <div class="fir-value">{{ case.case_detail.police_station|default:"Not available" }}</div>
+                                </div>
+                                <div class="fir-item">
+                                    <div class="fir-label">Under Section</div>
+                                    <div class="fir-value">{{ case.case_detail.under_section|default:"Not available" }}</div>
+                                </div>
+                                <div class="fir-item">
+                                    <div class="fir-label">Accused Name</div>
+                                    <div class="fir-value">{{ case.case_detail.name_of_accused|default:"Not available" }}</div>
+                                </div>
+                                <div class="fir-item full-width">
+                                    <div class="fir-label">Incident Description</div>
+                                    <div class="fir-value">{{ case.case_detail.incident|default:"Not available" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    
+                </div>
+
+                <!-- Professional Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Case Actions -->
+                    <div class="sidebar-section mb-4">
+                        <div class="sidebar-header">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-tools me-2"></i>
+                                Case Actions
+                            </h3>
+                        </div>
+                        <div class="sidebar-content">
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="viewCaseHistory({{ case_id }})">
+                                    <i class="fas fa-history me-2"></i>
+                                    <span>View Case History</span>
+                                </button>
+                                {% if case.judgement_data %}
+                                <button class="action-btn success" onclick="viewJudgement({{ case_id }})">
+                                    <i class="fas fa-file-pdf me-2"></i>
+                                    <span>View Judgement</span>
+                                </button>
+                                {% endif %}
+                                <button class="action-btn info" onclick="downloadCase({{ case_id }})">
+                                    <i class="fas fa-download me-2"></i>
+                                    <span>Download Case</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Summary -->
+                    <div class="sidebar-section mb-4">
+                        <div class="sidebar-header">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Case Summary
+                            </h3>
+                        </div>
+                        <div class="sidebar-content">
+                            <div class="summary-stats">
+                                <div class="stat-row">
+                                    <div class="stat-label">Court Orders</div>
+                                    <div class="stat-value">{{ case.orders_data|length|default:"0" }}</div>
+                                </div>
+                                <div class="stat-row">
+                                    <div class="stat-label">CM Applications</div>
+                                    <div class="stat-value">{{ case.case_cms_data|length|default:"0" }}</div>
+                                </div>
+                                <div class="stat-row">
+                                    <div class="stat-label">Comments</div>
+                                    <div class="stat-value">{{ case.comments_data|length|default:"0" }}</div>
+                                </div>
+                                <div class="stat-row">
+                                    <div class="stat-label">Judgement</div>
+                                    <div class="stat-value">
+                                        <span class="status-indicator {{ case.judgement_data|yesno:'available,unavailable' }}">
+                                            {{ case.judgement_data|yesno:"Available,Not Available" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Cases Search -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-header">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-search me-2"></i>
+                                Find Related Cases
+                            </h3>
+                        </div>
+                        <div class="sidebar-content">
+                            <p class="search-description">Search for similar cases based on:</p>
+                            <div class="search-options">
+                                <button class="search-option" onclick="findSimilarCases('{{ case.case_number|default:"" }}')">
+                                    <i class="fas fa-hashtag me-2"></i>
+                                    <span>Same Case Number</span>
+                                </button>
+                                <button class="search-option" onclick="findSimilarCases('{{ case.case_title|default:"" }}')">
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    <span>Similar Title</span>
+                                </button>
+                                <button class="search-option" onclick="findSimilarCases('{{ case.case_detail.under_section|default:"" }}')">
+                                    <i class="fas fa-book me-2"></i>
+                                    <span>Same Legal Section</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Professional Design System */
+:root {
+    --primary-color: #1e3a8a;
+    --primary-light: #3b82f6;
+    --secondary-color: #64748b;
+    --accent-color: #0f172a;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --background-light: #f8fafc;
+    --background-white: #ffffff;
+    --success-color: #059669;
+    --warning-color: #d97706;
+    --error-color: #dc2626;
+    --info-color: #0891b2;
+}
+
+/* Main Container */
+.case-details-container {
+    background-color: var(--background-light);
+    min-height: calc(100vh - 200px);
+}
+
+/* Professional Header */
+.case-header {
+    background: var(--background-white);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.case-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.case-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0 0;
+}
+
+/* Section Styling */
+.case-section {
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.section-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.section-content {
+    padding: 1.5rem;
+}
+
+/* Case Overview Grid */
+.case-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.overview-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.overview-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.overview-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-decided {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-unknown {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+/* Case Title */
+.case-title-content {
+    padding: 1rem 0;
+}
+
+.case-title-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Legal Details Grid */
+.legal-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.legal-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legal-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.legal-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.legal-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Representation Grid */
+.representation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.representation-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.representation-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.representation-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Proceedings Table */
+.proceedings-table-container {
+    overflow-x: auto;
+}
+
+.proceedings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.proceedings-table th {
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+.proceedings-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.proceedings-table tr:hover {
+    background-color: var(--background-light);
+}
+
+.source-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--background-light);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Orders List */
+.document-info-notice {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.order-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: var(--background-white);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-number {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.order-date {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.order-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.order-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.order-detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-value {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.order-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.document-status {
+    flex: 1;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* FIR Details Grid */
+.fir-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.fir-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.fir-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.fir-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fir-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Sidebar Styling */
+.sidebar-section {
+    background: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.sidebar-header {
+    background: var(--secondary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.sidebar-content {
+    padding: 1.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-white);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    background: var(--background-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.action-btn.primary:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.action-btn.success:hover {
+    background: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+.action-btn.info:hover {
+    background: var(--info-color);
+    color: white;
+    border-color: var(--info-color);
+}
+
+/* Summary Stats */
+.summary-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.status-indicator {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-indicator.available {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-indicator.unavailable {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+/* Search Options */
+.search-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.search-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.search-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-white);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.search-option:hover {
+    background: var(--background-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .case-overview-grid,
+    .legal-details-grid,
+    .representation-grid,
+    .fir-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .action-buttons {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .order-details {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function viewCaseHistory(caseId) {
+    // TODO: Implement case history view
+    alert('Viewing case history for case ' + caseId);
+}
+
+async function viewJudgement(caseId) {
+    try {
+        const response = await fetch('/api/search/judgement/' + caseId + '/');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.pdf_url) {
+                // Open PDF in new tab
+                window.open(data.pdf_url, '_blank');
+            } else {
+                alert('No PDF URL available for this judgement');
+            }
+        } else {
+            const errorData = await response.json();
+            alert('Error: ' + (errorData.error || 'Failed to load judgement'));
+        }
+    } catch (error) {
+        console.error('Error viewing judgement:', error);
+        alert('Failed to load judgement. Please try again.');
+    }
+}
+
+async function downloadCase(caseId) {
+    try {
+        // Get case documents first
+        const response = await fetch('/api/search/case/' + caseId + '/');
+        if (response.ok) {
+            const caseData = await response.json();
+            const documents = caseData.case_documents || [];
+            
+            if (documents.length > 0) {
+                // Create a zip file or download multiple documents
+                alert('Found ' + documents.length + ' documents. Download functionality will be implemented.');
+                
+                // For now, download the first document if available
+                if (documents[0] && documents[0].document_id) {
+                    window.open('/api/search/document/' + caseId + '/' + documents[0].document_id + '/download/?download=true', '_blank');
+                }
+            } else {
+                alert('No documents available for download');
+            }
+        } else {
+            alert('Failed to load case documents');
+        }
+    } catch (error) {
+        console.error('Error downloading case:', error);
+        alert('Failed to download case. Please try again.');
+    }
+}
+
+async function viewOrderDocument(caseId, orderId) {
+    try {
+        console.log('Viewing order document for case ' + caseId + ', order ' + orderId + '...');
+        // Use the new order document API to get specific document for this order
+        const response = await fetch('/api/search/order/' + caseId + '/' + orderId + '/document/');
+        console.log('API response status:', response.status);
+        
+        if (response.ok) {
+            const orderDocData = await response.json();
+            console.log('Order document data:', orderDocData);
+            
+            if (orderDocData.document_id) {
+                // For viewing, use the download URL which serves the PDF file inline
+                // The download URL serves the PDF with proper content type for viewing
+                const viewUrl = orderDocData.download_url;
+                console.log('Opening document for viewing:', viewUrl);
+                window.open(viewUrl, '_blank');
+            } else {
+                alert('No document available for this order');
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('API error:', errorData);
+            alert('Error: ' + (errorData.error || 'Failed to load order document'));
+        }
+    } catch (error) {
+        console.error('Error viewing order document:', error);
+        alert('Failed to load order document. Please try again.');
+    }
+}
+
+async function downloadOrderDocument(caseId, orderId) {
+    try {
+        console.log('Downloading order document for case ' + caseId + ', order ' + orderId + '...');
+        // Use the new order document API to get specific document for this order
+        const response = await fetch('/api/search/order/' + caseId + '/' + orderId + '/document/');
+        console.log('API response status:', response.status);
+        
+        if (response.ok) {
+            const orderDocData = await response.json();
+            console.log('Order document data:', orderDocData);
+            
+            if (orderDocData.document_id) {
+                // Create a temporary link element for download
+                const link = document.createElement('a');
+                link.href = orderDocData.download_url + '?download=true';
+                link.download = orderDocData.document_name || 'order_document.pdf'; // Use actual filename
+                link.target = '_blank';
+                link.style.display = 'none'; // Hide the link
+                console.log('Downloading document:', orderDocData.download_url + '?download=true');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert('No document available for this order');
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('API error:', errorData);
+            alert('Error: ' + (errorData.error || 'Failed to load order document'));
+        }
+    } catch (error) {
+        console.error('Error downloading order document:', error);
+        alert('Failed to download order document. Please try again.');
+    }
+}
+
+function findSimilarCases(query) {
+    if (query && query.trim()) {
+        // Redirect to search with the query
+        window.location.href = '{% url "search:search_module" %}?q=' + encodeURIComponent(query.trim());
+    } else {
+        alert('No query available for similar case search');
+    }
+}
+
+// Function to load document information for all orders
+async function loadOrderDocumentInfo() {
+    const caseId = {{ case_id }};
+    const orders = document.querySelectorAll('.order-item');
+    
+    console.log('Found ' + orders.length + ' order elements');
+    
+    for (const order of orders) {
+        // Find the view button to get the order ID
+        const viewButton = order.querySelector('button[onclick*="viewOrderDocument"]');
+        if (!viewButton) {
+            console.warn('No view button found for order:', order);
+            continue;
+        }
+        
+        // Extract order ID from onclick attribute more reliably
+        const onclickAttr = viewButton.getAttribute('onclick');
+        console.log('Button onclick attribute:', onclickAttr);
+        
+        const orderIdMatch = onclickAttr.match(/viewOrderDocument\([^,]+,\s*(\d+)\)/);
+        if (!orderIdMatch) {
+            console.warn('Could not extract order ID from onclick:', onclickAttr);
+            continue;
+        }
+        
+        const orderId = orderIdMatch[1];
+        console.log('Processing order ID: ' + orderId);
+        
+        const docInfoSpan = order.querySelector('#doc-info-' + orderId);
+        if (!docInfoSpan) {
+            console.warn('No doc-info span found for order ' + orderId);
+            continue;
+        }
+        
+        try {
+            console.log('Loading document info for order ' + orderId + '...');
+            const response = await fetch('/api/search/order/' + caseId + '/' + orderId + '/document/');
+            if (response.ok) {
+                const orderDocData = await response.json();
+                const documentName = orderDocData.document_name || 'Unknown Document';
+                const mappingMethod = orderDocData.mapping_method || 'unknown';
+                
+                // Show document info with mapping method
+                let infoText = documentName.substring(0, 40) + '...';
+                if (mappingMethod === 'smart_match') {
+                    infoText += ' (Smart Match)';
+                } else if (mappingMethod === 'fallback') {
+                    infoText += ' (Fallback)';
+                }
+                
+                docInfoSpan.textContent = infoText;
+                docInfoSpan.className = 'text-success';
+                console.log('Document info loaded for order ' + orderId + ':', infoText);
+            } else {
+                const errorData = await response.json();
+                console.error('API error for order ' + orderId + ':', errorData);
+                docInfoSpan.textContent = 'Document not available';
+                docInfoSpan.className = 'text-danger';
+            }
+        } catch (error) {
+            console.error('Error loading document info for order ' + orderId + ':', error);
+            docInfoSpan.textContent = 'Error loading info';
+            docInfoSpan.className = 'text-warning';
+        }
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing order document info...');
+    // Add a small delay to ensure all elements are properly rendered
+    setTimeout(function() {
+        loadOrderDocumentInfo();
+    }, 100);
+    
+    // Also try again after a longer delay in case of any rendering issues
+    setTimeout(function() {
+        console.log('Retrying order document info loading...');
+        loadOrderDocumentInfo();
+    }, 1000);
+});
+
+// Add a manual refresh function for debugging
+window.refreshOrderInfo = function() {
+    console.log('Manual refresh of order document info...');
+    loadOrderDocumentInfo();
+};
+</script>
+{% endblock %}
