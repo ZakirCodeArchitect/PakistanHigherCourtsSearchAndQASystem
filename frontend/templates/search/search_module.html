@@ -1,300 +1,573 @@
 {% extends 'search/base.html' %}
+
 {% load static %}
+
+
 
 {% block title %}Legal Cases Search - Pakistan Higher Courts{% endblock %}
 
+
+
 {% block content %}
+
 {% csrf_token %}
 
-<!-- Professional Header Section -->
-<div class="search-header-section">
-        <div class="container">
-        <div class="row align-items-center py-4">
-                <div class="col-md-8">
-                <div class="header-content">
-                                    <h1 class="page-title">Legal Cases Search - Dynamic Quick Search</h1>
-                <p class="page-subtitle">Comprehensive case law research and analysis platform</p>
+
+
+<!-- Simple Header Section -->
+<section class="search-hero-section">
+    <div class="container">
+        <div class="search-header-content">
+            <h1 class="search-title">
+                Legal Cases Search
+                <span class="highlight-text">Platform</span>
+            </h1>
+            <p class="search-subtitle">
+                Comprehensive case law research with AI-powered semantic understanding and hybrid indexing
+            </p>
+        </div>
+    </div>
+</section>
+
+
+
+<div class="container">
+
+        <div class="row mt-4">
+
+        <!-- Search Methodology Panel -->
+        <div class="col-lg-3">
+            <div class="search-methodology-panel">
+                <div class="panel-header">
+                    <h6 class="panel-title">Search Methodology</h6>
+                    <div class="panel-subtitle">Choose your search approach</div>
                 </div>
-            </div>
-            <div class="col-md-4 text-end">
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Dashboard
-                    </a>
+
+                <!-- Comprehensive Search (Hybrid) -->
+                <div class="methodology-option active" data-mode="hybrid">
+                    <div class="option-card">
+                        <div class="option-header">
+                            <div class="option-icon">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
+                            <div class="option-title">
+                                <h6>Comprehensive Search</h6>
+                                <span class="option-subtitle">Hybrid Analysis</span>
+                            </div>
+                        </div>
+                        <p class="option-description">Combines semantic understanding with exact text matching for optimal results</p>
+                        <div class="option-status">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Recommended</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Citation Lookup (Lexical) -->
+                <div class="methodology-option" data-mode="lexical">
+                    <div class="option-card">
+                        <div class="option-header">
+                            <div class="option-icon">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <div class="option-title">
+                                <h6>Citation Lookup</h6>
+                                <span class="option-subtitle">Lexical Search</span>
+                            </div>
+                        </div>
+                        <p class="option-description">Precise matching for case numbers, legal references, and statutory citations</p>
+                        <div class="option-status">
+                            <i class="fas fa-bullseye"></i>
+                            <span>Precise</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conceptual Search (Semantic) -->
+                <div class="methodology-option" data-mode="semantic">
+                    <div class="option-card">
+                        <div class="option-header">
+                            <div class="option-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="option-title">
+                                <h6>Conceptual Search</h6>
+                                <span class="option-subtitle">Semantic Analysis</span>
+                            </div>
+                        </div>
+                        <p class="option-description">Contextual understanding to find related cases and legal concepts</p>
+                        <div class="option-status">
+                            <i class="fas fa-brain"></i>
+                            <span>Intelligent</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-<div class="container">
-        <div class="row">
-        <!-- Search Types Navigation -->
-        <div class="col-lg-3">
-            <div class="search-types-panel">
-                <h6 class="panel-title">Search Methodology</h6>
-                    
-                    <!-- Smart Search (Hybrid) -->
-                <div class="search-type-option active" data-mode="hybrid">
-                    <div class="option-header">
-                        <div class="option-icon">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                        <div class="option-title">
-                            <h6>Comprehensive Search</h6>
-                            <span class="option-subtitle">Hybrid Analysis</span>
-                        </div>
-                    </div>
-                    <p class="option-description">Combines semantic understanding with exact text matching for optimal results</p>
-                    </div>
-                    
-                    <!-- Citation Lookup (Lexical) -->
-                <div class="search-type-option" data-mode="lexical">
-                    <div class="option-header">
-                        <div class="option-icon">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <div class="option-title">
-                            <h6>Citation Lookup</h6>
-                            <span class="option-subtitle">Lexical Search</span>
-                        </div>
-                    </div>
-                    <p class="option-description">Precise matching for case numbers, legal references, and statutory citations</p>
-                    </div>
-                    
-                    <!-- Meaning Search (Semantic) -->
-                <div class="search-type-option" data-mode="semantic">
-                    <div class="option-header">
-                        <div class="option-icon">
-                                <i class="fas fa-lightbulb"></i>
-                        </div>
-                        <div class="option-title">
-                            <h6>Conceptual Search</h6>
-                            <span class="option-subtitle">Semantic Analysis</span>
-                        </div>
-                    </div>
-                    <p class="option-description">Contextual understanding to find related cases and legal concepts</p>
-                    </div>
-                </div>
-            </div>
             
+
         <!-- Main Search Interface -->
-            <div class="col-lg-9">
-            <div class="search-interface-panel">
+        <div class="col-lg-9">
+            <div class="search-interface-container">
                 <!-- Search Input Section -->
                 <div class="search-input-section">
-                    <div class="search-form">
-                        <div class="input-group search-input-container">
+                    <div class="search-form-container">
+                        <div class="search-input-group">
+                            <div class="input-container">
                                 <input type="text" 
                                        id="searchQuery" 
-                                   class="form-control search-input" 
-                                   placeholder="Enter case number, legal citation, or search terms..."
+                                       class="modern-search-input" 
+                                       placeholder="Enter case number, legal citation, or search terms..."
                                        autocomplete="off"
                                        onkeyup="handleSearchInput(event)"
                                        onfocus="showSuggestions()"
                                        onblur="handleSearchBlur(event)">
-                            <button class="btn btn-primary search-btn" type="button" onclick="performSearch()">
-                                <i class="fas fa-search me-2"></i>Search
+                                <div class="input-decoration">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                            </div>
+                            <button class="btn-modern-primary search-button" type="button" onclick="performSearch()">
+                                <span>Search</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                            
+
+                            <!-- Suggestions Dropdown -->
+
+                            <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;">
+
+                                <div class="suggestions-header">
+
+                                    <span class="suggestions-title">Suggestions</span>
+
+                                    <span id="suggestionsType" class="suggestions-type"></span>
+
+                                </div>
+
+                                <div id="suggestionsList" class="suggestions-list">
+
+                                    <!-- Suggestions will be populated here -->
+
+                                </div>
+
+                                <div class="suggestions-footer">
+
+                                    <small class="text-muted">
+
+                                        <i class="fas fa-keyboard me-1"></i>
+
+                                        Use ↑↓ to navigate, Enter to select, Esc to close
+
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        
+
+                    <!-- Quick Search Examples -->
+                    <div class="quick-searches-section">
+                        <div class="section-header">
+                            <h6 class="section-title">Quick searches:</h6>
+                        </div>
+                        <div class="quick-search-tags">
+
+                            
+
+                            <!-- Lexical Search Examples (Citation Lookup) -->
+                            <div class="search-tag-group" id="lexical-examples" style="display: none;">
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('PPC 302')">
+                                    <i class="fas fa-book"></i>
+                                    <span>PPC 302</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('PLJ 2023')">
+                                    <i class="fas fa-book"></i>
+                                    <span>PLJ 2023</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('2023 SCMR 123')">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>2023 SCMR 123</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('PLD 2023 SC 45')">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>PLD 2023 SC 45</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('Crl. Appeal 5/2025')">
+                                    <i class="fas fa-balance-scale"></i>
+                                    <span>Crl. Appeal 5/2025</span>
                                 </button>
                             </div>
-                            
-                            <!-- Suggestions Dropdown -->
-                            <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;">
-                                <div class="suggestions-header">
-                                    <span class="suggestions-title">Suggestions</span>
-                                    <span id="suggestionsType" class="suggestions-type"></span>
-                                </div>
-                                <div id="suggestionsList" class="suggestions-list">
-                                    <!-- Suggestions will be populated here -->
-                                </div>
-                                <div class="suggestions-footer">
-                                    <small class="text-muted">
-                                        <i class="fas fa-keyboard me-1"></i>
-                                        Use ↑↓ to navigate, Enter to select, Esc to close
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    <!-- Search Examples -->
-                    <div class="search-examples">
-                        <span class="examples-label">Quick searches:</span>
-                        <!-- Dynamic Query Examples based on Search Type -->
-                        <div class="example-links">
-                            
-                            <!-- Lexical Search Examples (Citation Lookup) -->
-                            <div class="search-examples" id="lexical-examples" style="display: none;">
-                                <a href="#" onclick="setQueryAndSearch('PPC 302')" class="example-link">PPC 302</a>
-                                <a href="#" onclick="setQueryAndSearch('PLJ 2023')" class="example-link">PLJ 2023</a>
-                                <a href="#" onclick="setQueryAndSearch('2023 SCMR 123')" class="example-link">2023 SCMR 123</a>
-                                <a href="#" onclick="setQueryAndSearch('PLD 2023 SC 45')" class="example-link">PLD 2023 SC 45</a>
-                                <a href="#" onclick="setQueryAndSearch('Crl. Appeal 5/2025')" class="example-link">Crl. Appeal 5/2025</a>
-                            </div>
-                            
+
                             <!-- Semantic Search Examples (Conceptual) -->
-                            <div class="search-examples" id="semantic-examples" style="display: none;">
-                                <a href="#" onclick="setQueryAndSearch('constitutional rights')" class="example-link">Constitutional Rights</a>
-                                <a href="#" onclick="setQueryAndSearch('criminal procedure')" class="example-link">Criminal Procedure</a>
-                                <a href="#" onclick="setQueryAndSearch('family law')" class="example-link">Family Law</a>
-                                <a href="#" onclick="setQueryAndSearch('property disputes')" class="example-link">Property Disputes</a>
-                                <a href="#" onclick="setQueryAndSearch('contract law')" class="example-link">Contract Law</a>
+                            <div class="search-tag-group" id="semantic-examples" style="display: none;">
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('constitutional rights')">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>Constitutional Rights</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('criminal procedure')">
+                                    <i class="fas fa-handcuffs"></i>
+                                    <span>Criminal Procedure</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('family law')">
+                                    <i class="fas fa-heart"></i>
+                                    <span>Family Law</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('property disputes')">
+                                    <i class="fas fa-home"></i>
+                                    <span>Property Disputes</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('contract law')">
+                                    <i class="fas fa-file-contract"></i>
+                                    <span>Contract Law</span>
+                                </button>
                             </div>
-                            
+
                             <!-- Hybrid Search Examples (Comprehensive) -->
-                            <div class="search-examples" id="hybrid-examples">
-                                <a href="#" onclick="setQueryAndSearch('murder case')" class="example-link">Murder Cases</a>
-                                <a href="#" onclick="setQueryAndSearch('bail application')" class="example-link">Bail Applications</a>
-                                <a href="#" onclick="setQueryAndSearch('constitutional petition')" class="example-link">Constitutional Petitions</a>
-                                <a href="#" onclick="setQueryAndSearch('habeas corpus')" class="example-link">Habeas Corpus</a>
-                                <a href="#" onclick="setQueryAndSearch('tax appeal')" class="example-link">Tax Appeals</a>
+                            <div class="search-tag-group" id="hybrid-examples">
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('murder case')">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Murder Cases</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('bail application')">
+                                    <i class="fas fa-unlock"></i>
+                                    <span>Bail Applications</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('constitutional petition')">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>Constitutional Petitions</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('habeas corpus')">
+                                    <i class="fas fa-user-check"></i>
+                                    <span>Habeas Corpus</span>
+                                </button>
+                                <button class="quick-search-tag" onclick="setQueryAndSearch('tax appeal')">
+                                    <i class="fas fa-receipt"></i>
+                                    <span>Tax Appeals</span>
+                                </button>
                             </div>
                         </div>
                     </div>
+
                     
+
                     
+
                     
+
                     <!-- Results Configuration -->
-                    <div class="results-config">
+                    <div class="results-config-section">
                         <div class="config-item">
-                            <label for="resultsPerPage" class="config-label">Results per page:</label>
-                            <select id="resultsPerPage" class="form-select config-select">
-                                <option value="10">10</option>
-                                <option value="20">20</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
+                            <label for="resultsPerPage" class="config-label">
+                                <i class="fas fa-list me-2"></i>
+                                Results per page
+                            </label>
+                            <select id="resultsPerPage" class="modern-select">
+                                <option value="10">10 results</option>
+                                <option value="20">20 results</option>
+                                <option value="50">50 results</option>
+                                <option value="100">100 results</option>
                             </select>
                         </div>
                     </div>
+
                         </div>
+
                         
+
                 <!-- Loading State -->
+
                 <div id="loadingState" class="loading-state" style="display: none;">
+
                     <div class="loading-content">
+
                         <div class="spinner-border text-primary" role="status">
+
                             <span class="visually-hidden">Loading...</span>
+
                         </div>
+
                         <p class="loading-text">Searching case law database...</p>
+
                     </div>
+
                 </div>
+
+
 
                 <!-- Error State -->
+
                 <div id="errorState" class="error-state" style="display: none;">
+
                     <div class="error-content">
+
                         <i class="fas fa-exclamation-triangle text-warning"></i>
+
                         <p class="error-text">Search failed. Please try again.</p>
+
                     </div>
+
                 </div>
+
+
 
                 <!-- Search Results -->
+
                 <div id="searchResults" class="search-results" style="display: none;">
+
                     <div class="results-header">
+
                         <h5 class="results-title">
+
                             Search Results
+
                             <span id="resultsCount" class="results-count"></span>
+
                         </h5>
+
                     </div>
+
                     
+
                     <div id="resultsList" class="results-list">
+
                         <!-- Results will be populated here -->
+
                     </div>
+
+
 
                     <!-- Pagination -->
+
                     <div id="paginationContainer" class="pagination-container">
+
                         <div class="results-summary">
+
                             <span>Showing <span id="currentResultsRange">1-10</span> of <span id="totalResults">0</span> results</span>
+
                             <span id="paginationInfo" class="pagination-info">Page 1 of 1</span>
+
                         </div>
+
                         <nav aria-label="Search results pagination">
+
                             <ul id="paginationList" class="pagination justify-content-center">
+
                                 <!-- Pagination will be populated here -->
+
                             </ul>
+
                         </nav>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
+
+
 <style>
-/* Professional Design System */
+/* Modern Search Module Design System */
 :root {
-    --primary-color: #1e3a8a;
-    --primary-light: #3b82f6;
-    --secondary-color: #64748b;
-    --accent-color: #0f172a;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --border-color: #e2e8f0;
-    --background-light: #f8fafc;
-    --background-white: #ffffff;
-    --success-color: #059669;
-    --warning-color: #d97706;
-    --error-color: #dc2626;
+    --primary-white: #ffffff;
+    --secondary-gray: #f8f9fa;
+    --accent-gray: #6c757d;
+    --text-dark: #212529;
+    --text-gray: #6c757d;
+    --accent-orange: #fd7e14;
+    --primary-color: #fd7e14;
+    --accent-blue: #0d6efd;
+    --accent-green: #198754;
+    --border-light: #e9ecef;
+    --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-medium: 0 4px 8px rgba(0,0,0,0.15);
+    --shadow-heavy: 0 8px 16px rgba(0,0,0,0.2);
+    --gradient-orange: linear-gradient(135deg, var(--accent-orange), #e55a00);
+    --gradient-blue: linear-gradient(135deg, var(--accent-blue), #0056b3);
+    --border-radius: 12px;
+    --border-radius-small: 8px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Header Section */
-.search-header-section {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: white;
-    border-bottom: 1px solid var(--border-color);
+
+
+/* Search Hero Section */
+.search-hero-section {
+    background: var(--primary-white);
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-light);
 }
 
-.page-title {
-    font-size: 2rem;
+.search-header-content {
+    text-align: left;
+}
+
+.search-title {
+    font-size: 1.75rem;
     font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.highlight-text {
+    background: var(--gradient-orange);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.search-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-gray);
     margin: 0;
+    line-height: 1.4;
+}
+
+
+
+/* Modern Button Styles */
+.btn-modern-primary {
+    background: var(--gradient-orange);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-small);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(253, 126, 20, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-modern-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
     color: white;
 }
 
-.page-subtitle {
+.btn-modern-secondary {
+    background: var(--primary-white);
+    border: 2px solid var(--border-light);
+    color: var(--text-gray);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-small);
+    font-weight: 600;
     font-size: 1rem;
-    opacity: 0.9;
-    margin: 0.5rem 0 0 0;
-    font-weight: 400;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
 }
 
-/* Search Types Panel */
-.search-types-panel {
-    background: var(--background-white);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.btn-modern-secondary:hover {
+    background: var(--secondary-gray);
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Search Methodology Panel */
+.search-methodology-panel {
+    background: var(--primary-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-light);
     height: fit-content;
     position: sticky;
     top: 2rem;
 }
 
+.panel-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
 .panel-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 0.5rem 0;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
 }
 
-.search-type-option {
-    padding: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
+.panel-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    margin: 0;
+}
+
+
+
+/* Methodology Options */
+.methodology-option {
+    margin-bottom: 1rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--background-white);
 }
 
-.search-type-option:hover {
-    border-color: var(--primary-light);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+.methodology-option:last-child {
+    margin-bottom: 0;
 }
 
-.search-type-option.active {
-    border-color: var(--primary-color);
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
-    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.15);
+.option-card {
+    background: var(--primary-white);
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-small);
+    padding: 1rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.option-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-orange);
+    transform: scaleX(0);
+    transition: var(--transition);
+}
+
+.methodology-option:hover .option-card {
+    border-color: var(--accent-orange);
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+}
+
+.methodology-option:hover .option-card::before {
+    transform: scaleX(1);
+}
+
+.methodology-option.active .option-card {
+    border-color: var(--accent-orange);
+    background: linear-gradient(135deg, rgba(253, 126, 20, 0.05), rgba(229, 90, 0, 0.05));
+    box-shadow: var(--shadow-medium);
+}
+
+.methodology-option.active .option-card::before {
+    transform: scaleX(1);
 }
 
 .option-header {
@@ -306,246 +579,205 @@
 .option-icon {
     width: 40px;
     height: 40px;
-    border-radius: 8px;
-    background: var(--primary-color);
+    border-radius: var(--border-radius-small);
+    background: var(--gradient-orange);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 0.75rem;
     font-size: 1rem;
-}
-
-.search-type-option.active .option-icon {
-    background: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(253, 126, 20, 0.2);
 }
 
 .option-title h6 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 0.25rem 0;
 }
 
 .option-subtitle {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .option-description {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    line-height: 1.5;
+    margin: 0 0 0.75rem 0;
 }
 
-/* Search Interface Panel */
-.search-interface-panel {
-    background: var(--background-white);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.option-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-green);
+}
+
+.option-status i {
+    font-size: 0.9rem;
+}
+
+
+
+/* Search Interface Container */
+.search-interface-container {
+    background: var(--primary-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-light);
 }
 
 .search-input-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
-.search-form {
+.search-form-container {
     position: relative;
 }
 
-.search-form .input-group {
+.search-input-group {
+    display: flex;
+    gap: 1rem;
     margin-bottom: 1.5rem;
-}
-
-.search-input {
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    padding: 0.875rem 1rem;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-.search-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-}
-
-.search-btn {
-    border-radius: 8px;
-    padding: 0.875rem 1.5rem;
-    font-weight: 600;
-    background: var(--primary-color);
-    border: none;
-    transition: all 0.2s ease;
-}
-
-.search-btn:hover {
-    background: var(--primary-light);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
-}
-
-/* Search Input Container */
-.search-input-container {
     position: relative;
-    z-index: 1000;
-    width: 100%;
+    z-index: 2;
 }
 
-/* Suggestions Dropdown */
-.suggestions-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--background-white);
-    border: 1px solid var(--border-color);
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1001;
-    max-height: 300px;
-    overflow: hidden;
-}
-
-.suggestions-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background: var(--background-light);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.suggestions-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.suggestions-type {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    background: var(--primary-color);
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.suggestions-list {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.suggestion-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-bottom: 1px solid var(--border-color);
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.suggestion-item:hover,
-.suggestion-item.highlighted {
-    background: var(--primary-color);
-    color: white;
-}
-
-.suggestion-item.highlighted .suggestion-type-badge {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.suggestion-content {
+.input-container {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    position: relative;
 }
 
-.suggestion-value {
-    font-size: 0.9rem;
+.modern-search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-small);
+    font-size: 1rem;
     font-weight: 500;
-    color: inherit;
+    transition: var(--transition);
+    background: var(--primary-white);
 }
 
-.suggestion-info {
-    font-size: 0.75rem;
-    opacity: 0.8;
-    color: inherit;
+.modern-search-input:focus {
+    outline: none;
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.1);
 }
 
-.suggestion-type-badge {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 8px;
-    background: var(--background-light);
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-left: 0.5rem;
+.input-decoration {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-gray);
+    font-size: 1rem;
+    pointer-events: none;
 }
 
-.suggestions-footer {
-    padding: 0.5rem 1rem;
-    background: var(--background-light);
-    border-top: 1px solid var(--border-color);
-    text-align: center;
+.search-button {
+    background: var(--gradient-orange);
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius-small);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(253, 126, 20, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
 }
 
-/* Search Examples */
-.search-examples {
-    margin-bottom: 1.5rem;
+.search-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
 }
 
-.examples-label {
+
+
+/* Quick Searches Section */
+.quick-searches-section {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.section-header {
+    margin-bottom: 0.75rem;
+}
+
+.section-title {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-secondary);
-    margin-right: 1rem;
+    margin: 0;
+    display: inline;
 }
 
-.example-links {
+.quick-search-tags {
     display: inline-flex;
-    gap: 0.75rem;
     flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-left: 1rem;
 }
 
-.example-link {
-    font-size: 0.8rem;
-    color: var(--primary-color);
-    text-decoration: none;
+.search-tag-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.quick-search-tag {
+    background: var(--primary-white);
+    border: 1px solid var(--border-light);
+    color: var(--text-gray);
     padding: 0.25rem 0.75rem;
-    border: 1px solid var(--border-color);
     border-radius: 20px;
-    transition: all 0.2s ease;
-    background: var(--background-white);
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    text-decoration: none;
 }
 
-.example-link:hover {
-    background: var(--primary-color);
+.quick-search-tag:hover {
+    background: var(--accent-orange);
+    border-color: var(--accent-orange);
     color: white;
-    border-color: var(--primary-color);
     text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.quick-search-tag i {
+    font-size: 0.7rem;
 }
 
 /* Results Configuration */
-.results-config {
+.results-config-section {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--secondary-gray);
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--border-light);
+}
+
+.config-item {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -553,1947 +785,4264 @@
 
 .config-label {
     font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-.config-select {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    width: auto;
-    min-width: 80px;
-}
-
-/* Loading State */
-.loading-state {
-    text-align: center;
-    padding: 3rem 2rem;
-}
-
-.loading-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-.loading-text {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-/* Error State */
-.error-state {
-    text-align: center;
-    padding: 3rem 2rem;
-}
-
-.error-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-.error-text {
-    font-size: 1rem;
-    color: var(--error-color);
-    margin: 0;
-}
-
-/* Search Results */
-.search-results {
-    margin-top: 2rem;
-}
-
-.results-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.results-title {
-    font-size: 1.25rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-dark);
     margin: 0;
-}
-
-.results-count {
-    font-size: 0.875rem;
-    font-weight: 400;
-    color: var(--text-secondary);
-}
-
-/* Result Cards */
-.result-card {
-    background: var(--background-white);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.result-card:hover {
-    border-color: var(--primary-light);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.result-rank {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: var(--primary-color);
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.result-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
-}
-
-.result-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.meta-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
 }
+
+.modern-select {
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-small);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--primary-white);
+    color: var(--text-dark);
+    transition: var(--transition);
+    min-width: 120px;
+}
+
+.modern-select:focus {
+    outline: none;
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.1);
+}
+
+
+
+/* Suggestions Dropdown */
+
+.suggestions-dropdown {
+
+    position: absolute;
+
+    top: 100%;
+
+    left: 0;
+
+    right: 0;
+
+    background: var(--primary-white);
+
+    border: 1px solid var(--border-light);
+
+    border-top: none;
+
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+
+    box-shadow: var(--shadow-heavy);
+
+    z-index: 1050;
+
+    max-height: 250px;
+
+    overflow: hidden;
+
+}
+
+
+
+.suggestions-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 0.75rem 1rem;
+
+    background: var(--background-light);
+
+    border-bottom: 1px solid var(--border-color);
+
+}
+
+
+
+.suggestions-title {
+
+    font-size: 0.875rem;
+
+    font-weight: 600;
+
+    color: var(--text-primary);
+
+}
+
+
+
+.suggestions-type {
+
+    font-size: 0.75rem;
+
+    color: var(--text-secondary);
+
+    background: var(--primary-color);
+
+    color: white;
+
+    padding: 0.25rem 0.5rem;
+
+    border-radius: 12px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.05em;
+
+}
+
+
+
+.suggestions-list {
+
+    max-height: 200px;
+
+    overflow-y: auto;
+
+}
+
+
+
+.suggestion-item {
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0.75rem 1rem;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    border-bottom: 1px solid var(--border-color);
+
+    user-select: none;
+
+    -webkit-user-select: none;
+
+    -moz-user-select: none;
+
+    -ms-user-select: none;
+
+}
+
+
+
+.suggestion-item:last-child {
+
+    border-bottom: none;
+
+}
+
+
+
+.suggestion-item:hover,
+
+.suggestion-item.highlighted {
+
+    background: var(--primary-color);
+
+    color: white;
+
+}
+
+
+
+.suggestion-item.highlighted .suggestion-type-badge {
+
+    background: rgba(255, 255, 255, 0.2);
+
+    color: white;
+
+}
+
+
+
+.suggestion-content {
+
+    flex: 1;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0.25rem;
+
+}
+
+
+
+.suggestion-value {
+
+    font-size: 0.9rem;
+
+    font-weight: 500;
+
+    color: inherit;
+
+}
+
+
+
+.suggestion-info {
+
+    font-size: 0.75rem;
+
+    opacity: 0.8;
+
+    color: inherit;
+
+}
+
+
+
+.suggestion-type-badge {
+
+    font-size: 0.7rem;
+
+    padding: 0.2rem 0.5rem;
+
+    border-radius: 8px;
+
+    background: var(--background-light);
+
+    color: var(--text-secondary);
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.05em;
+
+    margin-left: 0.5rem;
+
+}
+
+
+
+.suggestions-footer {
+
+    padding: 0.5rem 1rem;
+
+    background: var(--background-light);
+
+    border-top: 1px solid var(--border-color);
+
+    text-align: center;
+
+}
+
+
+
+/* Search Examples */
+
+.search-examples {
+
+    margin-bottom: 1.5rem;
+
+}
+
+
+
+.examples-label {
+
+    font-size: 0.875rem;
+
+    font-weight: 500;
+
+    color: var(--text-secondary);
+
+    margin-right: 1rem;
+
+}
+
+
+
+.example-links {
+
+    display: inline-flex;
+
+    gap: 0.75rem;
+
+    flex-wrap: wrap;
+
+}
+
+
+
+.example-link {
+
+    font-size: 0.8rem;
+
+    color: var(--primary-color);
+
+    text-decoration: none;
+
+    padding: 0.25rem 0.75rem;
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 20px;
+
+    transition: all 0.2s ease;
+
+    background: var(--background-white);
+
+}
+
+
+
+.example-link:hover {
+
+    background: var(--primary-color);
+
+    color: white;
+
+    border-color: var(--primary-color);
+
+    text-decoration: none;
+
+}
+
+
+
+/* Results Configuration */
+
+.results-config {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 1rem;
+
+}
+
+
+
+.config-label {
+
+    font-size: 0.875rem;
+
+    font-weight: 500;
+
+    color: var(--text-secondary);
+
+    margin: 0;
+
+}
+
+
+
+.config-select {
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 6px;
+
+    padding: 0.5rem 0.75rem;
+
+    font-size: 0.875rem;
+
+    width: auto;
+
+    min-width: 80px;
+
+}
+
+
+
+/* Loading State */
+
+.loading-state {
+
+    text-align: center;
+
+    padding: 3rem 2rem;
+
+}
+
+
+
+.loading-content {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 1rem;
+
+}
+
+
+
+.loading-text {
+
+    font-size: 1rem;
+
+    color: var(--text-secondary);
+
+    margin: 0;
+
+}
+
+
+
+/* Error State */
+
+.error-state {
+
+    text-align: center;
+
+    padding: 3rem 2rem;
+
+}
+
+
+
+.error-content {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 1rem;
+
+}
+
+
+
+.error-text {
+
+    font-size: 1rem;
+
+    color: var(--error-color);
+
+    margin: 0;
+
+}
+
+
+
+/* Search Results */
+
+.search-results {
+
+    margin-top: 2rem;
+
+}
+
+
+
+.results-header {
+
+    margin-bottom: 1.5rem;
+
+    padding-bottom: 1rem;
+
+    border-bottom: 1px solid var(--border-color);
+
+}
+
+
+
+.results-title {
+
+    font-size: 1.25rem;
+
+    font-weight: 600;
+
+    color: var(--text-primary);
+
+    margin: 0;
+
+}
+
+
+
+.results-count {
+
+    font-size: 0.875rem;
+
+    font-weight: 400;
+
+    color: var(--text-secondary);
+
+}
+
+
+
+/* Result Cards */
+
+.result-card {
+
+    background: var(--primary-white);
+
+    border: 2px solid var(--accent-orange);
+
+    border-radius: var(--border-radius-small);
+
+    padding: 1.5rem;
+
+    margin-bottom: 1rem;
+
+    transition: var(--transition);
+
+    position: relative;
+
+    box-shadow: var(--shadow-light);
+
+}
+
+
+
+.result-card:hover {
+
+    border-color: var(--accent-orange);
+
+    box-shadow: var(--shadow-medium);
+
+    transform: translateY(-2px);
+
+}
+
+
+
+.result-rank {
+
+    position: absolute;
+
+    top: 1rem;
+
+    right: 1rem;
+
+    background: var(--primary-color);
+
+    color: white;
+
+    width: 32px;
+
+    height: 32px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 0.75rem;
+
+    font-weight: 600;
+
+}
+
+
+
+.result-title {
+
+    font-size: 1.1rem;
+
+    font-weight: 600;
+
+    color: var(--text-primary);
+
+    margin-bottom: 0.75rem;
+
+    line-height: 1.4;
+
+}
+
+
+
+.result-meta {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 1rem;
+
+    margin-bottom: 1rem;
+
+}
+
+
+
+.meta-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.5rem;
+
+    font-size: 0.875rem;
+
+    color: var(--text-secondary);
+
+}
+
+
 
 .meta-item i {
+
     color: var(--text-muted);
+
     width: 16px;
+
 }
+
+
 
 .result-snippet {
+
     font-size: 0.9rem;
-    color: var(--text-secondary);
+
+    color: var(--text-dark);
+
     line-height: 1.5;
+
     margin-bottom: 1rem;
-    background: var(--background-light);
+
+    background: linear-gradient(135deg, rgba(253, 126, 20, 0.08) 0%, rgba(253, 126, 20, 0.12) 100%);
+
     padding: 1rem;
+
     border-radius: 6px;
-    border-left: 3px solid var(--primary-color);
+
+    border-left: 3px solid var(--accent-orange);
+
+    border: 1px solid rgba(253, 126, 20, 0.2);
+
+    box-shadow: 0 2px 4px rgba(253, 126, 20, 0.1);
+
 }
+
+
 
 .score-breakdown {
+
     display: flex;
+
     gap: 1rem;
+
     margin-bottom: 1rem;
+
     font-size: 0.8rem;
+
 }
+
+
 
 .score-item {
+
     display: flex;
+
     align-items: center;
+
     gap: 0.25rem;
+
     color: var(--text-muted);
+
 }
+
+
 
 .score-value {
+
     font-weight: 600;
+
     color: var(--text-primary);
+
 }
+
+
 
 .result-actions {
+
     display: flex;
+
     gap: 0.75rem;
+
 }
+
+
 
 .btn-view-details {
-    background: var(--primary-color);
+
+    background: var(--gradient-orange);
+
     color: white;
+
     border: none;
+
     padding: 0.5rem 1rem;
-    border-radius: 6px;
+
+    border-radius: var(--border-radius-small);
+
     font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
+
+    font-weight: 600;
+
+    transition: var(--transition);
+
+    box-shadow: 0 2px 8px rgba(253, 126, 20, 0.2);
+
 }
+
+
 
 .btn-view-details:hover {
-    background: var(--primary-light);
+
+    background: var(--accent-orange);
+
     color: white;
-    transform: translateY(-1px);
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
+
 }
+
+
 
 .btn-history {
+
     background: transparent;
+
     color: var(--text-secondary);
+
     border: 1px solid var(--border-color);
+
     padding: 0.5rem 1rem;
+
     border-radius: 6px;
+
     font-size: 0.875rem;
+
     font-weight: 500;
+
     transition: all 0.2s ease;
+
 }
+
+
 
 .btn-history:hover {
+
     background: var(--background-light);
+
     color: var(--text-primary);
+
 }
+
+
 
 /* Pagination */
+
 .pagination-container {
+
     margin-top: 2rem;
+
     padding-top: 1.5rem;
+
     border-top: 1px solid var(--border-color);
+
 }
+
+
 
 .results-summary {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     margin-bottom: 1rem;
+
     font-size: 0.875rem;
+
     color: var(--text-secondary);
+
 }
+
+
 
 .pagination-info {
+
     font-weight: 500;
+
     color: var(--text-primary);
+
 }
+
+
 
 .pagination {
+
     margin: 0;
+
 }
+
+
 
 .pagination .page-link {
+
     color: var(--primary-color);
+
     border: 1px solid var(--border-color);
+
     padding: 0.5rem 0.75rem;
+
     margin: 0 0.125rem;
+
     border-radius: 6px;
+
     text-decoration: none;
+
     transition: all 0.2s ease;
+
     font-size: 0.875rem;
+
 }
+
+
 
 .pagination .page-link:hover {
+
     background-color: var(--background-light);
+
     border-color: var(--primary-color);
+
     color: var(--primary-color);
+
 }
+
+
 
 .pagination .page-item.active .page-link {
+
     background-color: var(--primary-color);
+
     border-color: var(--primary-color);
+
     color: white !important;
+
     font-weight: 600;
+
 }
 
+
+
 /* Responsive Design */
-@media (max-width: 768px) {
-    .search-types-panel {
+@media (max-width: 991.98px) {
+    .search-methodology-panel {
         position: static;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-hero-section {
+        padding: 0.75rem 0;
     }
     
-    .search-interface-panel {
-        padding: 1.5rem;
+    .search-title {
+        font-size: 1.5rem;
     }
     
-    .results-config {
+    .search-input-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .search-button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .search-interface-container {
+        padding: 1.25rem;
+    }
+    
+    .search-methodology-panel {
+        padding: 1rem;
+    }
+    
+    .config-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
     }
     
-    .results-summary {
-        flex-direction: column;
-        align-items: flex-start;
-    gap: 0.5rem;
+    .modern-select {
+        width: 100%;
     }
 }
 
-/* Modal Styles */
-.case-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-}
-
-.case-modal-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 100%;
-    max-width: 1200px;
-    height: 90vh;
-    max-height: 800px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-    z-index: 1000;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
-}
-
-.modal-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #111827;
-    margin: 0;
-}
-
-.modal-subtitle {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0.25rem 0 0 0;
-}
-
-.modal-close-btn {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    color: #6b7280;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-
-.modal-nav {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
-    flex-shrink: 0;
-    border-radius: 6px;
-}
-
-.nav-item:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.nav-item.active {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-bottom-color: #1d4ed8;
-    font-weight: 600;
-}
-
-.nav-item i {
-    width: 16px;
-    margin-right: 0.5rem;
-    font-size: 0.875rem;
-    text-align: center;
-}
-
-.nav-item span {
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.modal-main-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 2rem;
-    position: relative;
-    z-index: 0;
-    background: white;
-    min-width: 0; /* Prevents flex item from overflowing */
-}
-
-.modal-content-sections {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: white;
-}
-
-.modal-loading, .modal-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #6b7280;
-}
-
-.loading-spinner {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-}
-
-.modal-error i {
-    font-size: 2rem;
-    color: #ef4444;
-    margin-bottom: 1rem;
-}
-
-.content-section {
-    display: none;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: white;
-}
-
-.content-section.active {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: white;
-}
-
-.section-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e2e8f0;
-    position: relative;
-}
-
-.section-header::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-}
-
-.section-header h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.section-header h3::before {
-    content: '';
-    width: 4px;
-    height: 24px;
-    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
-    border-radius: 2px;
-}
-
-.overview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-}
-
-.overview-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.overview-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-}
-
-.overview-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.card-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.card-label::before {
-    content: '';
-    width: 4px;
-    height: 4px;
-    background: #3b82f6;
-    border-radius: 50%;
-}
-
-.card-value {
-    font-size: 1rem;
-    color: #1e293b;
-    font-weight: 600;
-    line-height: 1.5;
-}
-
-.case-title-section {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    position: relative;
-}
-
-.case-title-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #10b981, #059669);
-    border-radius: 12px 12px 0 0;
-}
-
-.case-title-section h4 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #475569;
-    margin: 0 0 1rem 0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.case-title-section h4::before {
-    content: '📋';
-    font-size: 1.2rem;
-}
-
-.case-title-text {
-    font-size: 1.25rem;
-    color: #1e293b;
-    line-height: 1.6;
-    margin: 0;
-    font-weight: 500;
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    border-radius: 25px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
-}
-
-.status-badge::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
-    border-radius: 25px;
-}
-
-.status-decided {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
-}
-
-.status-pending {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
-}
-
-.status-unknown {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-    color: white;
-    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
-}
-
-/* Horizontal Navigation Layout */
-.modal-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    height: 100%;
-}
-
-.modal-sidebar {
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 1rem;
-    position: relative;
-    overflow-x: auto;
-    flex-shrink: 0;
-}
-
-.modal-main-content {
-    overflow-y: auto;
-    padding: 2rem;
-    position: relative;
-    background: white;
-    flex: 1;
-    height: 100%;
-}
-
-/* Modal Responsive Design */
-@media (max-width: 768px) {
-    .case-modal-overlay {
-        padding: 1rem;
+@media (max-width: 576px) {
+    .search-title {
+        font-size: 1.25rem;
     }
     
-    .case-modal-container {
-        height: 95vh;
+    .search-subtitle {
+        font-size: 0.9rem;
     }
     
-    .modal-sidebar {
+    .option-card {
         padding: 0.75rem;
     }
     
-    .modal-nav {
-        gap: 0.25rem;
-    }
-    
-    .nav-item {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-    }
-    
-    .nav-item i {
-        width: 14px;
-        margin-right: 0.25rem;
-        font-size: 0.8rem;
-    }
-    
-    .nav-item span {
-        font-size: 0.8rem;
-    }
-    
-    .modal-main-content {
-        padding: 1.5rem;
-    }
-    
-    .overview-grid {
-        grid-template-columns: 1fr;
+    .option-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
     }
 }
+
+
+
+/* Modal Styles */
+
+.case-modal-overlay {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    z-index: 9999;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 2rem;
+
+}
+
+
+
+.case-modal-container {
+
+    background: white;
+
+    border-radius: 12px;
+
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    width: 100%;
+
+    max-width: 1200px;
+
+    height: 90vh;
+
+    max-height: 800px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    position: relative;
+
+    z-index: 1000;
+
+}
+
+
+
+.modal-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 1.5rem 2rem;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    background: #f9fafb;
+
+}
+
+
+
+.modal-title {
+
+    font-size: 1.5rem;
+
+    font-weight: 600;
+
+    color: #111827;
+
+    margin: 0;
+
+}
+
+
+
+.modal-subtitle {
+
+    font-size: 0.875rem;
+
+    color: #6b7280;
+
+    margin: 0.25rem 0 0 0;
+
+}
+
+
+
+.modal-close-btn {
+
+    background: none;
+
+    border: none;
+
+    font-size: 1.25rem;
+
+    color: #6b7280;
+
+    cursor: pointer;
+
+    padding: 0.5rem;
+
+    border-radius: 6px;
+
+    transition: all 0.2s ease;
+
+}
+
+
+
+.modal-close-btn:hover {
+
+    background: #e5e7eb;
+
+    color: #374151;
+
+}
+
+
+
+
+
+.modal-nav {
+
+    display: flex;
+
+    flex-direction: row;
+
+    gap: 0.5rem;
+
+    overflow-x: auto;
+
+    padding-bottom: 0.5rem;
+
+}
+
+
+
+.nav-item {
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0.75rem 1rem;
+
+    color: #6b7280;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    border-bottom: 3px solid transparent;
+
+    white-space: nowrap;
+
+    flex-shrink: 0;
+
+    border-radius: 6px;
+
+}
+
+
+
+.nav-item:hover {
+
+    background: #f3f4f6;
+
+    color: #374151;
+
+}
+
+
+
+.nav-item.active {
+
+    background: #eff6ff;
+
+    color: #1d4ed8;
+
+    border-bottom-color: #1d4ed8;
+
+    font-weight: 600;
+
+}
+
+
+
+.nav-item i {
+
+    width: 16px;
+
+    margin-right: 0.5rem;
+
+    font-size: 0.875rem;
+
+    text-align: center;
+
+}
+
+
+
+.nav-item span {
+
+    font-size: 0.875rem;
+
+    font-weight: 500;
+
+}
+
+
+
+.modal-main-content {
+
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding: 2rem;
+
+    position: relative;
+
+    z-index: 0;
+
+    background: white;
+
+    min-width: 0; /* Prevents flex item from overflowing */
+
+}
+
+
+
+.modal-content-sections {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: white;
+
+}
+
+
+
+.modal-loading, .modal-error {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    height: 100%;
+
+    color: #6b7280;
+
+}
+
+
+
+.loading-spinner {
+
+    font-size: 2rem;
+
+    margin-bottom: 1rem;
+
+}
+
+
+
+.modal-error i {
+
+    font-size: 2rem;
+
+    color: #ef4444;
+
+    margin-bottom: 1rem;
+
+}
+
+
+
+.content-section {
+
+    display: none;
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: white;
+
+}
+
+
+
+.content-section.active {
+
+    display: block;
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: white;
+
+}
+
+
+
+.section-header {
+
+    margin-bottom: 2rem;
+
+    padding-bottom: 1rem;
+
+    border-bottom: 2px solid #e2e8f0;
+
+    position: relative;
+
+}
+
+
+
+.section-header::after {
+
+    content: '';
+
+    position: absolute;
+
+    bottom: -2px;
+
+    left: 0;
+
+    width: 60px;
+
+    height: 2px;
+
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+
+}
+
+
+
+.section-header h3 {
+
+    font-size: 1.5rem;
+
+    font-weight: 700;
+
+    color: #1e293b;
+
+    margin: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.75rem;
+
+}
+
+
+
+.section-header h3::before {
+
+    content: '';
+
+    width: 4px;
+
+    height: 24px;
+
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+
+    border-radius: 2px;
+
+}
+
+
+
+.overview-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+
+    gap: 1.25rem;
+
+    margin-bottom: 2rem;
+
+}
+
+
+
+.overview-card {
+
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    padding: 1.5rem;
+
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    transition: all 0.2s ease;
+
+    position: relative;
+
+    overflow: hidden;
+
+}
+
+
+
+.overview-card::before {
+
+    content: '';
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    height: 3px;
+
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+
+}
+
+
+
+.overview-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+}
+
+
+
+.card-label {
+
+    font-size: 0.75rem;
+
+    font-weight: 700;
+
+    color: #64748b;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.1em;
+
+    margin-bottom: 0.75rem;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.5rem;
+
+}
+
+
+
+.card-label::before {
+
+    content: '';
+
+    width: 4px;
+
+    height: 4px;
+
+    background: #3b82f6;
+
+    border-radius: 50%;
+
+}
+
+
+
+.card-value {
+
+    font-size: 1rem;
+
+    color: #1e293b;
+
+    font-weight: 600;
+
+    line-height: 1.5;
+
+}
+
+
+
+.case-title-section {
+
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 12px;
+
+    padding: 2rem;
+
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    position: relative;
+
+}
+
+
+
+.case-title-section::before {
+
+    content: '';
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    height: 4px;
+
+    background: linear-gradient(90deg, #10b981, #059669);
+
+    border-radius: 12px 12px 0 0;
+
+}
+
+
+
+.case-title-section h4 {
+
+    font-size: 1rem;
+
+    font-weight: 700;
+
+    color: #475569;
+
+    margin: 0 0 1rem 0;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.05em;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.5rem;
+
+}
+
+
+
+.case-title-section h4::before {
+
+    content: '📋';
+
+    font-size: 1.2rem;
+
+}
+
+
+
+.case-title-text {
+
+    font-size: 1.25rem;
+
+    color: #1e293b;
+
+    line-height: 1.6;
+
+    margin: 0;
+
+    font-weight: 500;
+
+}
+
+
+
+.status-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 0.5rem 1rem;
+
+    border-radius: 25px;
+
+    font-size: 0.75rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.1em;
+
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    position: relative;
+
+    overflow: hidden;
+
+}
+
+
+
+.status-badge::before {
+
+    content: '';
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+
+    border-radius: 25px;
+
+}
+
+
+
+.status-decided {
+
+    background: linear-gradient(135deg, #10b981, #059669);
+
+    color: white;
+
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+
+}
+
+
+
+.status-pending {
+
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+
+    color: white;
+
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+
+}
+
+
+
+.status-unknown {
+
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+
+    color: white;
+
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+
+}
+
+
+
+/* Horizontal Navigation Layout */
+
+.modal-content {
+
+    display: flex;
+
+    flex-direction: column;
+
+    flex: 1;
+
+    overflow: hidden;
+
+    position: relative;
+
+    height: 100%;
+
+}
+
+
+
+.modal-sidebar {
+
+    background: #f9fafb;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    padding: 1rem;
+
+    position: relative;
+
+    overflow-x: auto;
+
+    flex-shrink: 0;
+
+}
+
+
+
+.modal-main-content {
+
+    overflow-y: auto;
+
+    padding: 2rem;
+
+    position: relative;
+
+    background: white;
+
+    flex: 1;
+
+    height: 100%;
+
+}
+
+
+
+/* Modal Responsive Design */
+
+@media (max-width: 768px) {
+
+    .case-modal-overlay {
+
+        padding: 1rem;
+
+    }
+
+    
+
+    .case-modal-container {
+
+        height: 95vh;
+
+    }
+
+    
+
+    .modal-sidebar {
+
+        padding: 0.75rem;
+
+    }
+
+    
+
+    .modal-nav {
+
+        gap: 0.25rem;
+
+    }
+
+    
+
+    .nav-item {
+
+        padding: 0.5rem 0.75rem;
+
+        font-size: 0.8rem;
+
+    }
+
+    
+
+    .nav-item i {
+
+        width: 14px;
+
+        margin-right: 0.25rem;
+
+        font-size: 0.8rem;
+
+    }
+
+    
+
+    .nav-item span {
+
+        font-size: 0.8rem;
+
+    }
+
+    
+
+    .modal-main-content {
+
+        padding: 1.5rem;
+
+    }
+
+    
+
+    .overview-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
 </style>
 
+
+
 <script>
+
 // Global variables for client-side pagination
+
 window.allSearchResults = null;
+
 window.currentPage = 1;
 
+
+
 // Global variables for suggestions
+
 window.suggestions = [];
+
 window.selectedSuggestionIndex = -1;
+
 window.suggestionsTimeout = null;
 
+
+
 // Search type selection
+
 document.addEventListener('DOMContentLoaded', function() {
-    const searchTypeOptions = document.querySelectorAll('.search-type-option');
+
+    const searchTypeOptions = document.querySelectorAll('.methodology-option');
+
+
 
     searchTypeOptions.forEach(option => {
+
         option.addEventListener('click', function() {
+
             // Remove active class from all options
+
             searchTypeOptions.forEach(opt => opt.classList.remove('active'));
+
             
+
             // Add active class to clicked option
+
             this.classList.add('active');
+
             
+
             // Update search mode
+
             window.currentSearchMode = this.getAttribute('data-mode');
+
             
+
             // Update quick search examples based on search type
+
             updateQuickSearchExamples(window.currentSearchMode);
+
         });
+
     });
+
     
+
     // Add event listener for results per page change
+
     const resultsPerPageSelect = document.getElementById('resultsPerPage');
+
     if (resultsPerPageSelect) {
+
         resultsPerPageSelect.addEventListener('change', function() {
+
             if (window.allSearchResults && window.allSearchResults.results) {
+
                 window.currentPage = 1;
+
                 applyClientSidePagination();
+
             }
+
         });
+
     }
+
     
+
     // Initialize quick search examples with default search type
+
     updateQuickSearchExamples('hybrid');
+
     
+
     // Add Enter key support
+
     const searchInput = document.getElementById('searchQuery');
+
     if (searchInput) {
+
         searchInput.addEventListener('keypress', function(e) {
+
             if (e.key === 'Enter') {
+
             performSearch();
+
             }
+
         });
+
     }
+
 });
+
+
 
 // Update quick search examples based on search type
+
 function updateQuickSearchExamples(searchType) {
+
     console.log('Updating quick search examples for:', searchType);
+
     
+
     // Hide all search examples
+
     const lexicalExamples = document.getElementById('lexical-examples');
+
     const semanticExamples = document.getElementById('semantic-examples');
+
     const hybridExamples = document.getElementById('hybrid-examples');
+
     
+
     if (lexicalExamples) lexicalExamples.style.display = 'none';
+
     if (semanticExamples) semanticExamples.style.display = 'none';
+
     if (hybridExamples) hybridExamples.style.display = 'none';
+
     
+
     // Show the relevant search examples based on search type
+
     switch(searchType) {
+
         case 'lexical':
+
             if (lexicalExamples) lexicalExamples.style.display = 'block';
+
             console.log('Showing lexical examples');
+
             break;
+
         case 'semantic':
+
             if (semanticExamples) semanticExamples.style.display = 'block';
+
             console.log('Showing semantic examples');
+
             break;
+
         case 'hybrid':
+
             if (hybridExamples) hybridExamples.style.display = 'block';
+
             console.log('Showing hybrid examples');
+
             break;
+
     }
+
 }
+
+
 
 // Get selected search mode
+
 function getSelectedSearchMode() {
-    const activeOption = document.querySelector('.search-type-option.active');
+
+    const activeOption = document.querySelector('.methodology-option.active');
+
     return activeOption ? activeOption.getAttribute('data-mode') : 'hybrid';
+
 }
+
+
 
 // Get CSRF token
+
 function getCSRFToken() {
+
     return document.querySelector('[name=csrfmiddlewaretoken]').value;
+
 }
+
+
 
 // Set query and search
+
 function setQueryAndSearch(query) {
+
     document.getElementById('searchQuery').value = query;
+
     performSearch();
+
 }
+
+
 
 // Show loading state
+
 function showLoadingState() {
+
     document.getElementById('loadingState').style.display = 'block';
+
     document.getElementById('errorState').style.display = 'none';
+
     document.getElementById('searchResults').style.display = 'none';
+
 }
+
+
 
 // Show error state
+
 function showErrorState(message) {
+
     document.getElementById('loadingState').style.display = 'none';
+
     document.getElementById('errorState').style.display = 'block';
+
     document.getElementById('searchResults').style.display = 'none';
+
     
+
     const errorText = document.querySelector('.error-text');
+
     if (errorText) {
+
         errorText.textContent = message;
+
     }
+
 }
+
+
 
 // Show search results
+
 function showSearchResults() {
+
     document.getElementById('loadingState').style.display = 'none';
+
     document.getElementById('errorState').style.display = 'none';
+
     document.getElementById('searchResults').style.display = 'block';
+
 }
+
+
 
 // Calculate smart limit based on query specificity
+
 function calculateSmartLimit(query, mode) {
+
     const queryLower = query.toLowerCase().trim();
+
     
+
     // Define patterns for different specificity levels
+
     const patterns = {
+
         // Very specific: exact case numbers, citations with full details
+
         verySpecific: [
+
             /\d{4}\s+(scmr|pld|ylr|clr|plj)\s+\d+/i,           // 2023 SCMR 123
+
             /pld\s+\d{4}\s+(sc|lhc|ihc|phc|shc)\s+\d+/i,      // PLD 2023 SC 45
+
             /(crl|civil)\.\s*(appeal|petition|misc)\s*\d+\/\d{4}/i, // Crl. Appeal 5/2025
+
             /p\.s\.l\.a\.\s*\d+\/\d{4}/i,                     // P.S.L.A. 1/2021
+
             /w\.p\.\s*\d+\/\d{4}/i,                           // W.P. 123/2024
+
             /\d{4}\s+\w+\s+\d+\s+\(\w+\)/i                    // 2023 SCMR 123 (SC)
+
         ],
+
         // Specific: legal citations, case numbers, statutory references
+
         specific: [
+
             /ppc\s+\d+/i,                                     // PPC 302
+
             /crpc\s+\d+/i,                                    // CrPC 497
+
             /\d{4}\s+\w+\s+\d+/i,                            // 2023 SCMR 123
+
             /(article|section)\s+\d+/i,                      // Article 25, Section 302
+
             /(constitution|ordinance|act)\s+\d{4}/i,          // Constitution 1973
+
             /vs?\.\s+[a-z\s]+/i                              // vs. State, v. Pakistan
+
         ],
+
         // Moderately specific: legal terms with context
+
         moderate: [
+
             /(bail|acquittal|conviction|appeal|revision)/i,
+
             /(fundamental rights|due process|natural justice)/i,
+
             /(contract|tort|negligence|damages)/i,
+
             /(criminal|civil|constitutional|commercial)\s+(law|procedure)/i
+
         ]
+
     };
+
     
+
     // Calculate specificity score
+
     let specificityScore = 0;
+
     
+
     // Very specific patterns (highest priority)
+
     if (patterns.verySpecific.some(pattern => pattern.test(queryLower))) {
+
         specificityScore = 0.9;
+
     }
+
     // Specific patterns
+
     else if (patterns.specific.some(pattern => pattern.test(queryLower))) {
+
         specificityScore = 0.7;
+
     }
+
     // Moderate patterns
+
     else if (patterns.moderate.some(pattern => pattern.test(queryLower))) {
+
         specificityScore = 0.5;
+
     }
+
     // Generic queries
+
     else {
+
         specificityScore = 0.2;
+
     }
+
     
+
     // Adjust based on query length and structure
+
     const words = queryLower.split(/\s+/).filter(w => w.length > 0);
+
     if (words.length === 1) {
+
         specificityScore *= 0.7; // Single word is less specific
+
     } else if (words.length >= 5) {
+
         specificityScore = Math.min(specificityScore * 1.2, 0.95); // Long queries are more specific
+
     }
+
     
+
     // Adjust based on search mode
+
     let modeMultiplier = 1.0;
+
     if (mode === 'lexical') {
+
         modeMultiplier = 0.8; // Lexical searches tend to be more specific
+
     } else if (mode === 'semantic') {
+
         modeMultiplier = 1.2; // Semantic searches can be broader
+
     }
+
     
+
     // Calculate smart limit based on specificity - more generous limits
+
     let smartLimit;
+
     if (specificityScore >= 0.8) {
+
         smartLimit = 50; // Very specific: allow more results to let backend decide
+
     } else if (specificityScore >= 0.6) {
+
         smartLimit = 100; // Specific: moderate number of results
+
     } else if (specificityScore >= 0.4) {
+
         smartLimit = 150; // Moderately specific: more results
+
     } else {
+
         smartLimit = 200; // Generic: let backend intelligent filtering decide
+
     }
+
     
+
     // Apply mode multiplier
+
     smartLimit = Math.round(smartLimit * modeMultiplier);
+
     
+
     // Ensure reasonable bounds
+
     smartLimit = Math.max(10, Math.min(smartLimit, 200));
+
     
+
     console.log(`🎯 Smart Limit Calculation:`, {
+
         query: query,
+
         mode: mode,
+
         specificityScore: specificityScore.toFixed(2),
+
         modeMultiplier: modeMultiplier,
+
         smartLimit: smartLimit
+
     });
+
     
+
     return smartLimit;
+
 }
+
+
 
 // Display smart limiting information to user
+
 function displaySmartLimitingInfo(query, mode, smartLimit, searchData) {
+
     try {
+
         const totalResults = searchData.results.length;
+
         const searchMetadata = searchData.search_metadata || {};
+
         
+
         // Create info message based on result count and specificity
+
         let limitingMessage = '';
+
         let limitingClass = 'info';
+
         
+
         if (totalResults === 0) {
+
             limitingMessage = 'No results found. Try a different query or search mode.';
+
             limitingClass = 'warning';
+
         } else if (totalResults < 10) {
+
             limitingMessage = `Found ${totalResults} highly relevant results (45%+ relevancy) for your specific query.`;
+
             limitingClass = 'success';
+
         } else if (totalResults < 25) {
+
             limitingMessage = `Showing ${totalResults} high-quality results (45%+ relevancy). Query specificity: High.`;
+
             limitingClass = 'success';
+
         } else if (totalResults < 50) {
+
             limitingMessage = `Showing ${totalResults} relevant results (45%+ relevancy). Query specificity: Medium.`;
+
             limitingClass = 'info';
+
         } else {
+
             limitingMessage = `Showing ${totalResults} quality results (45%+ relevancy) for your broad query. All results meet high relevancy standards.`;
+
             limitingClass = 'info';
+
         }
+
         
+
         // Add search mode info
+
         const modeInfo = {
+
             'hybrid': 'Using comprehensive search (semantic + lexical)',
+
             'semantic': 'Using conceptual understanding search',
+
             'lexical': 'Using exact text matching search'
+
         };
+
         
+
         const fullMessage = `${limitingMessage} ${modeInfo[mode] || ''}.`;
+
         
+
         // Display the message
+
         const resultsHeader = document.querySelector('.search-results-header');
+
         if (resultsHeader) {
+
             // Remove any existing smart limiting info
+
             const existingInfo = resultsHeader.querySelector('.smart-limiting-info');
+
             if (existingInfo) {
+
                 existingInfo.remove();
+
             }
+
             
+
             // Create new info element
+
             const infoElement = document.createElement('div');
+
             infoElement.className = `smart-limiting-info alert alert-${limitingClass} mt-2`;
+
             infoElement.innerHTML = `
+
                 <div class="d-flex align-items-center">
+
                     <i class="fas fa-${limitingClass === 'success' ? 'check-circle' : limitingClass === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+
                     <span>${fullMessage}</span>
+
                     <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="toggleLimitingDetails()" title="Show technical details">
+
                         <i class="fas fa-cog"></i>
+
                     </button>
+
                 </div>
+
                 <div class="limiting-details mt-2" style="display: none;">
+
                     <small class="text-muted">
+
                         <strong>Technical Details:</strong><br>
+
                         • Smart limit calculated: ${smartLimit}<br>
+
                         • Results returned: ${totalResults}<br>
+
                         • Search mode: ${mode}<br>
+
                         • Query: "${query}"<br>
+
                         • Latency: ${searchMetadata.latency_ms || 'N/A'}ms
+
                     </small>
+
                 </div>
+
             `;
+
             
+
             resultsHeader.appendChild(infoElement);
+
         }
+
         
+
     } catch (error) {
+
         console.error('Error displaying smart limiting info:', error);
+
     }
+
 }
+
+
 
 // Toggle limiting details
+
 function toggleLimitingDetails() {
+
     const details = document.querySelector('.limiting-details');
+
     if (details) {
+
         details.style.display = details.style.display === 'none' ? 'block' : 'none';
+
     }
+
 }
+
+
 
 // Perform search
+
 async function performSearch() {
+
     const query = document.getElementById('searchQuery').value.trim();
+
     
+
     if (!query) {
+
         alert('Please enter a search query');
+
         return;
+
     }
+
     
+
     showLoadingState();
+
     
+
     try {
+
         const selectedMode = getSelectedSearchMode();
+
         
+
         // Smart result limiting based on query specificity
+
         const smartLimit = calculateSmartLimit(query, selectedMode);
+
         
+
         const searchParams = new URLSearchParams({
+
             q: query,
+
             mode: selectedMode,
+
             return_facets: 'true',
+
             highlight: 'true',
+
             limit: smartLimit.toString(),
+
             offset: '0'
+
         });
+
         
+
         const response = await fetch(`/api/search/search/?${searchParams}`, {
+
             method: 'GET',
+
             headers: {
+
                 'Content-Type': 'application/json',
+
                 'X-CSRFToken': getCSRFToken()
+
             }
+
         });
+
         
+
         if (response.ok) {
+
             const data = await response.json();
+
             console.log('🔍 Full API response:', data);
+
             console.log('🔍 Results array:', data.results);
+
             if (data.results && data.results.length > 0) {
+
                 console.log('🔍 First result structure:', data.results[0]);
+
             }
+
             
+
             showSearchResults();
+
             
+
             window.allSearchResults = data;
+
             window.currentPage = 1;
+
             
+
             // Display smart limiting info
+
             displaySmartLimitingInfo(query, selectedMode, smartLimit, data);
+
             
+
             displayRealResults(data);
+
         } else {
+
             const errorText = await response.text();
+
             throw new Error(`Search failed: ${response.status} - ${errorText}`);
+
         }
+
         
+
     } catch (error) {
+
         console.error('Search error:', error);
+
         showErrorState(`Search failed: ${error.message}`);
+
     }
+
 }
+
+
 
 // Display real results
+
 function displayRealResults(data) {
+
     const resultsList = document.getElementById('resultsList');
+
     const resultsCount = document.getElementById('resultsCount');
+
     
+
     if (!data || !data.results || data.results.length === 0) {
+
         resultsCount.textContent = ' (0 results)';
+
         resultsList.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-search me-2"></i>No results found</div>';
+
         return;
+
     }
+
     
+
     const totalResults = data.results.length;
+
     resultsCount.textContent = ` (${totalResults} results)`;
+
     
+
     applyClientSidePagination();
+
 }
+
+
 
 // Create result card
+
 function createResultCard(result, queryInfo) {
+
     const card = document.createElement('div');
+
     card.className = 'result-card';
+
     
+
     // Debug: Log the result structure
+
     console.log('🔍 Result structure:', result);
+
     
+
     // Extract data from the correct structure
+
     const resultData = result.result_data || result;
+
     const caseData = resultData.case_data || resultData;
+
     
+
     // Safely extract values with fallbacks
+
     const title = caseData.title || caseData.case_title || resultData.title || 'No title available';
+
     const court = caseData.court || caseData.court_name || resultData.court || 'Unknown Court';
+
     const status = caseData.status || caseData.case_status || resultData.status || 'Unknown Status';
+
     
+
     // Try to get date from multiple possible fields
+
     const institutionDate = caseData.institution_date || resultData.institution_date || '';
+
     const hearingDate = caseData.hearing_date || resultData.hearing_date || '';
+
     const date = caseData.date || caseData.case_date || caseData.created_at || resultData.date || institutionDate || hearingDate || 'Unknown Date';
+
     
+
     // Debug: Log date and snippet information (remove in production)
+
     // console.log('🔍 Date and snippet debugging:', {
+
     //     institutionDate,
+
     //     hearingDate,
+
     //     date,
+
     //     caseData,
+
     //     resultData,
+
     //     snippets: result.snippets
+
     // });
+
     
+
     const caseId = result.case_id || caseData.id || resultData.id || result.id || 'N/A';
+
     
+
     // Debug: Log case ID extraction (remove in production)
+
     // console.log('🔍 Case ID extraction:', {
+
     //     'result.case_id': result.case_id,
+
     //     'caseData.id': caseData.id,
+
     //     'resultData.id': resultData.id,
+
     //     'result.id': result.id,
+
     //     'final caseId': caseId
+
     // });
+
     // Try to get snippet from multiple sources
+
     let snippet = result.snippet || resultData.snippet || caseData.snippet || '';
+
     
+
     // If no snippet, try to get from snippets array
+
     if (!snippet && result.snippets && result.snippets.length > 0) {
+
         // Get the best snippet (highest relevance score)
+
         const bestSnippet = result.snippets.reduce((best, current) => {
+
             const currentScore = current.relevance_score || 0;
+
             const bestScore = best.relevance_score || 0;
+
             return currentScore > bestScore ? current : best;
+
         });
+
         
+
         snippet = bestSnippet.text || bestSnippet.content || bestSnippet.original_text || '';
+
         
+
         // Clean up the snippet text
+
         if (snippet) {
+
             // Remove excessive metadata and clean up the text
+
             snippet = snippet.replace(/Case Number:.*?Case Title:/g, '');
+
             snippet = snippet.replace(/Status:.*?Bench:/g, '');
+
             snippet = snippet.replace(/Case Metadata:.*$/g, '');
+
             snippet = snippet.replace(/Document:.*?Type:.*?ORDER SHEET/g, '');
+
             snippet = snippet.replace(/JUDGMENT SHEET.*?JUDICIAL DEPARTMENT/g, '');
+
             snippet = snippet.trim();
+
             
+
             // Limit snippet length
+
             if (snippet.length > 300) {
+
                 snippet = snippet.substring(0, 300) + '...';
+
             }
+
         }
+
     }
+
     
+
     // If still no snippet, use a default message
+
     if (!snippet) {
+
         snippet = 'No snippet available';
+
     }
+
     
+
     // Format date if it exists
+
     let formattedDate = date;
+
     if (date && date !== 'Unknown Date' && date !== null && date !== '') {
+
         try {
+
             // Handle different date formats
+
             let dateStr = date;
+
             if (typeof date === 'object' && date.year && date.month && date.day) {
+
                 // Handle datetime.date objects from Python
+
                 dateStr = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+
             }
+
             
+
             const dateObj = new Date(dateStr);
+
             if (!isNaN(dateObj.getTime())) {
+
                 formattedDate = dateObj.toLocaleDateString();
+
             } else {
+
                 // Try to format as-is if it's already a string
+
                 formattedDate = dateStr;
+
             }
+
         } catch (e) {
+
             // Keep original date if formatting fails
+
             formattedDate = date;
+
         }
+
     }
+
     
+
     card.innerHTML = `
+
         <div class="result-rank">#${result.rank || 'N/A'}</div>
+
         <h5 class="result-title">${title}</h5>
+
         
+
         <div class="result-meta">
+
             <div class="meta-item">
+
                 <i class="fas fa-gavel"></i>
+
                 <span>${court}</span>
+
             </div>
+
             <div class="meta-item">
+
                 <i class="fas fa-info-circle"></i>
+
                 <span>${status}</span>
+
             </div>
+
             <div class="meta-item">
+
                 <i class="fas fa-calendar"></i>
+
                 <span>${formattedDate}</span>
+
             </div>
+
         </div>
+
         
+
         <div class="result-snippet">
+
             ${snippet}
+
         </div>
+
         
+
         <div class="score-breakdown">
+
             <div class="score-item">
+
                 <span>Vector:</span>
+
                 <span class="score-value">${((result.vector_score || 0) * 100).toFixed(1)}%</span>
+
             </div>
+
             <div class="score-item">
+
                 <span>Keyword:</span>
+
                 <span class="score-value">${((result.keyword_score || 0) * 100).toFixed(1)}%</span>
+
             </div>
+
             <div class="score-item">
+
                 <span>Final:</span>
+
                 <span class="score-value">${((result.final_score || 0) * 100).toFixed(1)}%</span>
+
             </div>
+
         </div>
+
         
+
         <div class="result-actions">
+
             <button class="btn btn-view-details" onclick="openCaseModal(${caseId})" data-case-id="${caseId}">
+
                 <i class="fas fa-eye me-2"></i>View Details
+
             </button>
+
             <button class="btn btn-history" onclick="viewCaseHistory(${caseId})">
+
                 <i class="fas fa-history me-2"></i>History
+
             </button>
+
         </div>
+
     `;
+
     
+
     return card;
+
 }
+
+
 
 // Client-side pagination
+
 function applyClientSidePagination() {
+
     if (!window.allSearchResults || !window.allSearchResults.results) {
+
         return;
+
     }
+
     
+
     const resultsPerPage = parseInt(document.getElementById('resultsPerPage').value);
+
     const totalResults = window.allSearchResults.results.length;
+
     const totalPages = Math.ceil(totalResults / resultsPerPage);
+
     
+
     if (window.currentPage > totalPages) {
+
         window.currentPage = totalPages;
+
     }
+
     if (window.currentPage < 1) {
+
         window.currentPage = 1;
+
     }
+
     
+
     const startIndex = (window.currentPage - 1) * resultsPerPage;
+
     const endIndex = Math.min(startIndex + resultsPerPage, totalResults);
+
     
+
     const currentPageResults = window.allSearchResults.results.slice(startIndex, endIndex);
+
     
+
     const resultsList = document.getElementById('resultsList');
+
     resultsList.innerHTML = '';
+
     
+
     currentPageResults.forEach((result, index) => {
+
         const resultCard = createResultCard(result, window.allSearchResults.query_info);
+
         resultsList.appendChild(resultCard);
+
     });
+
     
+
     if (window.allSearchResults.search_metadata) {
+
         const metadataDiv = document.createElement('div');
+
         metadataDiv.className = 'search-metadata mt-3 p-3 bg-light rounded';
+
         metadataDiv.innerHTML = `
+
             <small class="text-muted">
+
                 <i class="fas fa-info-circle me-1"></i>
+
                 Search completed in ${window.allSearchResults.search_metadata.latency_ms}ms | 
+
                 Mode: ${window.allSearchResults.search_metadata.mode} | 
+
                 ${window.allSearchResults.query_info ? `Citations found: ${window.allSearchResults.query_info.citations_found}` : ''}
+
             </small>
+
         `;
+
         resultsList.appendChild(metadataDiv);
+
     }
+
     
+
     displayClientSidePagination(totalResults, resultsPerPage, totalPages, startIndex, endIndex);
+
 }
+
+
 
 // Display client-side pagination
+
 function displayClientSidePagination(totalResults, resultsPerPage, totalPages, startIndex, endIndex) {
+
     const paginationContainer = document.getElementById('paginationContainer');
+
     const paginationList = document.getElementById('paginationList');
+
     const paginationInfo = document.getElementById('paginationInfo');
+
     const currentResultsRange = document.getElementById('currentResultsRange');
+
     const totalResultsSpan = document.getElementById('totalResults');
+
     
+
     paginationContainer.style.display = 'block';
+
     
+
     if (currentResultsRange) {
+
         currentResultsRange.textContent = `${startIndex + 1}-${endIndex}`;
+
     }
+
     if (totalResultsSpan) {
+
         totalResultsSpan.textContent = totalResults;
+
     }
+
     
+
     if (paginationInfo) {
+
         paginationInfo.innerHTML = `Page ${window.currentPage} of ${totalPages}`;
+
     }
+
     
+
     if (totalPages <= 1) {
+
         paginationList.innerHTML = '';
+
         return;
+
     }
+
     
+
     paginationList.innerHTML = '';
+
     
+
     if (window.currentPage > 1) {
+
         const prevLi = document.createElement('li');
+
         prevLi.className = 'page-item';
+
         prevLi.innerHTML = `
+
             <a class="page-link" href="#" onclick="goToClientPage(${window.currentPage - 1})">
+
                 <i class="fas fa-chevron-left"></i> Previous
+
             </a>
+
         `;
+
         paginationList.appendChild(prevLi);
+
     }
+
     
+
     const maxVisiblePages = 5;
+
     let startPage = Math.max(1, window.currentPage - Math.floor(maxVisiblePages / 2));
+
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
     
+
     if (endPage - startPage + 1 < maxVisiblePages) {
+
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
+
     }
+
     
+
     for (let i = startPage; i <= endPage; i++) {
+
         const pageLi = document.createElement('li');
+
         pageLi.className = `page-item ${i === window.currentPage ? 'active' : ''}`;
+
         pageLi.innerHTML = `
+
             <a class="page-link" href="#" onclick="goToClientPage(${i})">${i}</a>
+
         `;
+
         paginationList.appendChild(pageLi);
+
     }
+
     
+
     if (window.currentPage < totalPages) {
+
         const nextLi = document.createElement('li');
+
         nextLi.className = 'page-item';
+
         nextLi.innerHTML = `
+
             <a class="page-link" href="#" onclick="goToClientPage(${window.currentPage + 1})">
+
                 Next <i class="fas fa-chevron-right"></i>
+
             </a>
+
         `;
+
         paginationList.appendChild(nextLi);
+
     }
+
 }
+
+
 
 // Navigate to specific page
+
 function goToClientPage(pageNumber) {
+
     window.currentPage = pageNumber;
+
     applyClientSidePagination();
+
     document.getElementById('searchResults').scrollIntoView({ behavior: 'smooth' });
+
 }
+
+
 
 // Open case details modal
+
 function openCaseModal(caseId) {
+
     console.log('Opening case modal for case ID:', caseId);
+
     console.log('Modal element exists:', document.getElementById('caseDetailsModal') !== null);
+
     console.log('Window openCaseModal function exists:', typeof window.openCaseModal === 'function');
+
     
+
     if (caseId && caseId !== 'N/A' && caseId !== 'undefined' && caseId !== 'null') {
+
         // Check if modal element exists
+
         const modal = document.getElementById('caseDetailsModal');
+
         if (modal) {
+
             console.log('Modal found, opening...');
+
             modal.style.display = 'flex';
+
             document.body.style.overflow = 'hidden';
+
             
+
             // Show loading state
+
             const loadingState = document.getElementById('modalLoadingState');
+
             const errorState = document.getElementById('modalErrorState');
+
             const content = document.getElementById('modalContent');
+
             
+
             if (loadingState) loadingState.style.display = 'flex';
+
             if (errorState) errorState.style.display = 'none';
+
             if (content) content.style.display = 'none';
+
             
+
             // Load case data
+
             loadCaseData(caseId);
+
         } else {
+
             console.error('Modal element not found');
+
             alert('Case details modal is not available. Please refresh the page.');
+
         }
+
     } else {
+
         console.error('Invalid case ID:', caseId);
+
         alert('Case ID not available: ' + caseId);
+
     }
+
 }
+
+
 
 // Load case data for modal
+
 async function loadCaseData(caseId) {
+
     try {
+
         console.log('Loading case data for ID:', caseId);
+
         const apiUrl = '/api/search/case/' + caseId + '/';
+
         console.log('API URL:', apiUrl);
+
         
+
         const response = await fetch(apiUrl);
+
         console.log('Response status:', response.status);
+
         console.log('Response headers:', response.headers);
+
         
+
         if (response.ok) {
+
             const caseData = await response.json();
+
             console.log('Case data loaded:', caseData);
+
             console.log('Case data keys:', Object.keys(caseData));
+
             
+
             // Check if we have the expected data structure
+
             if (caseData.case_detail) {
+
                 console.log('Case detail keys:', Object.keys(caseData.case_detail));
+
             }
+
             
+
             populateModalData(caseData);
+
             showModalContent();
+
         } else {
+
             const errorText = await response.text();
+
             console.error('Failed to load case data:', response.status, errorText);
+
             showModalError();
+
         }
+
     } catch (error) {
+
         console.error('Error loading case data:', error);
+
         showModalError();
+
     }
+
 }
+
+
 
 // Show modal content
+
 function showModalContent() {
+
     const loadingState = document.getElementById('modalLoadingState');
+
     const errorState = document.getElementById('modalErrorState');
+
     const content = document.getElementById('modalContent');
+
     
+
     if (loadingState) loadingState.style.display = 'none';
+
     if (errorState) errorState.style.display = 'none';
+
     if (content) content.style.display = 'block';
+
 }
+
+
 
 // Show modal error
+
 function showModalError() {
+
     const loadingState = document.getElementById('modalLoadingState');
+
     const errorState = document.getElementById('modalErrorState');
+
     const content = document.getElementById('modalContent');
+
     
+
     if (loadingState) loadingState.style.display = 'none';
+
     if (errorState) errorState.style.display = 'flex';
+
     if (content) content.style.display = 'none';
+
 }
+
+
 
 // Close modal
+
 function closeCaseModal() {
+
     const modal = document.getElementById('caseDetailsModal');
+
     if (modal) {
+
         modal.style.display = 'none';
+
         document.body.style.overflow = 'auto';
+
     }
+
 }
+
+
 
 // Populate modal data
+
 function populateModalData(caseData) {
+
     console.log('Populating modal with data:', caseData);
+
     
+
     // Populate overview data
+
     const fields = {
+
         'caseNumber': caseData.case_number || 'Not available',
+
         'srNumber': caseData.sr_number || 'Not available',
+
         'court': caseData.court || 'Not available',
+
         'institutionDate': caseData.institution_date || 'Not available',
+
         'hearingDate': caseData.hearing_date || 'Not available',
+
         'bench': caseData.bench || 'Not available',
+
         'caseTitle': caseData.case_title || 'No title available'
+
     };
+
     
+
     Object.entries(fields).forEach(([id, value]) => {
+
         const element = document.getElementById(id);
+
         if (element) {
+
             element.textContent = value;
+
             console.log('Set ' + id + ' to:', value);
+
         } else {
+
             console.log('Element not found:', id);
+
         }
+
     });
+
     
+
     // Status with badge
+
     const statusElement = document.getElementById('status');
+
     if (statusElement && caseData.status) {
+
         const statusClass = 'status-' + caseData.status.toLowerCase();
+
         statusElement.innerHTML = '<span class="status-badge ' + statusClass + '">' + caseData.status + '</span>';
+
     }
+
     
+
     // Populate legal details if available
+
     if (caseData.case_detail) {
+
         console.log('Populating legal details:', caseData.case_detail);
+
         const legalFields = {
+
             'caseStage': caseData.case_detail.case_stage || 'Not available',
+
             'shortOrder': caseData.case_detail.short_order || 'Not available',
+
             'disposalDate': caseData.case_detail.case_disposal_date || 'Not available',
+
             'caseDescription': caseData.case_detail.case_description || 'Not available',
+
             'petitionerAdvocates': caseData.case_detail.advocates_petitioner || 'Not available',
+
             'respondentAdvocates': caseData.case_detail.advocates_respondent || 'Not available'
+
         };
+
         
+
         Object.entries(legalFields).forEach(([id, value]) => {
+
             const element = document.getElementById(id);
+
             if (element) {
+
                 element.textContent = value;
+
                 console.log('Set legal ' + id + ' to:', value);
+
             } else {
+
                 console.log('Legal element not found:', id);
+
             }
+
         });
+
         
+
         // Show FIR section if FIR data exists
+
         if (caseData.case_detail.fir_number) {
+
             const firNavItem = document.querySelector('[data-section="fir"]');
+
             if (firNavItem) {
+
                 firNavItem.style.display = 'block';
+
             }
+
             
+
             const firFields = {
+
                 'firNumber': caseData.case_detail.fir_number,
+
                 'firDate': caseData.case_detail.fir_date || 'Not available',
+
                 'policeStation': caseData.case_detail.police_station || 'Not available',
+
                 'underSection': caseData.case_detail.under_section || 'Not available',
+
                 'accusedName': caseData.case_detail.name_of_accused || 'Not available',
+
                 'incidentDescription': caseData.case_detail.incident || 'Not available'
+
             };
+
             
+
             Object.entries(firFields).forEach(([id, value]) => {
+
                 const element = document.getElementById(id);
+
                 if (element) {
+
                     element.textContent = value;
+
                     console.log('Set FIR ' + id + ' to:', value);
+
                 } else {
+
                     console.log('FIR element not found:', id);
+
                 }
+
             });
+
         }
+
     }
+
 }
+
+
 
 // View case history
+
 function viewCaseHistory(caseId) {
+
     // Placeholder for case history functionality
+
     alert('Case history feature coming soon!');
+
 }
 
+
+
 // Modal navigation functionality
+
 document.addEventListener('DOMContentLoaded', function() {
+
     // Add navigation functionality for modal
+
     const navItems = document.querySelectorAll('.nav-item');
+
     const contentSections = document.querySelectorAll('.content-section');
+
     
+
     navItems.forEach(item => {
+
         item.addEventListener('click', function() {
+
             const section = this.getAttribute('data-section');
+
             
+
             // Update active nav item
+
             navItems.forEach(nav => nav.classList.remove('active'));
+
             this.classList.add('active');
+
             
+
             // Show corresponding content section
+
             contentSections.forEach(content => content.classList.remove('active'));
+
             const targetSection = document.getElementById(section + 'Section');
+
             if (targetSection) {
+
                 targetSection.classList.add('active');
+
             }
+
         });
+
     });
+
     
+
     // Close modal when clicking outside
+
     const modal = document.getElementById('caseDetailsModal');
+
     if (modal) {
+
         modal.addEventListener('click', function(e) {
+
             if (e.target === this) {
+
                 closeCaseModal();
+
             }
+
         });
+
     }
+
     
+
     // Close modal with Escape key
+
     document.addEventListener('keydown', function(e) {
+
         if (e.key === 'Escape') {
+
             closeCaseModal();
+
         }
+
     });
+
 });
+
+
 
 // ===== SUGGESTIONS FUNCTIONALITY =====
 
+
+
 // Handle search input for suggestions
+
 function handleSearchInput(event) {
+
     const query = event.target.value.trim();
+
     
+
     // Clear previous timeout
+
     if (window.suggestionsTimeout) {
+
         clearTimeout(window.suggestionsTimeout);
+
     }
+
     
+
     // Handle keyboard navigation
+
     if (event.key === 'ArrowDown') {
+
         event.preventDefault();
+
         navigateSuggestions(1);
+
         return;
+
     }
+
     
+
     if (event.key === 'ArrowUp') {
+
         event.preventDefault();
+
         navigateSuggestions(-1);
+
         return;
+
     }
+
     
+
     if (event.key === 'Enter') {
+
         event.preventDefault();
+
         if (window.selectedSuggestionIndex >= 0 && window.suggestions[window.selectedSuggestionIndex]) {
+
             selectSuggestion(window.suggestions[window.selectedSuggestionIndex]);
+
         } else {
+
             performSearch();
+
         }
+
         return;
+
     }
+
     
+
     if (event.key === 'Escape') {
+
         hideSuggestions();
+
         return;
+
     }
+
     
+
     // Fetch suggestions after a short delay
+
     if (query.length >= 2) {
+
         window.suggestionsTimeout = setTimeout(() => {
+
             fetchSuggestions(query);
+
         }, 300);
+
     } else {
+
         hideSuggestions();
+
     }
+
 }
+
+
 
 // Fetch suggestions from API
+
 async function fetchSuggestions(query) {
+
     try {
+
         console.log('🔍 Fetching suggestions for query:', query);
+
         const apiUrl = `/api/search/suggest/?q=${encodeURIComponent(query)}&type=auto`;
+
         console.log('🔍 API URL:', apiUrl);
+
         
+
         const response = await fetch(apiUrl, {
+
             method: 'GET',
+
             headers: {
+
                 'Content-Type': 'application/json',
+
                 'X-CSRFToken': getCSRFToken()
+
             }
+
         });
+
         
+
         console.log('🔍 Response status:', response.status);
+
         console.log('🔍 Response headers:', response.headers);
+
         
+
         if (response.ok) {
+
             const data = await response.json();
+
             console.log('🔍 Suggestions data:', data);
+
             window.suggestions = data.suggestions || [];
+
             console.log('🔍 Processed suggestions:', window.suggestions);
+
             displaySuggestions(window.suggestions);
+
         } else {
+
             const errorText = await response.text();
+
             console.error('❌ Failed to fetch suggestions:', response.status, errorText);
+
             hideSuggestions();
+
         }
+
     } catch (error) {
+
         console.error('❌ Error fetching suggestions:', error);
+
         hideSuggestions();
+
     }
+
 }
+
+
 
 // Display suggestions in dropdown
+
 function displaySuggestions(suggestions) {
+
     console.log('🎯 Displaying suggestions:', suggestions);
+
     const dropdown = document.getElementById('suggestionsDropdown');
+
     const suggestionsList = document.getElementById('suggestionsList');
+
     const suggestionsType = document.getElementById('suggestionsType');
+
     
+
     console.log('🎯 Dropdown element:', dropdown);
+
     console.log('🎯 Suggestions list element:', suggestionsList);
+
     console.log('🎯 Suggestions type element:', suggestionsType);
+
     
+
     if (!suggestions || suggestions.length === 0) {
+
         console.log('🎯 No suggestions to display, hiding dropdown');
+
         hideSuggestions();
+
         return;
+
     }
+
     
+
     // Reset selection
+
     window.selectedSuggestionIndex = -1;
+
     
+
     // Update suggestions type
+
     const detectedType = detectSuggestionType(suggestions);
+
     console.log('🎯 Detected type:', detectedType);
+
     if (suggestionsType) {
+
         suggestionsType.textContent = detectedType;
+
     }
+
     
+
     // Clear and populate suggestions list
+
     if (suggestionsList) {
+
         suggestionsList.innerHTML = '';
+
         
+
         suggestions.forEach((suggestion, index) => {
+
             const suggestionItem = createSuggestionItem(suggestion, index);
+
             suggestionsList.appendChild(suggestionItem);
+
         });
+
     }
+
     
+
     // Show dropdown
+
     if (dropdown) {
+
         dropdown.style.display = 'block';
+
         console.log('🎯 Dropdown should now be visible');
+
     } else {
+
         console.error('❌ Dropdown element not found!');
+
     }
+
 }
+
+
 
 // Create suggestion item element
+
 function createSuggestionItem(suggestion, index) {
+
     const item = document.createElement('div');
+
     item.className = 'suggestion-item';
+
     item.setAttribute('data-index', index);
+
     
+
     const typeIcon = getSuggestionTypeIcon(suggestion.type);
+
     const typeBadge = getSuggestionTypeBadge(suggestion.type);
+
     
+
     item.innerHTML = `
+
         <div class="suggestion-content">
+
             <div class="suggestion-value">${suggestion.value}</div>
+
             ${suggestion.additional_info ? `<div class="suggestion-info">${suggestion.additional_info}</div>` : ''}
+
         </div>
+
         <span class="suggestion-type-badge">${typeBadge}</span>
+
     `;
+
     
+
     // Add click handler with preventDefault
+
     item.addEventListener('click', (e) => {
+
         e.preventDefault();
+
         e.stopPropagation();
+
         console.log('🎯 Suggestion clicked:', suggestion);
+
         selectSuggestion(suggestion);
+
     });
+
     
+
     // Add mouseenter handler for better UX
+
     item.addEventListener('mouseenter', () => {
+
         // Remove previous highlights
+
         const highlightedItems = document.querySelectorAll('.suggestion-item.highlighted');
+
         highlightedItems.forEach(item => item.classList.remove('highlighted'));
+
         
+
         // Highlight current item
+
         item.classList.add('highlighted');
+
         window.selectedSuggestionIndex = index;
+
     });
+
     
+
     return item;
+
 }
+
+
 
 // Get icon for suggestion type
+
 function getSuggestionTypeIcon(type) {
+
     const icons = {
+
         'case': 'fas fa-gavel',
+
         'citation': 'fas fa-book',
+
         'section': 'fas fa-paragraph',
+
         'judge': 'fas fa-user-tie',
+
         'auto': 'fas fa-magic'
+
     };
+
     return icons[type] || 'fas fa-search';
+
 }
+
+
 
 // Get badge text for suggestion type
+
 function getSuggestionTypeBadge(type) {
+
     const badges = {
+
         'case': 'Case',
+
         'citation': 'Citation',
+
         'section': 'Section',
+
         'judge': 'Judge',
+
         'auto': 'Auto'
+
     };
+
     return badges[type] || 'Search';
+
 }
+
+
 
 // Detect suggestion type from suggestions
+
 function detectSuggestionType(suggestions) {
+
     if (!suggestions || suggestions.length === 0) return 'Auto';
+
     
+
     const types = suggestions.map(s => s.type).filter(Boolean);
+
     if (types.length === 0) return 'Auto';
+
     
+
     // Return the most common type
+
     const typeCounts = {};
+
     types.forEach(type => {
+
         typeCounts[type] = (typeCounts[type] || 0) + 1;
+
     });
+
     
+
     const mostCommonType = Object.keys(typeCounts).reduce((a, b) => 
+
         typeCounts[a] > typeCounts[b] ? a : b
+
     );
+
     
+
     return mostCommonType.charAt(0).toUpperCase() + mostCommonType.slice(1);
+
 }
+
+
 
 // Navigate suggestions with keyboard
+
 function navigateSuggestions(direction) {
+
     if (window.suggestions.length === 0) return;
+
     
+
     // Remove previous highlight
+
     const previousItem = document.querySelector('.suggestion-item.highlighted');
+
     if (previousItem) {
+
         previousItem.classList.remove('highlighted');
+
     }
+
     
+
     // Calculate new index
+
     window.selectedSuggestionIndex += direction;
+
     
+
     // Wrap around
+
     if (window.selectedSuggestionIndex < 0) {
+
         window.selectedSuggestionIndex = window.suggestions.length - 1;
+
     } else if (window.selectedSuggestionIndex >= window.suggestions.length) {
+
         window.selectedSuggestionIndex = 0;
+
     }
+
     
+
     // Highlight new item
+
     const newItem = document.querySelector(`[data-index="${window.selectedSuggestionIndex}"]`);
+
     if (newItem) {
+
         newItem.classList.add('highlighted');
+
         newItem.scrollIntoView({ block: 'nearest' });
+
     }
+
 }
+
+
 
 // Select a suggestion
+
 function selectSuggestion(suggestion) {
+
     console.log('🎯 Selecting suggestion:', suggestion);
+
     const searchInput = document.getElementById('searchQuery');
+
     
+
     if (searchInput && suggestion) {
+
         searchInput.value = suggestion.value;
+
         console.log('🎯 Search input updated to:', suggestion.value);
+
         
+
         // Hide suggestions
+
         hideSuggestions();
+
         
+
         // Focus back on input
+
         searchInput.focus();
+
         
+
         // Optionally perform search immediately
+
         // performSearch();
+
     } else {
+
         console.error('❌ Error selecting suggestion:', { searchInput, suggestion });
+
     }
+
 }
+
+
 
 // Show suggestions dropdown
+
 function showSuggestions() {
+
     const searchInput = document.getElementById('searchQuery');
+
     const query = searchInput.value.trim();
+
     
+
     if (query.length >= 2 && window.suggestions.length > 0) {
+
         const dropdown = document.getElementById('suggestionsDropdown');
+
         dropdown.style.display = 'block';
+
     }
+
 }
+
+
 
 // Handle search input blur event
+
 function handleSearchBlur(event) {
+
     // Add a small delay to allow click events on suggestions to fire first
+
     setTimeout(() => {
+
         hideSuggestions();
+
     }, 150);
+
 }
+
+
 
 // Hide suggestions dropdown
+
 function hideSuggestions() {
+
     const dropdown = document.getElementById('suggestionsDropdown');
+
     dropdown.style.display = 'none';
+
     window.selectedSuggestionIndex = -1;
+
     
+
     // Remove highlights
+
     const highlightedItems = document.querySelectorAll('.suggestion-item.highlighted');
+
     highlightedItems.forEach(item => item.classList.remove('highlighted'));
+
 }
+
+
 
 // Test suggestions API function
+
 async function testSuggestionsAPI() {
+
     console.log('🧪 Testing suggestions API...');
+
     
+
     // Test direct backend API
+
     try {
+
         console.log('🧪 Testing backend API directly...');
+
         const backendResponse = await fetch('/api/search/suggest/?q=ppc&type=auto', {
+
             method: 'GET',
+
             headers: {
+
                 'Content-Type': 'application/json',
+
             }
+
         });
+
         
+
         console.log('🧪 Backend API Status:', backendResponse.status);
+
         if (backendResponse.ok) {
+
             const backendData = await backendResponse.json();
+
             console.log('🧪 Backend API Response:', backendData);
+
         } else {
+
             const errorText = await backendResponse.text();
+
             console.error('🧪 Backend API Error:', errorText);
+
         }
+
     } catch (error) {
+
         console.error('🧪 Backend API Exception:', error);
+
     }
+
     
+
     // Test frontend API
+
     try {
+
         console.log('🧪 Testing frontend API...');
+
         const frontendResponse = await fetch('/api/search/suggest/?q=ppc&type=auto', {
+
             method: 'GET',
+
             headers: {
+
                 'Content-Type': 'application/json',
+
                 'X-CSRFToken': getCSRFToken()
+
             }
+
         });
+
         
+
         console.log('🧪 Frontend API Status:', frontendResponse.status);
+
         if (frontendResponse.ok) {
+
             const frontendData = await frontendResponse.json();
+
             console.log('🧪 Frontend API Response:', frontendData);
+
         } else {
+
             const errorText = await frontendResponse.text();
+
             console.error('🧪 Frontend API Error:', errorText);
+
         }
+
     } catch (error) {
+
         console.error('🧪 Frontend API Exception:', error);
+
     }
+
     
+
     // Test the fetchSuggestions function
+
     console.log('🧪 Testing fetchSuggestions function...');
+
     await fetchSuggestions('ppc');
+
 }
+
 </script>
 
+
+
 <!-- Include Case Details Modal -->
+
 {% include 'search/case_details_modal.html' %}
+
+
 
 {% endblock %}

@@ -17,15 +17,62 @@ def landing_page(request):
 
 
 def login_view(request):
-    """Handle user login"""
+    """Handle user login with role-based authentication"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        user_role = request.POST.get('user_role')
+        identifier = request.POST.get('identifier')
+        
+        # Basic validation
+        if not all([username, password, user_role, identifier]):
+            return render(request, 'search/login.html', {
+                'error': 'All fields are required'
+            })
+        
+        # Authenticate user
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            login(request, user)
-            return redirect('dashboard')
+            # Check if user has a profile
+            try:
+                from apps.accounts.models import UserProfile
+                profile = user.profile
+                
+                # Verify role matches
+                if profile.role != user_role:
+                    return render(request, 'search/login.html', {
+                        'error': f'Invalid role. Your account is registered as {profile.get_role_display()}'
+                    })
+                
+                # Verify identifier
+                if user_role == 'lawyer':
+                    if profile.advocate_license_number != identifier:
+                        return render(request, 'search/login.html', {
+                            'error': 'Invalid advocate license number'
+                        })
+                elif user_role == 'general_public':
+                    if profile.cnic != identifier:
+                        return render(request, 'search/login.html', {
+                            'error': 'Invalid CNIC'
+                        })
+                
+                # Login successful
+                login(request, user)
+                
+                # Store user role in session for access control
+                request.session['user_role'] = user_role
+                
+                # Redirect based on role
+                if user_role == 'lawyer':
+                    return redirect('dashboard')  # Lawyers can access all modules
+                else:
+                    return redirect('law_info_module')  # General public only gets law info
+                    
+            except Exception as e:
+                return render(request, 'search/login.html', {
+                    'error': 'User profile not found. Please contact administrator.'
+                })
         else:
             return render(request, 'search/login.html', {
                 'error': 'Invalid username or password'
@@ -49,21 +96,33 @@ def dashboard(request):
 
 @login_required
 def search_module(request):
-    """Search module interface"""
+    """Search module interface - Lawyers only"""
+    # Check if user is a lawyer
+    if request.session.get('user_role') != 'lawyer':
+        return render(request, 'search/access_denied.html', {
+            'message': 'Access denied. This module is only available for lawyers.',
+            'user_role': request.session.get('user_role', 'unknown')
+        })
     return render(request, 'search/search_module.html')
 
 
 @login_required
 def qa_module(request):
-    """QA module interface - Legal Knowledge Resource"""
+    """QA module interface - Lawyers only"""
+    # Check if user is a lawyer
+    if request.session.get('user_role') != 'lawyer':
+        return render(request, 'search/access_denied.html', {
+            'message': 'Access denied. This module is only available for lawyers.',
+            'user_role': request.session.get('user_role', 'unknown')
+        })
     # Redirect to the question answering module (separate Django project)
     # The QA module runs on a different port/project
     return redirect('/qa/')
 
 
 def law_info_module(request):
-    """Law Info module interface"""
-    # Redirect to the law information backend
+    """Law Info module interface - Available to all users"""
+    # This module is accessible to both lawyers and general public
     return redirect('http://localhost:8001/')
 
 

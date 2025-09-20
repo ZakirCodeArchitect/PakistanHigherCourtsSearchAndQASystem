@@ -1,20 +1,23 @@
-{% extends 'search/base.html' %}
-
-{% block title %}Login - Pakistan Higher Courts Search & QA System{% endblock %}
-
-{% block content %}
-<div class="login-container min-vh-100 d-flex align-items-center">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="login-card">
-                    <!-- Header -->
-                    <div class="text-center mb-4">
-                        <div class="login-logo mb-3">
-                            <i class="fas fa-balance-scale"></i>
-                        </div>
-                        <h2 class="h3 fw-bold">Welcome Back</h2>
-                        <p class="text-muted">Sign in to access the legal search system</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pakistan Higher Courts Search & QA System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    {% load static %}
+    <link href="{% static 'shared/styles.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="login-container">
+    <div class="row g-0 min-vh-100">
+        <!-- Left Section - Login Form -->
+        <div class="col-lg-7 login-section">
+            <div class="login-content">
+                <!-- Main Title -->
+                <div class="login-header">
+                    <h1 class="login-title">Sign in</h1>
                     </div>
                     
                     <!-- Error Messages -->
@@ -30,12 +33,44 @@
                     <form method="post" class="login-form">
                         {% csrf_token %}
                         
-                        <div class="mb-3">
-                            <label for="username" class="form-label">
-                                <i class="fas fa-user me-2"></i>Username
-                            </label>
+                    <!-- Role Selection -->
+                    <div class="form-group">
+                        <label class="form-label">Select User Type</label>
+                        <div class="role-selection">
+                            <div class="role-option" data-role="general_public">
+                                <div class="role-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="role-content">
+                                    <h6 class="role-title">General Public</h6>
+                                    <p class="role-description">Access legal information and resources</p>
+                                </div>
+                                <div class="role-radio">
+                                    <input type="radio" name="user_role" value="general_public" id="role_public" required>
+                                    <label for="role_public"></label>
+                                </div>
+                            </div>
+                            
+                            <div class="role-option" data-role="lawyer">
+                                <div class="role-icon">
+                                    <i class="fas fa-gavel"></i>
+                                </div>
+                                <div class="role-content">
+                                    <h6 class="role-title">Lawyer</h6>
+                                    <p class="role-description">Full access to all legal modules</p>
+                                </div>
+                                <div class="role-radio">
+                                    <input type="radio" name="user_role" value="lawyer" id="role_lawyer" required>
+                                    <label for="role_lawyer"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
                             <input type="text" 
-                                   class="form-control form-control-lg" 
+                               class="form-control" 
                                    id="username" 
                                    name="username" 
                                    required 
@@ -43,121 +78,689 @@
                                    placeholder="Enter your username">
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="password" class="form-label">
-                                <i class="fas fa-lock me-2"></i>Password
-                            </label>
-                            <div class="input-group">
+                    <!-- Dynamic Input Field -->
+                    <div class="form-group" id="identifier-group" style="display: none;">
+                        <label for="identifier" class="form-label" id="identifier-label">Identifier</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="identifier" 
+                               name="identifier" 
+                               placeholder="Enter your identifier">
+                        <small class="form-text text-muted" id="identifier-help"></small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="password-input">
                                 <input type="password" 
-                                       class="form-control form-control-lg" 
+                                   class="form-control" 
                                        id="password" 
                                        name="password" 
                                        required 
                                        autocomplete="current-password"
                                        placeholder="Enter your password">
-                                <button class="btn btn-outline-secondary" 
-                                        type="button" 
-                                        id="togglePassword">
+                            <button class="password-toggle" type="button" id="togglePassword">
                                     <i class="fas fa-eye" id="eyeIcon"></i>
                                 </button>
                             </div>
                         </div>
                         
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="form-options">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="rememberMe">
-                                <label class="form-check-label" for="rememberMe">
-                                    Remember me
-                                </label>
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
                             </div>
-                            <a href="#" class="text-decoration-none">Forgot password?</a>
+                        <a href="#" class="forgot-link">Forgot Password?</a>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
-                            <i class="fas fa-sign-in-alt me-2"></i>
-                            Sign In
+                    <button type="submit" class="btn-signin">
+                        Sign in
                         </button>
-                        
-                        <div class="text-center">
-                            <span class="text-muted">Don't have an account?</span>
-                            <a href="#" class="text-decoration-none ms-1">Contact Admin</a>
-                        </div>
-                    </form>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Right Section - Promotional Content -->
+        <div class="col-lg-5 promo-section">
+            <div class="promo-content">
+                <!-- Support Link -->
+                <div class="support-link">
+                    <i class="fas fa-headphones"></i>
+                    <span>Support</span>
                 </div>
                 
-                <!-- Back to Home -->
-                <div class="text-center mt-3">
-                    <a href="{% url 'landing_page' %}" class="text-decoration-none">
-                        <i class="fas fa-arrow-left me-2"></i>
-                        Back to Home
-                    </a>
+                <!-- Promotional Card -->
+                <div class="promo-card">
+                    <div class="card-content">
+                        <h3 class="card-title">Access Legal Intelligence</h3>
+                        <p class="card-description">
+                            Use our comprehensive legal search platform with AI-powered case analysis, 
+                            intelligent Q&A, and public law information for Pakistan's judiciary system.
+                        </p>
+                        <button class="btn-learn-more">Learn more</button>
+                    </div>
+                    <div class="card-visual">
+                        <div class="legal-document">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats-box">
+                    <div class="stat-item">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Cases Analyzed</span>
+                        <strong>10,000+</strong>
+                    </div>
+                </div>
+                
+                <!-- Feature Introduction -->
+                <div class="feature-intro">
+                    <h4 class="intro-title">Introducing AI Features</h4>
+                    <p class="intro-description">
+                        Advanced machine learning algorithms analyze legal precedents and provide 
+                        intelligent insights to help legal professionals make informed decisions.
+                    </p>
+                    <div class="intro-navigation">
+                        <div class="nav-dots">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                        <div class="nav-arrows">
+                            <i class="fas fa-chevron-left"></i>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
 <style>
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+}
+
 .login-container {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    background: #f8f9fa;
 }
 
-.login-card {
-    background: white;
-    border-radius: 15px;
-    padding: 2.5rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+/* Left Section - Login Form */
+.login-section {
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    height: 100vh;
+    overflow: hidden;
 }
 
-.login-logo i {
-    font-size: 3rem;
-    color: #667eea;
+.login-content {
+    width: 100%;
+    max-width: 380px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+.login-header {
+    margin-bottom: 1rem;
+}
+
+.login-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.create-link {
+    color: #fd7e14;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.create-link:hover {
+    text-decoration: underline;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 0.75rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 0.9rem;
 }
 
 .form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
     border: 2px solid #e9ecef;
-    border-radius: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
 }
 
 .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.1);
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 10px;
+select.form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    appearance: none;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Modern Role Selection */
+.role-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.role-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    position: relative;
+}
+
+.role-option:hover {
+    border-color: #fd7e14;
+    background: #fff5f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.1);
+}
+
+.role-option.active {
+    border-color: #fd7e14;
+    background: linear-gradient(135deg, #fff5f0, #ffe8d6);
+    box-shadow: 0 4px 20px rgba(253, 126, 20, 0.15);
+    transform: translateY(-2px);
+}
+
+.role-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.role-icon i {
+    font-size: 1rem;
+    color: white;
+}
+
+.role-content {
+    flex: 1;
+    margin-right: 0.5rem;
+}
+
+.role-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.1rem;
+}
+
+.role-description {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.role-radio {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.role-radio input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.role-radio label {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
+    display: block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.role-radio label::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    transform: translate(-50%, -50%) scale(0);
     transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
+.role-option.active .role-radio label {
+    border-color: #fd7e14;
+    background: #fd7e14;
+}
+
+.role-option.active .role-radio label::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.role-option:hover .role-radio label {
+    border-color: #fd7e14;
+}
+
+/* Responsive Design for Role Selection */
+@media (max-width: 768px) {
+    .login-section {
+        padding: 1rem;
+    }
+    
+    .login-content {
+        max-width: 100%;
+    }
+    
+    .login-title {
+        font-size: 1.75rem;
+    }
+    
+    .role-option {
+        padding: 0.875rem;
+    }
+    
+    .role-icon {
+        width: 35px;
+        height: 35px;
+        margin-right: 0.5rem;
+    }
+    
+    .role-icon i {
+        font-size: 1rem;
+    }
+    
+    .role-title {
+        font-size: 0.9rem;
+    }
+    
+    .role-description {
+        font-size: 0.8rem;
+    }
+    
+    .form-group {
+        margin-bottom: 0.875rem;
+    }
+}
+
+.password-input {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+}
+
+.form-check-input {
+    margin-right: 0.5rem;
+}
+
+.form-check-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.forgot-link {
+    color: #fd7e14;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+.btn-signin {
+    width: 100%;
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 0.75rem;
+}
+
+.btn-signin:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(253, 126, 20, 0.3);
 }
 
-.input-group .btn-outline-secondary {
-    border-color: #e9ecef;
-    border-left: none;
+
+/* Right Section - Promotional Content */
+.promo-section {
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
 }
 
-.input-group .form-control {
-    border-right: none;
+.promo-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.promo-content {
+    width: 100%;
+    max-width: 400px;
+    color: white;
+    position: relative;
+    z-index: 2;
+}
+
+.support-link {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.promo-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+    color: #2c3e50;
+    position: relative;
+    transform: rotate(-2deg);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.card-content {
+    position: relative;
+    z-index: 2;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.card-description {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.btn-learn-more {
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-learn-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(253, 126, 20, 0.3);
+}
+
+.card-visual {
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+}
+
+.legal-document i {
+    font-size: 2rem;
+    color: white;
+}
+
+.stats-box {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    backdrop-filter: blur(10px);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-item i {
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.8);
+}
+
+.stat-item span {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+}
+
+.stat-item strong {
+    color: white;
+    font-size: 1.2rem;
+    margin-left: auto;
+}
+
+.feature-intro {
+    margin-top: 2rem;
+}
+
+.intro-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: white;
+}
+
+.intro-description {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.intro-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: white;
+}
+
+.nav-arrows {
+    display: flex;
+    gap: 1rem;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+}
+
+.nav-arrows i:hover {
+    color: white;
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .login-section {
+        order: 2;
+        padding: 1rem;
+    }
+    
+    .promo-section {
+        order: 1;
+        min-height: 40vh;
+    }
+    
+    .promo-card {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-content {
+        max-width: 100%;
+        padding: 0;
+    }
+    
+    .login-title {
+        font-size: 1.75rem;
+    }
+    
+    .promo-section {
+        min-height: 30vh;
+    }
+    
+    .promo-card {
+        padding: 1.5rem;
+    }
+    
+    .logo-text {
+        font-size: 0.9rem;
+    }
 }
 </style>
-{% endblock %}
-
-{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('togglePassword');
     const password = document.getElementById('password');
     const eyeIcon = document.getElementById('eyeIcon');
+    const roleOptions = document.querySelectorAll('.role-option');
+    const identifierGroup = document.getElementById('identifier-group');
+    const identifierLabel = document.getElementById('identifier-label');
+    const identifierInput = document.getElementById('identifier');
+    const identifierHelp = document.getElementById('identifier-help');
     
+    // Password toggle functionality
     togglePassword.addEventListener('click', function() {
         const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
         password.setAttribute('type', type);
@@ -170,6 +773,59 @@ document.addEventListener('DOMContentLoaded', function() {
             eyeIcon.classList.add('fa-eye-slash');
         }
     });
+    
+    // Role selection handling
+    roleOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            roleOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // Add active class to clicked option
+            this.classList.add('active');
+            
+            // Get the selected role
+            const selectedRole = this.dataset.role;
+            const radioInput = this.querySelector('input[type="radio"]');
+            radioInput.checked = true;
+            
+            // Show/hide identifier field based on role
+            if (selectedRole === 'lawyer') {
+                identifierGroup.style.display = 'block';
+                identifierLabel.textContent = 'Advocate License Number';
+                identifierInput.placeholder = 'Enter your advocate license number';
+                identifierInput.required = true;
+                identifierHelp.textContent = '';
+            } else if (selectedRole === 'general_public') {
+                identifierGroup.style.display = 'block';
+                identifierLabel.textContent = 'CNIC';
+                identifierInput.placeholder = 'Enter your CNIC (12345-1234567-1)';
+                identifierInput.required = true;
+                identifierHelp.textContent = '';
+            } else {
+                identifierGroup.style.display = 'none';
+                identifierInput.required = false;
+                identifierInput.value = '';
+            }
+        });
+    });
+    
+    // CNIC format validation
+    identifierInput.addEventListener('input', function() {
+        const selectedRole = document.querySelector('input[name="user_role"]:checked');
+        if (selectedRole && selectedRole.value === 'general_public') {
+            let value = this.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 0) {
+                if (value.length <= 5) {
+                    this.value = value;
+                } else if (value.length <= 12) {
+                    this.value = value.slice(0, 5) + '-' + value.slice(5);
+                } else {
+                    this.value = value.slice(0, 5) + '-' + value.slice(5, 12) + '-' + value.slice(12, 13);
+                }
+            }
+        }
+    });
 });
 </script>
-{% endblock %}
+</body>
+</html>

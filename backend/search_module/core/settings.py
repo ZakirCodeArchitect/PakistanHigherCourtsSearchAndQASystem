@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",  # Django REST Framework
+    "apps.accounts",  # User accounts and profiles
     "corsheaders",  # CORS headers
     "apps.cases",  # Cases app for your scraper
     "search_indexing",  # Search indexing app
