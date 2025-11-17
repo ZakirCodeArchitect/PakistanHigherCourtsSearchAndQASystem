@@ -3,8 +3,8 @@
 {% block title %}{{ law.title }} - Law Information Resource{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Breadcrumb -->
+<div class="container py-4">
+    <!-- Modern Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -26,30 +26,36 @@
             <div class="law-card card mb-4">
                 <div class="card-header">
                     <h1 class="card-title mb-0">
-                        <i class="fas fa-gavel me-2"></i>
+                        <i class="fas fa-gavel me-2" style="color: var(--primary-orange);"></i>
                         {{ law.title }}
                     </h1>
                 </div>
                 <div class="card-body">
-                    <!-- Basic Information -->
+                    <!-- Basic Information Grid -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <h5><i class="fas fa-list me-2"></i>Applicable Sections</h5>
-                            <p class="text-muted">{{ law.get_sections_display }}</p>
+                            <div class="info-section">
+                                <h5><i class="fas fa-list me-2"></i>Applicable Sections</h5>
+                                <p style="color: var(--text-primary);">{{ law.get_sections_display }}</p>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <h5><i class="fas fa-building me-2"></i>Jurisdiction</h5>
-                            <p class="text-muted">{{ law.jurisdiction }}</p>
+                            <div class="info-section">
+                                <h5><i class="fas fa-building me-2"></i>Jurisdiction</h5>
+                                <p style="color: var(--text-primary);">{{ law.jurisdiction }}</p>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Tags -->
                     {% if law.get_tags_display %}
-                        <div class="mb-4">
+                        <div class="tags-section">
                             <h5><i class="fas fa-tags me-2"></i>Categories</h5>
-                            {% for tag in law.get_tags_display %}
-                                <span class="tag-badge">{{ tag }}</span>
-                            {% endfor %}
+                            <div class="tags-container">
+                                {% for tag in law.get_tags_display %}
+                                    <span class="tag-badge">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
                         </div>
                     {% endif %}
                 </div>
@@ -59,7 +65,7 @@
             <div class="law-card card mb-4">
                 <div class="card-header">
                     <h3 class="card-title mb-0">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <i class="fas fa-exclamation-triangle me-2" style="color: var(--warning-color);"></i>
                         Punishment Summary
                     </h3>
                 </div>
@@ -80,7 +86,7 @@
                 <div class="law-card card mb-4">
                     <div class="card-header">
                         <h3 class="card-title mb-0">
-                            <i class="fas fa-shield-alt me-2"></i>
+                            <i class="fas fa-shield-alt me-2" style="color: var(--success-color);"></i>
                             Rights of Complainant/Accused
                         </h3>
                     </div>
@@ -89,14 +95,14 @@
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Note:</strong> These are general rights. Specific rights may vary based on case circumstances.
                         </div>
-                        <ul class="list-group list-group-flush">
+                        <div class="rights-list">
                             {% for right in law.get_rights_list %}
-                                <li class="list-group-item border-0 px-0">
+                                <div class="right-item">
                                     <i class="fas fa-check-circle text-success me-2"></i>
                                     {{ right }}
-                                </li>
+                                </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
                 </div>
             {% endif %}
@@ -106,7 +112,7 @@
                 <div class="law-card card mb-4">
                     <div class="card-header">
                         <h3 class="card-title mb-0">
-                            <i class="fas fa-list-check me-2"></i>
+                            <i class="fas fa-list-check me-2" style="color: var(--primary-orange);"></i>
                             What to Do - Step by Step
                         </h3>
                     </div>
@@ -117,10 +123,10 @@
                         </div>
                         <div class="steps-container">
                             {% for step in law.get_steps_list %}
-                                <div class="step-item mb-3">
+                                <div class="step-item">
                                     <div class="d-flex">
                                         <div class="step-number me-3">
-                                            <span class="badge bg-primary rounded-circle">{{ forloop.counter }}</span>
+                                            <span class="step-badge">{{ forloop.counter }}</span>
                                         </div>
                                         <div class="step-content">
                                             {{ step }}
@@ -133,7 +139,7 @@
                 </div>
             {% endif %}
             
-            <!-- Disclaimer -->
+            <!-- Important Disclaimer -->
             <div class="alert alert-danger" role="alert">
                 <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Disclaimer</h5>
                 <p class="mb-0">
@@ -144,7 +150,7 @@
             </div>
         </div>
         
-        <!-- Sidebar -->
+        <!-- Modern Sidebar -->
         <div class="col-lg-4">
             <!-- Quick Actions -->
             <div class="sidebar mb-4">
@@ -168,16 +174,20 @@
             {% if related_laws %}
                 <div class="sidebar mb-4">
                     <h4><i class="fas fa-link me-2"></i>Related Laws</h4>
-                    <div class="list-group list-group-flush">
+                    <div class="related-laws">
                         {% for related_law in related_laws %}
-                            <a href="{% url 'law_information:law_detail' related_law.slug %}" 
-                               class="list-group-item list-group-item-action border-0 px-0">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ related_law.title }}</h6>
-                                </div>
-                                <p class="mb-1 text-muted">{{ related_law.jurisdiction }}</p>
-                                <small class="text-muted">{{ related_law.get_sections_display }}</small>
-                            </a>
+                            <div class="related-law-item">
+                                <a href="{% url 'law_information:law_detail' related_law.slug %}" 
+                                   class="text-decoration-none">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1" style="color: var(--text-primary);">{{ related_law.title }}</h6>
+                                            <p class="mb-1" style="color: var(--text-primary);" class="small">{{ related_law.jurisdiction }}</p>
+                                            <small style="color: var(--text-primary);">{{ related_law.get_sections_display }}</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -187,18 +197,22 @@
             {% if featured_laws %}
                 <div class="sidebar mb-4">
                     <h4><i class="fas fa-star me-2"></i>Featured Laws</h4>
-                    <div class="list-group list-group-flush">
+                    <div class="featured-laws">
                         {% for featured_law in featured_laws %}
-                            <a href="{% url 'law_information:law_detail' featured_law.slug %}" 
-                               class="list-group-item list-group-item-action border-0 px-0">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ featured_law.title }}</h6>
-                                    <small class="text-muted">
-                                        <i class="fas fa-star text-warning"></i>
-                                    </small>
-                                </div>
-                                <p class="mb-1 text-muted">{{ featured_law.jurisdiction }}</p>
-                            </a>
+                            <div class="featured-law-item">
+                                <a href="{% url 'law_information:law_detail' featured_law.slug %}" 
+                                   class="text-decoration-none">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1" style="color: var(--text-primary);">{{ featured_law.title }}</h6>
+                                            <p class="mb-1" style="color: var(--text-primary);" class="small">{{ featured_law.jurisdiction }}</p>
+                                        </div>
+                                        <small style="color: var(--text-primary);">
+                                            <i class="fas fa-star text-warning"></i>
+                                        </small>
+                                    </div>
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -207,16 +221,23 @@
             <!-- Law Information -->
             <div class="sidebar">
                 <h4><i class="fas fa-info-circle me-2"></i>Law Information</h4>
-                <div class="small text-muted">
-                    <p><strong>Last Updated:</strong> {{ law.updated_at|date:"F d, Y" }}</p>
-                    <p><strong>Created:</strong> {{ law.created_at|date:"F d, Y" }}</p>
-                    <p><strong>Status:</strong> 
+                <div class="law-meta">
+                    <div class="meta-item">
+                        <strong>Last Updated:</strong> 
+                        <span style="color: var(--text-primary);">{{ law.updated_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>Created:</strong> 
+                        <span style="color: var(--text-primary);">{{ law.created_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <strong>Status:</strong> 
                         {% if law.is_active %}
                             <span class="badge bg-success">Active</span>
                         {% else %}
                             <span class="badge bg-secondary">Inactive</span>
                         {% endif %}
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -224,50 +245,154 @@
 </div>
 
 <style>
-.step-number {
-    min-width: 30px;
-    text-align: center;
+.info-section {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.step-content {
-    flex: 1;
+.info-section:last-child {
+    border-bottom: none;
+}
+
+.tags-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.tags-container {
+    margin-top: 0.5rem;
 }
 
 .punishment-content {
     font-size: 1.1rem;
     line-height: 1.6;
+    color: var(--text-primary);
 }
 
-.law-card .card-header {
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-    color: white;
-    border-radius: 10px 10px 0 0 !important;
-    border: none;
+.rights-list {
+    margin-top: 1rem;
 }
 
-.alert {
-    border-radius: 10px;
-    border: none;
+.right-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
-.alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
+.right-item:last-child {
+    border-bottom: none;
 }
 
-.alert-info {
-    background-color: #d1ecf1;
-    color: #0c5460;
+.steps-container {
+    margin-top: 1rem;
 }
 
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
+.step-item {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--dark-bg-tertiary);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-orange);
 }
 
-.alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
+.step-number {
+    min-width: 40px;
+    text-align: center;
+}
+
+.step-badge {
+    background: var(--primary-orange);
+    color: var(--text-primary);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.step-content {
+    flex: 1;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.related-law-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.related-law-item:last-child {
+    border-bottom: none;
+}
+
+.related-law-item:hover {
+    background: var(--dark-bg-tertiary);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.related-law-item a:hover {
+    text-decoration: none !important;
+}
+
+.featured-law-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.featured-law-item:last-child {
+    border-bottom: none;
+}
+
+.featured-law-item:hover {
+    background: var(--dark-bg-tertiary);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.featured-law-item a:hover {
+    text-decoration: none !important;
+}
+
+.law-meta {
+    margin-top: 1rem;
+}
+
+.meta-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.meta-item:last-child {
+    border-bottom: none;
+}
+
+.meta-item strong {
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .law-card {
+        margin-bottom: 1rem;
+    }
+    
+    .sidebar {
+        margin-bottom: 1rem;
+    }
+    
+    .step-item {
+        padding: 0.75rem;
+    }
 }
 </style>
 {% endblock %}

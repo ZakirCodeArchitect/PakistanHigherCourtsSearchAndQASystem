@@ -5,6 +5,7 @@ Handles conversation memory, context retention, and follow-up query processing
 
 import uuid
 import json
+import re
 from typing import Dict, List, Any, Optional, Tuple
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -67,6 +68,23 @@ class ConversationManager:
         except Exception as e:
             self.logger.error(f"Error getting/creating session: {str(e)}")
             raise
+    
+    def get_or_create_active_session_for_user(self, user_id: str) -> QASession:
+        """
+        Return the most recent active session for a user, or create a new one.
+        Enables context persistence when clients don't pass session_id.
+        """
+        try:
+            try:
+                session = QASession.objects.filter(user_id=user_id, is_active=True).order_by('-created_at').first()
+                if session:
+                    return session
+            except Exception:
+                pass
+            return self.create_session(user_id)
+        except Exception as e:
+            self.logger.error(f"Error getting/creating active session for user {user_id}: {e}")
+            return self.create_session(user_id)
     
     def add_conversation_turn(self, session: QASession, query: str, response: str, 
                             context_documents: List[Dict] = None, 
@@ -208,6 +226,7 @@ class ConversationManager:
         try:
             recent_turns = context.get('recent_turns', [])
             topics = context.get('topics', [])
+            active_case = context.get('active_case_context', {})
             
             if not recent_turns:
                 return query
@@ -217,11 +236,23 @@ class ConversationManager:
             last_query = last_turn.get('query', '')
             last_response = last_turn.get('response', '')
             
+            # Extract case number from previous conversation
+            case_number = self._extract_case_number_from_conversation(recent_turns)
+            if not case_number and isinstance(active_case, dict):
+                case_number = active_case.get('case_number')
+            
             # Enhance query based on context
             enhanced_query = query
             
-            # Add context for pronoun references
-            if 'it' in query.lower() or 'this' in query.lower():
+            # If query references "this case" or similar, and we found a case number, use it
+            if ('this' in query.lower() or 'that' in query.lower() or 'it' in query.lower()) and case_number:
+                # Replace pronoun references with actual case number
+                enhanced_query = f"{query.replace('this case', case_number).replace('that case', case_number).replace('it', case_number)} {case_number}"
+            elif case_number and any(word in query.lower() for word in ['details', 'information', 'about', 'tell me', 'give me']):
+                # For general follow-up questions, append the case number
+                enhanced_query = f"{query} {case_number}"
+            elif 'it' in query.lower() or 'this' in query.lower():
+                # Fallback: add context reference
                 enhanced_query = f"{query} (referring to: {last_query})"
             
             # Add topic context
@@ -234,6 +265,83 @@ class ConversationManager:
         except Exception as e:
             self.logger.error(f"Error enhancing query with context: {str(e)}")
             return query
+    
+    # ==== Active Case Context storage ====
+    def set_active_case_context(self, session: QASession, case_context: Dict[str, Any]) -> None:
+        """Persist active case context (case_id/number/title + extracted fields and short summary)"""
+        try:
+            data = session.context_data or {}
+            data['active_case_context'] = {
+                'case_id': case_context.get('case_id'),
+                'case_number': case_context.get('case_number'),
+                'case_title': case_context.get('case_title'),
+                'court': case_context.get('court'),
+                'bench': case_context.get('bench'),
+                'status': case_context.get('status'),
+                'advocates_petitioner': case_context.get('advocates_petitioner'),
+                'advocates_respondent': case_context.get('advocates_respondent'),
+                'short_order': case_context.get('short_order'),
+                'case_stage': case_context.get('case_stage'),
+                'summary': case_context.get('summary'),
+                'sources': case_context.get('sources', []),
+            }
+            session.context_data = data
+            session.save(update_fields=['context_data'])
+        except Exception as e:
+            self.logger.warning(f"Failed to set active_case_context: {e}")
+    
+    def clear_active_case_context(self, session: QASession) -> None:
+        try:
+            data = session.context_data or {}
+            if 'active_case_context' in data:
+                del data['active_case_context']
+                session.context_data = data
+                session.save(update_fields=['context_data'])
+        except Exception as e:
+            self.logger.warning(f"Failed to clear active_case_context: {e}")
+    
+    def get_active_case_context(self, session: QASession) -> Dict[str, Any]:
+        try:
+            data = session.context_data or {}
+            return data.get('active_case_context', {}) or {}
+        except Exception:
+            return {}
+    
+    def _extract_case_number_from_conversation(self, recent_turns: List[Dict]) -> Optional[str]:
+        """Extract case number from conversation history"""
+        
+        # Check all recent turns for case numbers
+        for turn in reversed(recent_turns):  # Start from most recent
+            query = turn.get('query', '')
+            response = turn.get('response', '')
+            
+            # Pattern to match case numbers like:
+            # "T.A. 2/2023 Civil (SB)"
+            # "Crl. Org. 5/2025 Writ (SB)"
+            # "C.O. 1/2025 Others (SB)"
+            # More flexible pattern: [Letters][.] [Number]/[Number] [Word] [(Letters)]
+            case_pattern = r'([A-Z][a-z]?\.?\s*\d+/\d+\s+[A-Za-z]+(?:\s*\([A-Z]+\))?)'
+            
+            # Also check for case numbers in sources metadata
+            sources = turn.get('sources', [])
+            if sources:
+                for source in sources:
+                    if isinstance(source, dict):
+                        case_num = source.get('case_number') or source.get('case')
+                        if case_num:
+                            return str(case_num).strip()
+            
+            # Check query first
+            matches = re.findall(case_pattern, query)
+            if matches:
+                return matches[0].strip()
+            
+            # Check response
+            matches = re.findall(case_pattern, response)
+            if matches:
+                return matches[0].strip()
+        
+        return None
     
     def get_session_history(self, session: QASession) -> List[Dict[str, Any]]:
         """Get formatted session history"""

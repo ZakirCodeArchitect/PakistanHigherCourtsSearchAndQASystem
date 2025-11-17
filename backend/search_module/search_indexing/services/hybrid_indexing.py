@@ -10,6 +10,7 @@ from datetime import datetime
 
 from django.utils import timezone
 from django.db import transaction
+from apps.cases.models import CaseSearchProfile
 from django.conf import settings
 
 from ..models import IndexingConfig, IndexingLog, SearchMetadata
@@ -25,6 +26,10 @@ from .precision_optimizer import PrecisionOptimizerService
 from .query_expansion import QueryExpansionService
 from .legal_semantic_matcher import LegalSemanticMatcher
 from .advanced_reranker import AdvancedReranker
+try:
+    from .learned_reranker import LearnedReranker
+except Exception:  # pragma: no cover - safe guard if optional deps missing
+    LearnedReranker = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +64,20 @@ class HybridIndexingService:
         self.query_expander = QueryExpansionService()
         self.semantic_matcher = LegalSemanticMatcher()
         self.advanced_reranker = AdvancedReranker(config)
+        self.learned_reranker = None
+
+        model_path = getattr(settings, "LEARNED_RERANKER_MODEL_PATH", None)
+        if LearnedReranker and model_path:
+            try:
+                self.learned_reranker = LearnedReranker(model_path, config)
+                logger.info("Learned reranker initialized from %s", model_path)
+            except Exception as exc:
+                logger.warning("Failed to initialize learned reranker: %s", exc)
+                self.learned_reranker = None
+        elif model_path:
+            logger.warning("Learned reranker model configured but sentence-transformers is unavailable.")
+        else:
+            logger.info("No learned reranker model configured; skipping learned reranking stage.")
         
         logger.info("Hybrid indexing service initialized")
     
@@ -254,6 +273,20 @@ class HybridIndexingService:
                 logger.info(f"Advanced re-ranking applied: {len(optimized_results)} -> {len(final_results)} results")
             else:
                 final_results = optimized_results
+
+            if (
+                enable_advanced_features
+                and self.learned_reranker
+                and final_results
+                and len(final_results) > 1
+            ):
+                final_results = self.learned_reranker.rerank_results(
+                    query,
+                    final_results,
+                    query_analysis=query_analysis,
+                    top_k=top_k
+                )
+                logger.info("Learned reranker applied to %d results", len(final_results))
             
             # Limit to requested top_k
             final_results = final_results[:top_k]
@@ -447,7 +480,9 @@ class HybridIndexingService:
                     'combined_score': result['combined_score'],
                     'vector_score': result['vector_score'],
                     'keyword_score': result['keyword_score'],
-                    'search_type': 'hybrid'
+                    'search_type': 'hybrid',
+                    'exact_match': result.get('exact_match', False),
+                    'result_data': result['result_data'],
                 }
                 
                 # Merge result data
@@ -463,6 +498,48 @@ class HybridIndexingService:
                 })
                 
                 final_results.append(final_result)
+            
+            # Attach search profile metadata for downstream ranking
+            case_ids = [res['case_id'] for res in final_results]
+            if case_ids:
+                profiles = CaseSearchProfile.objects.filter(case_id__in=case_ids).values(
+                    'case_id',
+                    'clean_case_title',
+                    'party_tokens',
+                    'subject_tags',
+                    'keyword_highlights',
+                    'case_number_tokens',
+                    'section_tags'
+                )
+                profile_map = {p['case_id']: p for p in profiles}
+                for res in final_results:
+                    profile = profile_map.get(res['case_id'])
+                    if not profile:
+                        continue
+                    case_profile = {
+                        'clean_case_title': profile.get('clean_case_title') or '',
+                        'party_tokens': profile.get('party_tokens') or [],
+                        'subject_tags': profile.get('subject_tags') or [],
+                        'keyword_highlights': profile.get('keyword_highlights') or [],
+                        'case_number_tokens': profile.get('case_number_tokens') or [],
+                        'section_tags': profile.get('section_tags') or [],
+                    }
+                    res['case_profile'] = case_profile
+                    # Ensure result_data reflects the profile as well
+                    res['result_data']['case_profile'] = case_profile
+                    if not res.get('case_title') and case_profile['clean_case_title']:
+                        res['case_title'] = case_profile['clean_case_title']
+                    if case_profile['case_number_tokens']:
+                        res['case_number_tokens'] = case_profile['case_number_tokens']
+                    if case_profile['section_tags']:
+                        res['section_tags'] = case_profile['section_tags']
+                    if case_profile['party_tokens']:
+                        res['party_tokens'] = case_profile['party_tokens']
+                    if case_profile['subject_tags']:
+                        res['subject_tags'] = case_profile['subject_tags']
+            
+            # Force exact matches to the very top
+            final_results.sort(key=lambda r: (1 if r.get('exact_match') else 0, r.get('combined_score', 0)), reverse=True)
             
             return final_results
             

@@ -16,6 +16,9 @@ from .llm_generator import LLMGenerator, LLMModel, LLMProvider
 from .guardrails import Guardrails, AccessLevel, GuardrailResult
 from .conversation_manager import ConversationManager, CitationFormatter
 from qa_app.services.qa_retrieval_service import QARetrievalService
+from .conversation_summarizer import ConversationSummarizer
+from .query_rewriter import QueryRewriter
+from .topic_classifier import TopicClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +50,9 @@ class AdvancedRAGEngine:
         self.guardrails = Guardrails(self.config.get('guardrails', {}))
         self.conversation_manager = ConversationManager()
         self.citation_formatter = CitationFormatter()
+        self.summarizer = ConversationSummarizer()
+        self.query_rewriter = QueryRewriter()
+        self.topic_classifier = TopicClassifier()
         
         # Initialize retrieval service
         self.retrieval_service = QARetrievalService()
@@ -56,6 +62,8 @@ class AdvancedRAGEngine:
         self.enable_conversation_context = self.config.get('enable_conversation_context', True)
         self.default_access_level = AccessLevel(self.config.get('default_access_level', 'public'))
         self.max_retrieval_results = self.config.get('max_retrieval_results', 12)
+        # Response style
+        self.warm_tone = self.config.get('warm_tone', True)
         
         logger.info("Advanced RAG Engine initialized with all components")
     
@@ -77,7 +85,9 @@ class AdvancedRAGEngine:
                        session_id: Optional[str] = None,
                        access_level: Optional[AccessLevel] = None,
                        conversation_history: Optional[List[Dict]] = None,
-                       filters: Optional[Dict[str, Any]] = None) -> RAGResult:
+                       filters: Optional[Dict[str, Any]] = None,
+                       forced_case_id: Optional[int] = None,
+                       pre_retrieved_docs: Optional[List[Dict[str, Any]]] = None) -> RAGResult:
         """
         Generate complete RAG answer with all components
         
@@ -102,12 +112,29 @@ class AdvancedRAGEngine:
             
             # Step 2: Get or create session
             session = None
+            active_case_context = {}
+            short_summary = ""
             if session_id and self.enable_conversation_context:
                 session = self.conversation_manager.get_or_create_session(user_id, session_id)
                 if session:
                     conversation_context = self.conversation_manager.get_conversation_context(session, 20)
                     conversation_history = conversation_context.get('recent_turns', [])
                     logger.info(f"Retrieved conversation history: {len(conversation_history)} turns")
+                    # Pull active case context if any
+                    try:
+                        active_case_context = self.conversation_manager.get_active_case_context(session) or {}
+                    except Exception:
+                        active_case_context = {}
+                    # Build/update a short summary deterministically
+                    short_summary = self.summarizer.summarize(conversation_history, active_case_context)
+                    # Persist the summary for downstream tools/clients
+                    try:
+                        data = session.context_data or {}
+                        data['conversation_summary'] = short_summary
+                        session.context_data = data
+                        session.save(update_fields=['context_data'])
+                    except Exception:
+                        pass
                     if conversation_history:
                         recent_turn = conversation_history[-1]
                         logger.info(f"Recent turn type: {type(recent_turn)}")
@@ -150,18 +177,51 @@ class AdvancedRAGEngine:
                     status="success"
                 )
             
-            # Step 5: Retrieve relevant documents for legal queries
-            if is_overview_query:
+            # Step 5: Topic detection and standalone query rewrite
+            # If we have session context, decide if the user started a new topic
+            if session and self.enable_conversation_context:
+                topic_decision = self.topic_classifier.classify(
+                    short_summary,
+                    query,
+                    active_case_context.get('case_number') if isinstance(active_case_context, dict) else None
+                )
+                if topic_decision == "new":
+                    # Reset active case to avoid polluting new searches
+                    try:
+                        self.conversation_manager.clear_active_case_context(session)
+                        active_case_context = {}
+                    except Exception:
+                        pass
+                # Build a standalone retrieval query
+                rewritten_query = self.query_rewriter.rewrite(
+                    current_query=query,
+                    recent_turns=conversation_history or [],
+                    short_summary=short_summary,
+                    active_case=active_case_context or {}
+                )
+            else:
+                rewritten_query = query
+
+            # Step 6: Retrieve relevant documents for legal queries
+            # If pre-retrieved docs provided (from structured lookup), use those
+            if pre_retrieved_docs:
+                logger.info(f"Using pre-retrieved structured data: {len(pre_retrieved_docs)} documents")
+                retrieved_docs = pre_retrieved_docs
+            elif is_overview_query:
                 # For database overview queries, get diverse cases representing different legal areas
                 logger.info(f"Retrieving diverse legal cases for database overview: '{query[:50]}...'")
                 retrieved_docs = self._get_diverse_legal_cases(top_k=self.max_retrieval_results)
             else:
-                # For specific legal queries, use normal semantic search
-                logger.info(f"Retrieving documents for specific legal query: '{query[:50]}...'")
-                retrieved_docs = self.retrieval_service.retrieve_for_qa(
-                    query=query,
-                    top_k=self.max_retrieval_results
-                )
+                # For specific legal queries, use normal semantic search or forced case lock
+                if forced_case_id:
+                    logger.info(f"Retrieving documents with forced case lock (case_id={forced_case_id})")
+                    retrieved_docs = self.retrieval_service.get_case_by_id(forced_case_id)
+                else:
+                    logger.info(f"Retrieving documents for specific legal query: '{rewritten_query[:50]}...'")
+                    retrieved_docs = self.retrieval_service.retrieve_for_qa(
+                        query=rewritten_query,
+                        top_k=self.max_retrieval_results
+                    )
             
             if not retrieved_docs:
                 return RAGResult(
@@ -175,18 +235,45 @@ class AdvancedRAGEngine:
                     status="no_results"
                 )
             
-            # Step 6: Pack context for LLM
+            # Step 7: Pack context for LLM
             logger.info(f"Packing context from {len(retrieved_docs)} retrieved documents")
             try:
                 packed_context = self.context_packer.pack_context(
                     retrieved_chunks=retrieved_docs,
-                    query=query,
+                    query=rewritten_query,
                     conversation_history=conversation_history
                 )
                 logger.info(f"Context packing completed successfully, type: {type(packed_context)}")
                 if isinstance(packed_context, dict):
                     logger.info(f"Packed context keys: {list(packed_context.keys())}")
                     logger.info(f"Packed context status: {packed_context.get('status', 'NO_STATUS_KEY')}")
+                    # Inject a conversation-context document with highest priority for the prompt system
+                    try:
+                        fmt = packed_context.get('formatted_context') or {}
+                        if not isinstance(fmt, dict):
+                            fmt = {}
+                        convo_doc = ""
+                        if short_summary:
+                            convo_doc = f"Conversation summary so far: {short_summary}"
+                        if active_case_context and active_case_context.get('case_number'):
+                            convo_doc = (convo_doc + " | " if convo_doc else "") + f"Active case: {active_case_context.get('case_number')}"
+                        fmt['conversation_context'] = convo_doc
+                        packed_context['formatted_context'] = fmt
+                    except Exception:
+                        pass
+                    # DEBUG: safe preview of context text
+                    try:
+                        import re
+                        _sanitize = re.compile(r"[^\\x20-\\x7E]+")
+                        fmt = packed_context.get('formatted_context') or {}
+                        ctx_text = ''
+                        if isinstance(fmt, dict):
+                            ctx_text = fmt.get('context_text', '')
+                        safe = _sanitize.sub('?', str(ctx_text))
+                        logger.info(f"[DEBUG] context_text length: {len(safe)}")
+                        logger.info(f"[DEBUG] context_text preview: {safe[:400]}")
+                    except Exception as _e:
+                        logger.warning(f"[DEBUG] unable to log context preview: {_e}")
                 else:
                     logger.info(f"Packed context content: {packed_context}")
             except Exception as e:
@@ -235,6 +322,22 @@ class AdvancedRAGEngine:
             
             # Step 10: Generate answer with LLM
             logger.info(f"Generating answer with {template.name} template")
+            
+            # Debug logging for advocates questions
+            if 'advocat' in query.lower():
+                logger.info(f"[DEBUG] Advocates question detected")
+                # Sanitize previews to avoid Windows cp1252 encoding issues in logs
+                def _safe_preview(s: str, n: int) -> str:
+                    try:
+                        return (s or "")[:n].encode("ascii", "ignore").decode("ascii")
+                    except Exception:
+                        return ""
+                logger.info(f"[DEBUG] System prompt (first 200 chars): {_safe_preview(formatted_prompt['system_prompt'], 200)}")
+                logger.info(f"[DEBUG] User prompt (first 500 chars): {_safe_preview(formatted_prompt['user_prompt'], 500)}")
+                logger.info(f"[DEBUG] Has 'CONCISE' in system: {'CONCISE' in formatted_prompt['system_prompt']}")
+                logger.info(f"[DEBUG] Has 'advocates' in user prompt: {'advocates' in formatted_prompt['user_prompt'].lower()}")
+                logger.info(f"[DEBUG] Has 'qaiser' in user prompt: {'qaiser' in formatted_prompt['user_prompt'].lower()}")
+            
             llm_result = self.llm_generator.generate_answer(
                 system_prompt=formatted_prompt['system_prompt'],
                 user_prompt=formatted_prompt['user_prompt'],
@@ -253,7 +356,15 @@ class AdvancedRAGEngine:
                     status="generation_error"
                 )
             
-            # Step 11: Apply guardrails to response
+            # Step 11: Post-process for field-only/summary intents and conversational tone
+            try:
+                processed_text = self._post_process_answer(query, llm_result.text, retrieved_docs)
+                if processed_text:
+                    llm_result.text = processed_text
+            except Exception as _pp_e:
+                logger.warning(f"Post-processing failed: {_pp_e}")
+
+            # Step 12: Apply guardrails to response
             guardrail_result = None
             if self.enable_guardrails:
                 logger.info("Applying guardrails to generated response")
@@ -278,10 +389,10 @@ class AdvancedRAGEngine:
                         error="Response blocked by guardrails"
                     )
             
-            # Step 11: Format citations
+            # Step 13: Format citations
             formatted_sources = self.citation_formatter.format_citations(retrieved_docs)
             
-            # Step 12: Add conversation turn to session
+            # Step 14: Add conversation turn to session
             if session:
                 self.conversation_manager.add_conversation_turn(
                     session=session,
@@ -290,7 +401,7 @@ class AdvancedRAGEngine:
                     context_documents=retrieved_docs
                 )
             
-            # Step 13: Prepare final result
+            # Step 15: Prepare final result
             generation_time = time.time() - start_time
             
             return RAGResult(
@@ -742,6 +853,20 @@ class AdvancedRAGEngine:
         
         return LegalDomain.GENERAL
     
+    def _post_process_answer(self, query: str, text: str, retrieved_docs: Optional[List[Dict[str, Any]]] = None) -> Optional[str]:
+        """Minimal post-processing - just add warm tone if enabled, otherwise return LLM output as-is."""
+        try:
+            if not text:
+                return text
+            
+            # Only add warm tone prefix if enabled and not already present
+            if self.warm_tone and not text.strip().startswith("Sure —"):
+                return f"Sure — {text}"
+            
+            return text
+        except Exception:
+            return text
+
     def get_system_status(self) -> Dict[str, Any]:
         """Get comprehensive system status"""
         return {

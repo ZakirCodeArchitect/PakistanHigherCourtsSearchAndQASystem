@@ -68,16 +68,22 @@ class KeywordIndexingService:
                 # Assume case_id_or_case is a Case object
                 from apps.cases.models import Case
                 if isinstance(case_id_or_case, Case):
-                    case_obj = case_id_or_case
+                    case_obj = Case.objects.select_related("search_profile", "court").get(id=case_id_or_case.id)
                     case_id = case_obj.id
-                    # Convert Case object to case_data dict
+                    profile = getattr(case_obj, "search_profile", None)
+                    case_title = profile.clean_case_title if profile and profile.clean_case_title else (case_obj.case_title or '')
                     case_data = {
                         'case_number': case_obj.case_number or '',
-                        'case_title': case_obj.case_title or '',
+                        'case_title': case_title,
                         'court': getattr(case_obj.court, 'name', '') if case_obj.court else '',
                         'status': case_obj.status or '',
                         'institution_date': case_obj.institution_date,
                         'hearing_date': getattr(case_obj, 'hearing_date', None),
+                        'party_tokens': profile.party_tokens if profile else [],
+                        'subject_tags': profile.subject_tags if profile else [],
+                        'summary_text': profile.summary_text if profile else '',
+                        'case_number_tokens': profile.case_number_tokens if profile else [],
+                        'section_tags': profile.section_tags if profile else [],
                     }
                 else:
                     raise ValueError("Invalid arguments: expected Case object or case_id + case_data")
@@ -87,7 +93,15 @@ class KeywordIndexingService:
                 case_obj = None
                 try:
                     from apps.cases.models import Case
-                    case_obj = Case.objects.get(id=case_id)
+                    case_obj = Case.objects.select_related("search_profile", "court").get(id=case_id)
+                    profile = getattr(case_obj, "search_profile", None)
+                    if profile:
+                        case_data.setdefault('case_title', profile.clean_case_title or case_obj.case_title or '')
+                        case_data.setdefault('party_tokens', profile.party_tokens)
+                        case_data.setdefault('subject_tags', profile.subject_tags)
+                        case_data.setdefault('summary_text', profile.summary_text)
+                        case_data.setdefault('case_number_tokens', profile.case_number_tokens)
+                        case_data.setdefault('section_tags', profile.section_tags)
                 except Case.DoesNotExist:
                     logger.warning(f"Case {case_id} not found for metadata extraction")
             
@@ -100,7 +114,11 @@ class KeywordIndexingService:
             status_normalized = self.normalize_text(case_data.get('status', ''))
             
             # Get parties information
-            parties = case_data.get('parties', [])
+            parties = case_data.get('parties', []) or []
+            profile_tokens = case_data.get('party_tokens', []) or []
+            for token in profile_tokens:
+                if token and token not in parties:
+                    parties.append(token)
             parties_normalized = " | ".join(parties) if parties else ""
             
             # Parse dates
@@ -139,11 +157,40 @@ class KeywordIndexingService:
                 enhanced_metadata = {}
             
             # Calculate content hashes
-            content_text = f"{case_number_normalized} {case_title_normalized} {parties_normalized} {court_normalized} {status_normalized}"
+            summary_text = case_data.get('summary_text', '') or ''
+            subject_tags = case_data.get('subject_tags', []) or []
+            section_tags = case_data.get('section_tags', []) or []
+            case_number_tokens = case_data.get('case_number_tokens', []) or []
+
+            content_text = " ".join(
+                filter(
+                    None,
+                    [
+                        case_number_normalized,
+                        case_title_normalized,
+                        parties_normalized,
+                        court_normalized,
+                        status_normalized,
+                        summary_text.lower(),
+                        " ".join(subject_tags),
+                        " ".join(section_tags),
+                        " ".join(case_number_tokens),
+                    ],
+                )
+            )
             content_hash = hashlib.sha256(content_text.encode()).hexdigest()
             
             # Get text content for text hash
-            text_content = case_data.get('pdf_content', '')
+            text_content_parts = [case_data.get('pdf_content', '')]
+            if summary_text:
+                text_content_parts.append(summary_text)
+            if subject_tags:
+                text_content_parts.append(" ".join(subject_tags))
+            if section_tags:
+                text_content_parts.append(" ".join(section_tags))
+            if case_number_tokens:
+                text_content_parts.append(" ".join(case_number_tokens))
+            text_content = " ".join(part for part in text_content_parts if part)
             text_hash = hashlib.sha256(text_content.encode()).hexdigest()
             
             # Metadata hash
@@ -161,7 +208,17 @@ class KeywordIndexingService:
             # Calculate total terms from basic case information if no documents
             if total_chunks == 0:
                 # Use basic case information as searchable content
-                basic_content = f"{case_number_normalized} {case_title_normalized} {parties_normalized} {court_normalized}"
+                basic_parts = [
+                    case_number_normalized,
+                    case_title_normalized,
+                    parties_normalized,
+                    court_normalized,
+                    summary_text.lower() if summary_text else '',
+                    " ".join(subject_tags),
+                    " ".join(section_tags),
+                    " ".join(case_number_tokens),
+                ]
+                basic_content = " ".join(part for part in basic_parts if part)
                 total_terms = len(basic_content.split())
                 
                 # Create a virtual document chunk for basic case information
@@ -428,13 +485,9 @@ class KeywordIndexingService:
                     }
                     
                     # Get disposal date from case details
-                    try:
-                        case_detail = unified_view.case.case_detail.first()
-                        if case_detail and hasattr(case_detail, 'case_disposal_date') and case_detail.case_disposal_date:
-                            case_data['disposal_date'] = case_detail.case_disposal_date
-                    except Exception as e:
-                        logger.warning(f"Could not get case detail for case {unified_view.case.case_number}: {str(e)}")
-                        case_data['disposal_date'] = None
+                    case_detail = getattr(unified_view.case, 'case_detail', None)
+                    if case_detail and getattr(case_detail, 'case_disposal_date', None):
+                        case_data['disposal_date'] = case_detail.case_disposal_date
                     
                     # Get parties information
                     parties = []

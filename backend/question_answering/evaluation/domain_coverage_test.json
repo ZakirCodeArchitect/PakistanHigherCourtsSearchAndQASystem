@@ -1,0 +1,146 @@
+[
+  {
+    "category": "laws",
+    "question": "Explain the relief available under Article 199 of the Constitution when challenging an administrative order.",
+    "answer": "In R.A. 2/2023 Writ (SB):\nOrders: sr_number: 4, case_stage: URGENT CASES, short_order: Dismissed, hearing_date: 24-02-2023; sr_number: 4, case_stage: URGENT CASES, short_order: Dismissed, hearing_date: 24-02-2023",
+    "sources": [
+      {
+        "title": "R.A. 2/2023 Writ (SB)",
+        "case_number": "R.A. 2/2023 Writ (SB)",
+        "court": "Islamabad High Court",
+        "metadata": {
+          "case_id": 137.0,
+          "case_number": "R.A. 2/2023 Writ (SB)",
+          "case_title": "R.A. 2/2023 Writ (SB)",
+          "content": "no embargo upon the courts to exercise the jurisdiction in terms of S. No. of order/ proceedinqs Date of order/ proceedings Order with signature of Judge and that of parties or counsel where necessary.\n\nArticle 199 of the Constitution as, according to the leamed counsel, every public functionary is under obligation to act in accordance with law and to decide the pending representation of its employees within stipulated time, if provided or else within shortest possible time.",
+          "content_type": "qa_chunk",
+          "court": "Islamabad High Court",
+          "created_at": "2025-11-08T18:28:53.885962+00:00",
+          "document_id": "128",
+          "judge_name": "Unknown",
+          "legal_domain": "constitutional",
+          "qa_quality": 0.7,
+          "qa_relevance": 0.6285714285714286,
+          "source_type": "qa_chunk",
+          "text": "no embargo upon the courts to exercise the jurisdiction in terms of S. No. of order/ proceedinqs Date of order/ proceedings Order with signature of Judge and that of parties or counsel where necessary.\n\nArticle 199 of the Constitution as, according to the leamed counsel, every public functionary is under obligation to act in accordance with law and to decide the pending representation of its employees within stipulated time, if provided or else within shortest possible time.",
+          "title": "QA Chunk 3 - R.A. 2/2023 Writ (SB)",
+          "entity_advocates_petitioner": [
+            "Muhammad Shoaib Shaheen, Nasir Saleem"
+          ],
+          "entity_bench": [
+            "Honourable Mr. Justice Arbab Muhammad Tahir"
+          ],
+          "entity_court": [
+            "Islamabad High Court"
+          ],
+          "entity_fir_number": [
+            "0"
+          ],
+          "entity_order": [
+            "sr_number: 4, case_stage: URGENT CASES, short_order: Dismissed, hearing_date: 24-02-2023",
+            "sr_number: 4, case_stage: URGENT CASES, short_order: Dismissed, hearing_date: 24-02-2023"
+          ],
+          "entity_pdf_stats": [
+            "total_pages: 3, total_documents: 1, total_pages_cleaned: 3, total_pages_with_text: 3"
+          ],
+          "entity_short_order": [
+            "Dismissed"
+          ],
+          "entity_status": [
+            "Decided"
+          ],
+          "structured_summary": "Petitioner Advocates: Muhammad Shoaib Shaheen, Nasir Saleem | Bench: Honourable Mr. Justice Arbab Muhammad Tahir | Court: Islamabad High Court | Case Status: Decided | Short Order: Dismissed | FIR Number: 0"
+        }
+      }
+    ],
+    "answer_type": "structured_lookup",
+    "confidence": 0.95
+  },
+  {
+    "category": "legal_order",
+    "question": "Provide the short order for this case: Crl. Misc. 2/2025 Bail After Arrest (SB).",
+    "answer": "In Shahzad Waqas VS The State:\nShort order: Relist",
+    "sources": [
+      {
+        "title": "Shahzad Waqas VS The State",
+        "case_number": null,
+        "court": "Islamabad High Court",
+        "metadata": {
+          "case_id": 62,
+          "case_number": "Crl. Misc. 2/2025 Bail After Arrest (SB)",
+          "case_title": "Shahzad Waqas VS The State",
+          "court": "Islamabad High Court",
+          "status": "Decided",
+          "match_type": "exact_case_number",
+          "advocates_petitioner": "Talat Mahmood Zaidi",
+          "advocates_respondent": "Imran Haider",
+          "case_description": "Post Arrest Bail in FIR No. 422/2024 dated 03.11.2024 U/s 324, 337-F(vi), 148, 149, 34 PPC P.S. Bani Gala, Islamabad",
+          "case_stage": "NOTICE CASES",
+          "short_order": "Relist",
+          "bench": "Honourable Mr. Justice Tariq Mehmood Jahangiri",
+          "sr_number": "3",
+          "institution_date": "01-01-2025",
+          "hearing_date": "16-01-2025",
+          "fir_number": "422",
+          "fir_date": "03-11-2024",
+          "police_station": "Bani Gala",
+          "under_section": null
+        }
+      }
+    ],
+    "answer_type": "structured_lookup",
+    "confidence": 0.95
+  },
+  {
+    "category": "lawyers",
+    "question": "Who are the petitioner's advocates in Crl. Misc. 2/2025 Bail After Arrest (SB)?",
+    "answer": "<p>Sure — In the case of Crl. Misc. 2/2025 Bail After Arrest (SB), the petitioner's advocate is Talat Mahmood Zaidi. This case involves Shahzad Waqas as the petitioner against The State, and it was heard by the Islamabad High Court. The case pertains to a post-arrest bail application related to FIR No. 422/2024, which includes charges under various sections of the Pakistan Penal Code (PPC).</p>\n<p>If you have any further questions about this case or related legal matters, feel free to ask!</p>",
+    "sources": [
+      {
+        "title": "Shahzad Waqas VS The State",
+        "case_number": "Crl. Misc. 2/2025 Bail After Arrest (SB)",
+        "court": "Islamabad High Court",
+        "date": "01-01-2025",
+        "judge": "Tariq Mehmood Jahangiri",
+        "relevance_score": 1.0,
+        "score": 1.0,
+        "legal_domain": "General",
+        "formatted_citation": "Unknown Case, N/A (Unknown Court N/A)",
+        "download_link": "/api/qa/download/case/62/",
+        "metadata": {
+          "case_id": 62,
+          "document_id": null,
+          "content_type": "unknown"
+        }
+      }
+    ],
+    "answer_type": "advanced_rag",
+    "confidence": 1.0
+  },
+  {
+    "category": "judges",
+    "question": "Which judges heard M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue?",
+    "answer": "<p>Sure — In the case of Crl. Misc. 2/2025 Bail After Arrest (SB), the petitioner's advocate is Talat Mahmood Zaidi. This case involves Shahzad Waqas as the petitioner against The State.</p>\n<p>Regarding your second question, the case of M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue was heard by the Islamabad High Court. The judges who presided over this case are Honourable Mr. Justice Mohsin Akhtar Kayani and Mr. Justice Fiaz Ahmad Anjum Jandran. This case was decided on May 5, 2021.</p>\n<p>If you have any further questions or need more information on these cases, feel free to ask!</p>",
+    "sources": [
+      {
+        "title": "M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue",
+        "case_number": "I.T.R. 1/2017 (DB)",
+        "court": "Islamabad High Court",
+        "date": "07-01-2017",
+        "judge": "Mohsin Akhtar Kayani",
+        "relevance_score": 1.0,
+        "score": 1.0,
+        "legal_domain": "General",
+        "formatted_citation": "Unknown Case, N/A (Unknown Court N/A)",
+        "download_link": "/api/qa/download/case/580/",
+        "metadata": {
+          "case_id": 580,
+          "document_id": null,
+          "content_type": "unknown"
+        }
+      }
+    ],
+    "answer_type": "advanced_rag",
+    "confidence": 1.0
+  }
+]

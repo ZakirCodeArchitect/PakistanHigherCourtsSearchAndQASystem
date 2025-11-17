@@ -119,6 +119,26 @@ class ConversationSessionView(View):
             user_id = data.get('user_id', 'anonymous')
             title = data.get('title')
             description = data.get('description')
+            # Default to creating a fresh session unless the client explicitly opts into reuse
+            force_new = bool(data.get('force_new', True))
+            
+            # Reuse the most recent active session for this user only if explicitly requested
+            if not force_new:
+                try:
+                    existing = self.conversation_manager.get_or_create_active_session_for_user(user_id)
+                    if existing:
+                        return JsonResponse({
+                            'session_id': existing.session_id,
+                            'user_id': existing.user_id,
+                            'title': existing.title,
+                            'description': existing.description,
+                            'created_at': existing.created_at.isoformat(),
+                            'status': 'success',
+                            'reused': True
+                        })
+                except Exception:
+                    # Fall back to creating a new session
+                    pass
             
             session = self.conversation_manager.create_session(user_id, title, description)
             
@@ -128,7 +148,8 @@ class ConversationSessionView(View):
                 'title': session.title,
                 'description': session.description,
                 'created_at': session.created_at.isoformat(),
-                'status': 'success'
+                'status': 'success',
+                'reused': False
             })
             
         except Exception as e:

@@ -190,7 +190,7 @@ class FacetTerm(models.Model):
     
     # Facet information
     facet_type = models.CharField(max_length=50, db_index=True)
-    canonical_term = models.CharField(max_length=500, db_index=True)
+    canonical_term = models.CharField(max_length=1000, db_index=True)
     
     # Statistics
     occurrence_count = models.IntegerField(default=0)
@@ -294,7 +294,7 @@ class SearchMetadata(models.Model):
     case_number_normalized = models.CharField(max_length=300, db_index=True)
     case_title_normalized = models.CharField(max_length=800, db_index=True)
     parties_normalized = models.TextField(blank=True)
-    court_normalized = models.CharField(max_length=100, db_index=True)
+    court_normalized = models.CharField(max_length=255, db_index=True)
     status_normalized = models.CharField(max_length=50, db_index=True)
     
     # Dates for recency ranking
@@ -308,7 +308,7 @@ class SearchMetadata(models.Model):
     case_classification = models.JSONField(default=dict, blank=True)  # Case type classification
     subject_matter = models.JSONField(default=list, blank=True)  # Subject matter tags
     parties_intelligence = models.JSONField(default=dict, blank=True)  # Party analysis
-    procedural_stage = models.CharField(max_length=50, blank=True, db_index=True)
+    procedural_stage = models.CharField(max_length=100, blank=True, db_index=True)
     case_timeline = models.JSONField(default=list, blank=True)  # Case timeline
     
     # TIER 1 ENHANCEMENT: Quality and relevance scores

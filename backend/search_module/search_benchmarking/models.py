@@ -206,7 +206,7 @@ class BenchmarkResult(models.Model):
         ('error', 'Error'),
         ('no_results', 'No Results'),
     ], default='success')
-    error_message = models.TextField(blank=True)
+    error_message = models.TextField(blank=True, null=True)
     
     # Timestamps
     executed_at = models.DateTimeField(auto_now_add=True)

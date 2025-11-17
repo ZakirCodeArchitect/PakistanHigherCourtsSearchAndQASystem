@@ -14,9 +14,12 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BASE_DIR.parent.parent
+SEARCH_MODULE_DIR = PROJECT_ROOT / 'backend' / 'search_module'
 
 # Add the frontend directory to Python path
 sys.path.insert(0, str(PROJECT_ROOT))
+if str(SEARCH_MODULE_DIR) not in sys.path:
+    sys.path.insert(0, str(SEARCH_MODULE_DIR))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-qa-system-key-change-in-production'
@@ -36,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'qa_app',
+    'apps.cases',
 ]
 
 MIDDLEWARE = [

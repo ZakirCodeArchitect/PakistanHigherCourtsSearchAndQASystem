@@ -195,8 +195,18 @@ class PromptTemplateSystem:
                 template, query, context_data, conversation_history
             )
             
-            # Get system prompt
-            system_prompt = template.system_prompt
+            # Simple, flexible system prompt - let LLM synthesize answers from retrieved context
+            system_prompt = (
+                "You are an AI legal assistant for Pakistani law. Answer questions based on the retrieved context documents.\n\n"
+                "Instructions:\n"
+                "- Provide detailed, helpful answers based on the retrieved legal documents.\n"
+                "- Synthesize information from the context to answer the question comprehensively.\n"
+                "- If the retrieved context contains relevant information, use it to provide a thorough answer.\n"
+                "- If the context is not directly relevant or insufficient, acknowledge this but still provide helpful guidance based on general legal knowledge where appropriate.\n"
+                "- Use conversation history/summary to resolve pronouns and references.\n"
+                "- Keep answers structured, clear, and conversational.\n"
+                "- Do not make up specific case details, but you can provide general legal guidance.\n"
+            )
             
             # Add conversation context to system prompt if enabled
             if conversation_history and self.enable_conversation_context:
@@ -241,20 +251,33 @@ class PromptTemplateSystem:
         """Format the user prompt with context injection"""
         
         # Extract context components
-        context_text = context_data.get('context_text', '')
-        conversation_context = context_data.get('conversation_context', '')
+        # context_data might be the packed_context dict, which has 'formatted_context' key
+        if 'formatted_context' in context_data:
+            formatted_context = context_data['formatted_context']
+            if isinstance(formatted_context, dict):
+                context_text = formatted_context.get('context_text', '')
+                conversation_context = formatted_context.get('conversation_context', '')
+            else:
+                context_text = str(formatted_context) if formatted_context else ''
+                conversation_context = ''
+        else:
+            # Direct access (legacy format)
+            context_text = context_data.get('context_text', '')
+            conversation_context = context_data.get('conversation_context', '')
+
+        # Simple, unified prompt format - let LLM answer naturally based on retrieved context
+        simple_prompt = f"""Question: {query}
+
+Retrieved Legal Context:
+{context_text}
+
+{conversation_context}
+
+Please provide a detailed, helpful answer to the question based on the retrieved context above. If the context contains relevant information, use it to provide a comprehensive answer. If the context is not directly relevant, you may provide general legal guidance where appropriate.
+
+Answer:"""
         
-        # Format the prompt using the template
-        formatted_prompt = template.user_prompt_template.format(
-            question=query,
-            context=context_text,
-            conversation_context=conversation_context,
-            chunk_count=context_data.get('chunk_count', 0),
-            source_types=', '.join(context_data.get('source_types', [])),
-            total_tokens=context_data.get('total_tokens', 0)
-        )
-        
-        return formatted_prompt
+        return simple_prompt
     
     def _format_conversation_context(self, conversation_history: List[Dict]) -> str:
         """Format conversation history for system prompt"""

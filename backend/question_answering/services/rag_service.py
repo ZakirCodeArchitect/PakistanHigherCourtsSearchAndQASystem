@@ -5,6 +5,7 @@ Integrates Pinecone vector database with sentence transformers for semantic sear
 
 import os
 import logging
+import hashlib
 import numpy as np
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
@@ -54,28 +55,23 @@ class RAGService:
             # Initialize Pinecone client (new API)
             self.pinecone_client = Pinecone(api_key=api_key)
             
-            # Get or create index
-            index_name = "legal-cases-index"  # Use existing index with data
+            index_name = getattr(settings, 'PINECONE_INDEX_NAME', 'legal-cases-index')
             existing_indexes = self.pinecone_client.list_indexes()
             index_names = [idx.name for idx in existing_indexes]
             
             if index_name not in index_names:
-                # Fallback to creating new index
-                index_name = "legal-knowledge-base"
-                if index_name not in index_names:
-                    logger.info(f"Creating Pinecone index: {index_name}")
-                    from pinecone import ServerlessSpec
-                    self.pinecone_client.create_index(
-                        name=index_name,
-                        dimension=self.embedding_dimension,
-                        metric="cosine",
-                        spec=ServerlessSpec(
-                            cloud="aws",
-                            region="us-east-1"
-                        )
+                logger.info(f"Creating Pinecone index: {index_name}")
+                from pinecone import ServerlessSpec
+                self.pinecone_client.create_index(
+                    name=index_name,
+                    dimension=self.embedding_dimension,
+                    metric="cosine",
+                    spec=ServerlessSpec(
+                        cloud="aws",
+                        region="us-east-1"
                     )
+                )
             
-            # Connect to index
             self.pinecone_index = self.pinecone_client.Index(index_name)
             logger.info(f"Pinecone index '{index_name}' initialized successfully")
             
@@ -83,6 +79,40 @@ class RAGService:
             logger.error(f"Failed to initialize Pinecone: {str(e)}")
             self.pinecone_index = None
             self.pinecone_client = None
+    
+    def _sanitize_metadata_value(self, value: Any):
+        """Ensure metadata values conform to Pinecone requirements."""
+        if value is None:
+            return None
+        if isinstance(value, (str, bool)):
+            return value
+        if isinstance(value, (int, float)):
+            return value
+        if isinstance(value, list):
+            sanitized = []
+            for item in value:
+                coerced = self._sanitize_metadata_value(item)
+                if coerced is None:
+                    continue
+                if isinstance(coerced, list):
+                    sanitized.extend(coerced)
+                elif isinstance(coerced, (int, float, bool)):
+                    sanitized.append(str(coerced))
+                else:
+                    sanitized.append(coerced)
+            return sanitized if sanitized else None
+        if isinstance(value, dict):
+            parts = []
+            for key, val in value.items():
+                coerced = self._sanitize_metadata_value(val)
+                if coerced is None:
+                    continue
+                if isinstance(coerced, list):
+                    parts.append(f"{key}: {', '.join(str(item) for item in coerced)}")
+                else:
+                    parts.append(f"{key}: {coerced}")
+            return ", ".join(parts) if parts else None
+        return str(value)
     
     def create_embeddings(self, texts: List[str]) -> np.ndarray:
         """Create embeddings for a list of texts"""
@@ -207,8 +237,26 @@ class RAGService:
             logger.error(f"Error in database fallback search: {str(e)}")
             return []
     
+    def _generate_doc_id(self, case_id: Optional[int], content_type: str, content: str,
+                         document_id: Optional[int] = None, custom_id: Optional[str] = None) -> str:
+        """Generate a deterministic document ID for indexing"""
+        if custom_id:
+            return custom_id
+        
+        base_parts = [
+            f"case{case_id}" if case_id is not None else "case_unknown",
+            content_type or "metadata"
+        ]
+        if document_id is not None:
+            base_parts.append(f"doc{document_id}")
+        
+        content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()[:16]
+        base_parts.append(content_hash)
+        return "_".join(base_parts)
+    
     def index_document(self, case_id: int, content: str, content_type: str = "case_metadata", 
-                      document_id: Optional[int] = None, metadata: Optional[Dict] = None) -> bool:
+                      document_id: Optional[int] = None, metadata: Optional[Dict] = None,
+                      doc_id: Optional[str] = None) -> bool:
         """Index a document in Pinecone"""
         if not self.pinecone_index:
             logger.warning("Pinecone index not available. Cannot index document.")
@@ -222,28 +270,43 @@ class RAGService:
                 return False
             
             # Prepare metadata
+            snippet = content[:2000]
             doc_metadata = {
-                'case_id': case_id,
                 'content_type': content_type,
-                'content': content[:1000],  # Truncate for metadata
+                'text': content[:1000],
+                'content': snippet,
                 'created_at': str(datetime.now())
             }
-            
-            if document_id:
-                doc_metadata['document_id'] = document_id
+
+            if case_id is not None:
+                doc_metadata['case_id'] = case_id
+            if document_id is not None:
+                doc_metadata['document_id'] = str(document_id)
             
             if metadata:
-                doc_metadata.update(metadata)
+                doc_metadata.update({k: v for k, v in metadata.items() if v is not None})
+
+            # Sanitize metadata values
+            sanitized_metadata: Dict[str, Any] = {}
+            for key, value in doc_metadata.items():
+                sanitized = self._sanitize_metadata_value(value)
+                if sanitized in (None, []):
+                    continue
+                sanitized_metadata[key] = sanitized
+            
+            if not sanitized_metadata:
+                logger.warning("Skipping document indexing due to empty metadata after sanitization")
+                return False
             
             # Create unique ID
-            doc_id = f"case_{case_id}_{content_type}_{hash(content) % 10000}"
+            doc_id = self._generate_doc_id(case_id, content_type, content, document_id=document_id, custom_id=doc_id)
             
             # Upsert to Pinecone
             self.pinecone_index.upsert(
                 vectors=[{
                     'id': doc_id,
                     'values': embedding.tolist(),
-                    'metadata': doc_metadata
+                    'metadata': sanitized_metadata
                 }]
             )
             
@@ -278,23 +341,51 @@ class RAGService:
                             continue
                         
                         # Prepare metadata
+                        snippet = doc['content'][:2000]
                         doc_metadata = {
-                            'case_id': doc['case_id'],
                             'content_type': doc.get('content_type', 'case_metadata'),
-                            'content': doc['content'][:1000],
+                            'text': doc['content'][:1000],
+                            'content': snippet,
                             'created_at': str(datetime.now())
                         }
                         
-                        if 'document_id' in doc:
-                            doc_metadata['document_id'] = doc['document_id']
+                        case_id = doc.get('case_id')
+                        if case_id is not None:
+                            doc_metadata['case_id'] = case_id
+                        if 'document_id' in doc and doc['document_id'] is not None:
+                            doc_metadata['document_id'] = str(doc['document_id'])
+                        
+                        metadata = doc.get('metadata')
+                        if metadata:
+                            for key, value in metadata.items():
+                                if value is not None:
+                                    doc_metadata[key] = value
+                        
+                        # Sanitize metadata
+                        sanitized_metadata: Dict[str, Any] = {}
+                        for key, value in doc_metadata.items():
+                            sanitized = self._sanitize_metadata_value(value)
+                            if sanitized in (None, []):
+                                continue
+                            sanitized_metadata[key] = sanitized
+
+                        if not sanitized_metadata:
+                            failed_count += 1
+                            continue
                         
                         # Create unique ID
-                        doc_id = f"case_{doc['case_id']}_{doc.get('content_type', 'metadata')}_{hash(doc['content']) % 10000}"
+                        doc_id = self._generate_doc_id(
+                            doc.get('case_id'),
+                            doc.get('content_type', 'metadata'),
+                            doc['content'],
+                            document_id=doc.get('document_id'),
+                            custom_id=doc.get('id') or doc.get('doc_id')
+                        )
                         
                         vectors.append({
                             'id': doc_id,
                             'values': embedding.tolist(),
-                            'metadata': doc_metadata
+                            'metadata': sanitized_metadata
                         })
                         
                     except Exception as e:
@@ -325,7 +416,7 @@ class RAGService:
             },
             'pinecone': {
                 'enabled': self.pinecone_index is not None,
-                'index_name': 'legal-knowledge-base' if self.pinecone_index else 'disabled',
+                'index_name': getattr(settings, 'PINECONE_INDEX_NAME', 'legal-cases-index'),
                 'api_key_configured': bool(os.getenv("PINECONE_API_KEY"))
             },
             'rag_status': 'fully_operational' if (self.embedding_model and self.pinecone_index) else 'limited'

@@ -134,19 +134,19 @@ class EnhancedMetadataService:
         ]
         
         # Add orders text
-        for order in case.orders_data.all():
+        for order in self._safe_related(case, 'orders_data'):
             text_sources.extend([
-                order.order_passed or '',
-                order.description or '',
-                order.order_detail or ''
+                getattr(order, 'order_passed', '') or '',
+                getattr(order, 'description', '') or '',
+                getattr(order, 'order_detail', '') or ''
             ])
         
         # Add comments text
-        for comment in case.comments_data.all():
+        for comment in self._safe_related(case, 'comments_data'):
             text_sources.extend([
-                comment.case_no or '',
-                comment.next_date or '',
-                comment.compliance_date or ''
+                getattr(comment, 'case_no', '') or '',
+                getattr(comment, 'next_date', '') or '',
+                getattr(comment, 'compliance_date', '') or ''
             ])
         
         # Extract entities from all text
@@ -176,12 +176,24 @@ class EnhancedMetadataService:
         """Extract legal provisions (sections, acts, etc.)"""
         provisions = []
         
-        # Combine text sources
+        # Combine text sources safely
         text_sources = [
             case.case_title or '',
             case.case_number or '',
             case.status or ''
         ]
+        orders_snippets = []
+        for order in self._safe_related(case, 'orders_data')[:5]:
+            snippet = (
+                getattr(order, 'description', '')
+                or getattr(order, 'short_order', '')
+                or getattr(order, 'order_passed', '')
+                or ''
+            )
+            if snippet:
+                orders_snippets.append(snippet)
+        if orders_snippets:
+            text_sources.append(' '.join(orders_snippets))
         
         combined_text = ' '.join(text_sources)
         
@@ -304,20 +316,18 @@ class EnhancedMetadataService:
         
         # Try to get orders from related models if they exist
         try:
-            if hasattr(case, 'orders_data'):
-                orders = case.orders_data.all()
-                summary['total_orders'] = len(orders)
-                
-                if orders:
-                    # Get latest order
-                    latest = orders.first()
-                    if hasattr(latest, 'order_date'):
-                        summary['latest_order'] = latest.order_date.strftime('%Y-%m-%d') if hasattr(latest.order_date, 'strftime') else str(latest.order_date)
+            orders = self._safe_related(case, 'orders_data')
+            summary['total_orders'] = len(orders)
+            
+            if orders:
+                latest = orders[0]
+                latest_date = getattr(latest, 'order_date', None)
+                if latest_date:
+                    summary['latest_order'] = latest_date.strftime('%Y-%m-%d') if hasattr(latest_date, 'strftime') else str(latest_date)
             
             # Check for judgments
-            if hasattr(case, 'judgement_data'):
-                judgments = case.judgement_data.all()
-                summary['has_final_judgment'] = len(judgments) > 0
+            judgments = self._safe_related(case, 'judgement_data')
+            summary['has_final_judgment'] = len(judgments) > 0
                 
         except Exception:
             # If related models don't exist or have issues, use basic info
@@ -402,10 +412,20 @@ class EnhancedMetadataService:
         }
         
         # Analyze all text content
+        orders_sample = []
+        for order in self._safe_related(case, 'orders_data')[:5]:
+            snippet = (
+                getattr(order, 'description', '')
+                or getattr(order, 'short_order', '')
+                or getattr(order, 'order_passed', '')
+                or ''
+            )
+            if snippet:
+                orders_sample.append(snippet)
         all_text = ' '.join([
             case.case_title or '',
             case.bench or '',
-            ' '.join([order.description or '' for order in case.orders_data.all()[:5]])  # Limit for performance
+            ' '.join(orders_sample)
         ]).lower()
         
         # Match subject matters
@@ -475,21 +495,23 @@ class EnhancedMetadataService:
             })
         
         # Add orders
-        for order in case.orders_data.all().order_by('created_at'):
-            if order.order_date:
+        for order in self._safe_related(case, 'orders_data'):
+            order_date = getattr(order, 'order_date', None)
+            if order_date:
                 timeline.append({
-                    'date': order.order_date,
+                    'date': order_date,
                     'event': 'order_passed',
-                    'description': order.description or 'Order passed',
+                    'description': getattr(order, 'description', '') or getattr(order, 'short_order', 'Order passed'),
                     'source': 'orders_data',
-                    'details': order.order_passed
+                    'details': getattr(order, 'order_passed', getattr(order, 'short_order', ''))
                 })
         
         # Add hearing dates from comments
-        for comment in case.comments_data.all():
-            if comment.next_date and comment.next_date != 'None':
+        for comment in self._safe_related(case, 'comments_data'):
+            next_date = getattr(comment, 'next_date', None)
+            if next_date and next_date != 'None':
                 timeline.append({
-                    'date': comment.next_date,
+                    'date': next_date,
                     'event': 'hearing_scheduled',
                     'description': 'Hearing scheduled',
                     'source': 'comments_data'
@@ -499,6 +521,26 @@ class EnhancedMetadataService:
         timeline.sort(key=lambda x: x.get('date', ''))
         
         return timeline
+
+    def _safe_related(self, case: Case, attr: str) -> List[Any]:
+        """Safely retrieve related objects, returning an empty list on failure."""
+        manager = getattr(case, attr, None)
+        if manager is None:
+            return []
+        try:
+            queryset = manager.all()
+            if hasattr(queryset, 'order_by'):
+                try:
+                    queryset = queryset.order_by('created_at')
+                except Exception:
+                    pass
+            return list(queryset)
+        except TypeError:
+            # Not a queryset (likely OneToOne); wrap in list if truthy
+            return [manager] if manager else []
+        except Exception as exc:
+            logger.debug(f"Unable to fetch related {attr} for case {case.id}: {exc}")
+            return []
     
     def _calculate_content_richness(self, case: Case) -> float:
         """Calculate content richness score (0-1)"""
@@ -512,10 +554,10 @@ class EnhancedMetadataService:
         if case.status: score += 1.0
         
         # Rich data availability
-        if case.orders_data.exists(): score += 2.0
-        if case.comments_data.exists(): score += 1.5
-        if case.case_cms_data.exists(): score += 1.0
-        if hasattr(case, 'judgement_data') and case.judgement_data.exists(): score += 1.5
+        if self._safe_related(case, 'orders_data'): score += 2.0
+        if self._safe_related(case, 'comments_data'): score += 1.5
+        if self._safe_related(case, 'case_cms_data'): score += 1.0
+        if self._safe_related(case, 'judgement_data'): score += 1.5
         
         # PDF content
         try:
@@ -556,7 +598,7 @@ class EnhancedMetadataService:
         if hasattr(case, 'judgement_data'):
             total_fields += 1
             try:
-                if case.judgement_data.exists():
+                if self._safe_related(case, 'judgement_data'):
                     filled_fields += 1
             except:
                 pass
@@ -564,7 +606,7 @@ class EnhancedMetadataService:
         if hasattr(case, 'documents'):
             total_fields += 1
             try:
-                if case.documents.exists():
+                if self._safe_related(case, 'documents'):
                     filled_fields += 1
             except:
                 pass
@@ -594,9 +636,10 @@ class EnhancedMetadataService:
             keywords.update(case_parts)
         
         # Extract from orders
-        for order in case.orders_data.all()[:3]:  # Limit for performance
-            if order.description:
-                desc_words = re.findall(r'\b\w{4,}\b', order.description.lower())
+        for order in self._safe_related(case, 'orders_data')[:3]:  # Limit for performance
+            description = getattr(order, 'description', '') or getattr(order, 'order_passed', '') or ''
+            if description:
+                desc_words = re.findall(r'\b\w{4,}\b', description.lower())
                 keywords.update(desc_words[:10])  # Limit words per order
         
         # Remove common stop words

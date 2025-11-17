@@ -172,7 +172,29 @@ Remember: You are providing legal information and research assistance, not legal
                     response_preview = response_preview[:150] + "..."
                 conversation_context += f"   A: {response_preview}\n\n"
         
-        prompt = f"""Question: {question}{conversation_context}
+        # Detect if this is a simple factual question (who, what, when, where)
+        is_simple_factual = any(question.lower().startswith(qword) for qword in ['who', 'what', 'when', 'where', 'which'])
+        is_advocates_question = 'advocat' in question.lower() or 'lawyer' in question.lower() or 'counsel' in question.lower()
+        
+        if is_simple_factual and is_advocates_question:
+            # For simple factual questions about advocates, give direct answer only
+            prompt = f"""Question: {question}{conversation_context}
+
+Context Documents:
+{context_text}
+
+Please provide a DIRECT, CONCISE answer to the question. If the information is in the context documents, provide it directly. Do not add unnecessary explanations, legal analysis, or procedural guidance unless specifically asked.
+
+Answer format:
+- If the information is available: Provide the direct answer (e.g., names of advocates)
+- If the information is not available: Simply state that the information is not available in the provided context
+
+Keep your answer brief and to the point. Only provide additional information if the question specifically asks for it.
+
+Answer:"""
+        else:
+            # For complex questions, provide comprehensive answer
+            prompt = f"""Question: {question}{conversation_context}
 
 Context Documents:
 {context_text}

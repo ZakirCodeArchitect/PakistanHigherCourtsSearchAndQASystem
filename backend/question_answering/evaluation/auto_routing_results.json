@@ -1,0 +1,452 @@
+[
+  {
+    "index": 1,
+    "category": "law",
+    "question": "Explain the relief available under Article 199 of the Constitution when challenging an administrative order.",
+    "answer": "<p>Sure — Article 199 of the Constitution of Pakistan provides a mechanism for individuals to challenge administrative orders and actions through the High Courts. This article empowers the High Courts to issue certain writs, which serve as a form of judicial relief against unlawful actions by public...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 2,
+    "category": "law",
+    "question": "What protections does Article 10-A guarantee to litigants seeking a fair trial in Pakistan?",
+    "answer": "<p>Sure — Article 10-A of the Constitution of Pakistan guarantees the right to a fair trial, which is a fundamental aspect of the legal system in the country. This article was introduced through the 18th Amendment and serves to enhance the protection of litigants in various ways. Here are the key pr...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 3,
+    "category": "law",
+    "question": "Outline the circumstances in which the Islamabad High Court issues a writ of mandamus.",
+    "answer": "<p>Sure — The Islamabad High Court issues a writ of mandamus under specific circumstances, primarily when there is a clear legal duty that a public authority or an official is obligated to perform, and that duty has not been fulfilled. Here are the key circumstances under which the court may grant s...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 4,
+    "category": "law",
+    "question": "Describe the legal standards for granting bail after arrest under Section 497 Cr.P.C.",
+    "answer": "<p>Sure — Under Section 497 of the Code of Criminal Procedure (Cr.P.C) in Pakistan, the legal standards for granting bail after arrest are primarily focused on the nature of the offense, the likelihood of the accused fleeing, and the potential for tampering with evidence or influencing witnesses. He...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 5,
+    "category": "law",
+    "question": "How can a citizen challenge discriminatory administrative action under Article 25 of the Constitution?",
+    "answer": "<p>Sure — Challenging discriminatory administrative action under Article 25 of the Constitution of Pakistan involves several steps and considerations. Article 25 guarantees equality before the law and prohibits discrimination on the basis of sex, religion, caste, or place of birth. Here’s a structur...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 6,
+    "category": "law",
+    "question": "What is the procedure for filing a writ petition against a tax demand notice before the Islamabad High Court?",
+    "answer": "<p>Sure — Filing a writ petition against a tax demand notice before the Islamabad High Court involves a structured legal procedure. Here’s a step-by-step guide based on general legal practices and the context provided:</p>\n<h3 id=\"step-1-preparation-of-the-writ-petition\">Step 1: Preparation of the W...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 7,
+    "category": "law",
+    "question": "Summarize the grounds on which a NAB reference can be quashed through constitutional jurisdiction.",
+    "answer": "<p>Sure — In Pakistan, a reference made by the National Accountability Bureau (NAB) can be quashed through constitutional jurisdiction on several grounds. While the retrieved context does not provide specific cases directly related to NAB references, we can infer general principles from the legal fr...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 8,
+    "category": "law",
+    "question": "Explain the scope of habeas corpus relief available under Section 491 Cr.P.C.",
+    "answer": "<p>Sure — Habeas corpus is a legal remedy that serves to protect individuals from unlawful detention or imprisonment. In Pakistan, the scope of habeas corpus relief is primarily governed by Section 491 of the Code of Criminal Procedure (Cr.P.C). Here’s a detailed explanation of its scope and applica...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 9,
+    "category": "law",
+    "question": "What are the essential ingredients for obtaining a temporary injunction under Order XXXIX Rules 1 and 2 of the CPC?",
+    "answer": "<p>Sure — To obtain a temporary injunction under Order XXXIX Rules 1 and 2 of the Civil Procedure Code (CPC) in Pakistan, a party must establish several essential ingredients. Here’s a detailed breakdown of these requirements:</p>\n<ol>\n<li>\n<p><strong>Existence of a Prima Facie Case</strong>: The ap...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 2
+  },
+  {
+    "index": 10,
+    "category": "law",
+    "question": "Provide guidance on challenging a public procurement decision through judicial review.",
+    "answer": "<p>Sure — Challenging a public procurement decision through judicial review in Pakistan involves a structured legal process. Here’s a detailed guide based on general principles and the context provided:</p>\n<h3 id=\"1-understanding-judicial-review-in-procurement-decisions\">1. <strong>Understanding Ju...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 11,
+    "category": "legal_order",
+    "question": "Provide the short order for Crl. Misc. 2/2025 Bail After Arrest (SB).",
+    "answer": "<p>Sure — Based on the retrieved legal context, the short order for Crl. Misc. 2/2025 Bail After Arrest (SB) is to \"Relist.\" This indicates that the court has decided to schedule the case for a future hearing rather than making a final decision at this time.</p>\n<p>In general, when a court orders a ...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 12,
+    "category": "legal_order",
+    "question": "What was the short order issued in R.A. 2/2023 Writ (SB)?",
+    "answer": "<p>Sure — The short order issued in the case of R.A. 2/2023 Writ (SB) is not explicitly detailed in the retrieved context. However, it does reference a related case, Dr. Riffat Yasmin, Ex VS Medical Officer VS FOP through Secretary Ministry of National Health Services Regulations and Coordination, I...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 13,
+    "category": "legal_order",
+    "question": "Share the short order for S.T.R. 1/2018 (DB) titled Honda Centre Pvt Ltd vs Appellate Tribunal I.R.",
+    "answer": "<p>Sure — The retrieved context does not contain specific information regarding the short order for S.T.R. 1/2018 (DB) titled \"Honda Centre Pvt Ltd vs Appellate Tribunal I.R.\" Therefore, I cannot provide the exact details of that order.</p>\n<p>However, if you are looking for general guidance on how ...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 14,
+    "category": "legal_order",
+    "question": "Give the short order recorded in I.T.R. 1/2017 (DB) concerning M/s Telenor Pakistan Pvt. Ltd.",
+    "answer": "<p>Sure — The retrieved context does not contain specific information regarding the short order recorded in the case I.T.R. 1/2017 concerning M/s Telenor Pakistan Pvt. Ltd. Instead, it mentions a different case, I.T.R. 1/2024, involving Telenor Pakistan Pvt. Ltd. and the Commissioner Inland Revenue,...",
+    "answer_type": "advanced_rag",
+    "confidence": 0.9500000000000001,
+    "sources_count": 2
+  },
+  {
+    "index": 15,
+    "category": "legal_order",
+    "question": "What short order did the court pass in Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB))?",
+    "answer": "<p>Sure — The retrieved context does not provide specific information regarding the short order passed in the case of Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB)). Therefore, I cannot provide the exact details of the order from that case.</p>\n<p>However, in general, a sho...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 16,
+    "category": "legal_order",
+    "question": "State the short order for Sprint Services Rawalpindi Ltd vs Summit Bank Ltd (P.L.A. 1/2019 Banking (SB)).",
+    "answer": "<p>Sure — The case \"Sprint Services Rawalpindi Ltd vs Summit Bank Ltd\" is currently pending before the Islamabad High Court, with the case number P.L.A. 1/2019 in the Banking (SB) category. The presiding judge is Honourable Ms. Justice Saman Rafat Imtiaz. The case was instituted on February 15, 2019...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 17,
+    "category": "legal_order",
+    "question": "Provide the short order for Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB)).",
+    "answer": "<p>Sure — The case of <strong>Falcon Group of Companies vs M/s Faysal Bank Ltd</strong> (E.F.A. 1/2018 Banking (DB)) was heard by the Islamabad High Court, specifically before the Honourable Mr. Justice Aamer Farooq and Honourable Mr. Justice Mohsin Akhtar Kayani. The case was instituted on <strong>...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 18,
+    "category": "legal_order",
+    "question": "What is the short order in Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB))?",
+    "answer": "<p>Sure — The case of <strong>Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB))</strong> was decided by the Islamabad High Court under the bench of Honourable Mr. Justice Mohsin Akhtar Kayani. The case was instituted on January 8, 2018, and the hearing took place on April 6, 2018.</p>...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 19,
+    "category": "legal_order",
+    "question": "Share the short order for Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB)).",
+    "answer": "<p>Sure — The retrieved context does not provide the specific short order for the case of Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB)). It only includes a short order from a different case (CR 1/2023 Against Interim Order (SB)), which states that the order was \"Allowed.\"</p>\n<p>To obtain t...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 20,
+    "category": "legal_order",
+    "question": "Provide the short order recorded in Mst. Farrah Razzaq vs Judicial Magistrate 1st Class West (Crl. Appeal 1/2016 Acquittal Other (SB)).",
+    "answer": "<p>Sure — The retrieved context provides limited information regarding the specific short order recorded in the case of <strong>Mst. Farrah Razzaq vs Judicial Magistrate 1st Class West (Crl. Appeal 1/2016 Acquittal Other (SB))</strong>. However, it does indicate that the case was decided by the Isla...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 21,
+    "category": "lawyers",
+    "question": "Who are the petitioner's advocates in Crl. Misc. 2/2025 Bail After Arrest (SB)?",
+    "answer": "<p>Sure — In the case of Crl. Misc. 2/2025 Bail After Arrest (SB), the petitioner's advocate is Talat Mahmood Zaidi. This case involves the petitioner, Shahzad Waqas, seeking post-arrest bail in relation to FIR No. 422/2024, which includes charges under sections 324, 337-F(vi), 148, 149, and 34 of t...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 22,
+    "category": "lawyers",
+    "question": "List the respondent's advocates in Crl. Misc. 2/2025 Bail After Arrest (SB).",
+    "answer": "<p>Sure — In the case of <strong>Crl. Misc. 2/2025 Bail After Arrest (SB)</strong>, the respondent's advocate is <strong>Imran Haider</strong>. This case involves the petitioner Shahzad Waqas against The State, and it pertains to a post-arrest bail application related to FIR No. 422/2024. The case w...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 23,
+    "category": "lawyers",
+    "question": "Identify the petitioner's advocates in Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB)).",
+    "answer": "<p>Sure — The retrieved legal context does not provide specific information regarding the advocates representing the petitioner in the case of Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB)). It primarily discusses a different case (Pervez ul Qadir Memon vs The Honourable Is...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 24,
+    "category": "lawyers",
+    "question": "Who represented the petitioner in Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB))?",
+    "answer": "<p>Sure — The retrieved legal context does not specify who represented the petitioner in the case of <strong>Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB))</strong>. It provides details about the case number, title, court, judges on the bench, and dates of institution ...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 25,
+    "category": "lawyers",
+    "question": "Provide the petitioner's counsel for Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB)).",
+    "answer": "<p>Sure — The retrieved context does not provide specific details about the petitioner's counsel in the case of <strong>Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB))</strong>. However, I can guide you on how to find this information.</p>\n<p>In legal cases, the names of the counsel...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 26,
+    "category": "lawyers",
+    "question": "Who appeared for the petitioner in Injum Aqeel Khan vs Latif Muhammad Ch. (R.F.A. 1/2018 (DB))?",
+    "answer": "<p>Sure — In the case of <strong>Injum Aqeel Khan vs Latif Muhammad Ch. (R.F.A. 1/2018 (DB))</strong>, the advocates who appeared for the petitioner were <strong>Babar Manzoor</strong>, <strong>Raja Rizwan Abbasi</strong>, and <strong>Malik Mushtaq Ahmed</strong>. The case was heard in the Islamabad...",
+    "answer_type": "advanced_rag",
+    "confidence": 0.9,
+    "sources_count": 2
+  },
+  {
+    "index": 27,
+    "category": "lawyers",
+    "question": "List the advocates for the petitioner in Sprint Services Rawalpindi Ltd vs Summit Bank Ltd (P.L.A. 1/2019 Banking (SB)).",
+    "answer": "<p>Sure — The retrieved legal context does not provide specific information regarding the advocates for the petitioner in the case of <strong>Sprint Services Rawalpindi Ltd vs Summit Bank Ltd (P.L.A. 1/2019 Banking (SB))</strong>. It only includes details about the case number, title, court, status,...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 28,
+    "category": "lawyers",
+    "question": "Who were the petitioner's advocates in Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB))?",
+    "answer": "<p>Sure — The retrieved legal context does not provide any information regarding the petitioner's advocates in the case of Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB)). It only mentions a different case (E.F.A. 1/2016) with details about the court and judges involved, but does not address ...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 29,
+    "category": "lawyers",
+    "question": "Name the advocates representing Abdul Khaliq in Abdul Khaliq vs SME Bank (E.F.A. 1/2019 Banking (DB)).",
+    "answer": "<p>Sure — The retrieved legal context does not provide specific information regarding the advocates representing Abdul Khaliq in the case of <strong>Abdul Khaliq vs SME Bank (E.F.A. 1/2019 Banking (DB))</strong>. The details available focus primarily on the case title, court, judges, and dates relat...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 30,
+    "category": "lawyers",
+    "question": "Who represented CIR in CIR vs M/s ZTBL (FERA 1/2019 (DB))?",
+    "answer": "Hello! I'm Pakistan Legal AI Assistant. I can help you with legal research, case law analysis, and court procedures. Please ask me a specific legal question, and I'll provide you with detailed information based on Pakistani law and legal precedents.",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 0
+  },
+  {
+    "index": 31,
+    "category": "judges",
+    "question": "Which bench heard Crl. Misc. 2/2025 Bail After Arrest (SB)?",
+    "answer": "<p>Sure — The case Crl. Misc. 2/2025 Bail After Arrest (SB) was heard by the Honourable Mr. Justice Tariq Mehmood Jahangiri at the Islamabad High Court. If you have any further questions or need more information about this case or related legal matters, feel free to ask!</p>",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 32,
+    "category": "judges",
+    "question": "List the judges who heard T.A. 1/2017 Civil (SB).",
+    "answer": "<p>Sure — In the case of T.A. 1/2017 Civil (SB), titled \"Muhammad Ismail VS Mian Ahmed Khan,\" the matter was heard by the Islamabad High Court. The bench that presided over this case consisted of the Honourable Chief Justice. Unfortunately, the retrieved context does not provide the names of any add...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 33,
+    "category": "judges",
+    "question": "Who were the judges on the bench for R.A. 2/2023 Writ (SB)?",
+    "answer": "<p>Sure — The retrieved legal context does not provide specific information regarding the judges on the bench for the case R.A. 2/2023 Writ (SB). The only case mentioned is Dr. Riffat Yasmin, where the bench included Honourable Mr. Justice Arbab Muhammad Tahir at the Islamabad High Court. </p>\n<p>To...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 34,
+    "category": "judges",
+    "question": "Name the judges who heard S.T.R. 1/2018 (DB).",
+    "answer": "<p>Sure — In the case S.T.R. 1/2018 (DB), which was titled \"Honda Centre Pvt Ltd VS Appellate Tribunal I.R,\" the judges who heard the case were:</p>\n<ol>\n<li>The Honourable Chief Justice</li>\n<li>Honourable Mr. Justice Babar Sattar</li>\n</ol>\n<p>This case was decided by the Islamabad High Court, wit...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 35,
+    "category": "judges",
+    "question": "Which judges comprised the bench in I.T.R. 1/2017 (DB) involving M/s Telenor Pakistan Pvt. Ltd.?",
+    "answer": "<p>Sure — In the case of I.T.R. 1/2017 (DB) involving M/s Telenor Pakistan Pvt. Ltd., the bench comprised the following judges:</p>\n<ol>\n<li>Honourable Mr. Justice Mohsin Akhtar Kayani</li>\n<li>Mr. Justice Fiaz Ahmad Anjum Jandran</li>\n</ol>\n<p>This case was heard in the Islamabad High Court, and th...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 36,
+    "category": "judges",
+    "question": "Identify the judges who heard Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB)).",
+    "answer": "<p>Sure — The retrieved context does not provide information specifically about the judges who heard the case of Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB)). Instead, it mentions a different case, J.S.A 1/2018 (LB), which was heard by Honourable Mr. Justice Khadim Hussai...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 37,
+    "category": "judges",
+    "question": "Which judges sat on Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB))?",
+    "answer": "<p>Sure — In the case of <strong>Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB))</strong>, the judges who sat on the bench were:</p>\n<ul>\n<li><strong>Honourable Mr. Justice Aamer Farooq</strong></li>\n<li><strong>Honourable Mr. Justice Mohsin Akhtar Kayani</strong></li>\n...",
+    "answer_type": "advanced_rag",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 38,
+    "category": "judges",
+    "question": "List the judges for Injum Aqeel Khan vs Latif Muhammad Ch. (R.F.A. 1/2018 (DB)).",
+    "answer": "<p>Sure — In the case of <strong>Injum Aqeel Khan vs Latif Muhammad Ch. (R.F.A. 1/2018 (DB))</strong>, the judges on the bench were:</p>\n<ul>\n<li><strong>Honourable Mr. Justice Mohsin Akhtar Kayani</strong></li>\n<li><strong>Mr. Justice Fiaz Ahmad Anjum Jandran</strong></li>\n</ul>\n<p>This case was he...",
+    "answer_type": "advanced_rag",
+    "confidence": 0.9,
+    "sources_count": 2
+  },
+  {
+    "index": 39,
+    "category": "judges",
+    "question": "Who was on the bench for Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB))?",
+    "answer": "<p>Sure — In the case of <strong>Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB))</strong>, the bench was presided over by <strong>Honourable Mr. Justice Mohsin Akhtar Kayani</strong> of the Islamabad High Court. </p>\n<p>If you need more information about the case itself or its impli...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 40,
+    "category": "judges",
+    "question": "Which judges decided Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB))?",
+    "answer": "<p>Sure — The case of <strong>Muhammad Shabbir vs The Registrar</strong> (J.S.A. 1/2016 (LB)) was decided by a bench of three judges at the Islamabad High Court. The judges who presided over the case are:</p>\n<ol>\n<li><strong>Honourable Mr. Justice Mohsin Akhtar Kayani</strong></li>\n<li><strong>Hono...",
+    "answer_type": "advanced_rag",
+    "confidence": 0.9,
+    "sources_count": 2
+  },
+  {
+    "index": 41,
+    "category": "combined",
+    "question": "Provide a detailed summary for Crl. Misc. 2/2025 Bail After Arrest (SB), including bench, short order, advocates, FIR and key dates.",
+    "answer": "<p>Sure — Based on the retrieved legal context, here is a detailed summary of the case Crl. Misc. 2/2025 Bail After Arrest (SB):</p>\n<h3 id=\"case-summary\">Case Summary:</h3>\n<ul>\n<li><strong>Case Title</strong>: Shahzad Waqas VS The State</li>\n<li><strong>Filing Type</strong>: Crl. Misc. 2/2025 (Bai...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 42,
+    "category": "combined",
+    "question": "Summarize Pakistan Chemists and Druggists Association vs DGTO (C.M. A 1/2018 (SB)) covering bench, advocates, short order, and status.",
+    "answer": "<p>Sure — The case of <strong>Pakistan Chemists and Druggists Association vs. Directorate General Trade Organisation (C.M. A 1/2018 (SB))</strong> was heard in the <strong>Islamabad High Court</strong>. The bench presiding over the case was led by the <strong>Honourable Chief Justice</strong>.</p>\n<...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 43,
+    "category": "combined",
+    "question": "Give me the case details for Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB)) including bench, short order, advocates and stage.",
+    "answer": "<p>Sure — In the case of <strong>Falcon Group of Companies vs M/s Faysal Bank Ltd (E.F.A. 1/2018 Banking (DB))</strong>, the following details are pertinent:</p>\n<ul>\n<li><strong>Bench</strong>: The case was presided over by the Honourable Mr. Justice Aamer Farooq and Honourable Mr. Justice Mohsin A...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 44,
+    "category": "combined",
+    "question": "Provide a comprehensive overview of Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB)) mentioning bench, short order, advocates, FIR and status.",
+    "answer": "<p>Sure — In the case of <strong>Moazam Habib vs Shahid Kaqan Abbasi (Crl. Org. 1/2018 Writ (SB))</strong>, the following details are pertinent:</p>\n<h3 id=\"bench\">Bench</h3>\n<p>The case was presided over by <strong>Honourable Mr. Justice Mohsin Akhtar Kayani</strong> of the Islamabad High Court.</p...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 45,
+    "category": "combined",
+    "question": "Summarize Sprint Services Rawalpindi Ltd vs Summit Bank Ltd (P.L.A. 1/2019 Banking (SB)) with bench, advocates, status and short order.",
+    "answer": "<p>Sure — In the case of <strong>Sprint Services Rawalpindi Ltd vs Summit Bank Ltd</strong>, the following details are noted:</p>\n<ul>\n<li><strong>Bench</strong>: The case is being heard by Honourable Ms. Justice Saman Rafat Imtiaz at the Islamabad High Court.</li>\n<li><strong>Case Status</strong>: ...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 46,
+    "category": "combined",
+    "question": "Give the complete case profile for Injum Aqeel Khan vs Latif Muhammad Ch. (R.F.A. 1/2018 (DB)) including bench, advocates, status and orders.",
+    "answer": "<p>Sure — The case profile for <strong>Injum Aqeel Khan vs Latif Muhammad Ch. (R.F.A. 1/2018 (DB))</strong> is as follows:</p>\n<ul>\n<li>\n<p><strong>Bench</strong>: The case was heard by the Honourable Mr. Justice Mohsin Akhtar Kayani and Mr. Justice Fiaz Ahmad Anjum Jandran.</p>\n</li>\n<li>\n<p><stron...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 47,
+    "category": "combined",
+    "question": "Provide full details for Honda Centre Pvt Ltd vs Appellate Tribunal I.R (S.T.R. 1/2018 (DB)): bench, short order, advocates, institution and hearing dates.",
+    "answer": "<p>Sure — In the case of <strong>Honda Centre Pvt Ltd vs Appellate Tribunal I.R (S.T.R. 1/2018 (DB))</strong>, the following details are available:</p>\n<ul>\n<li><strong>Bench</strong>: The case was heard by the Honourable Chief Justice and Honourable Mr. Justice Babar Sattar.</li>\n<li><strong>Court<...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 48,
+    "category": "combined",
+    "question": "Share a narrative summary of I.T.R. 1/2017 (DB) involving M/s Telenor Pakistan Pvt. Ltd., covering bench, advocates, short order and status.",
+    "answer": "<p>Sure — In the case of I.T.R. 1/2017 (DB) involving M/s Telenor Pakistan Pvt. Ltd., the matter was brought before the Islamabad High Court. The bench presiding over the case consisted of Honourable Mr. Justice Mohsin Akhtar Kayani and Mr. Justice Fiaz Ahmad Anjum Jandran. </p>\n<p>The case has been...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 49,
+    "category": "combined",
+    "question": "Give me the complete details for T.A. 1/2017 Civil (SB) including bench, advocates, stage, and any short order.",
+    "answer": "<p>Sure — The retrieved context does not provide specific details regarding the case T.A. 1/2017 Civil (SB), such as the bench, advocates, stage, or any short order associated with it. However, I can guide you on how to find this information.</p>\n<p>To obtain complete details about T.A. 1/2017 Civil...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  },
+  {
+    "index": 50,
+    "category": "combined",
+    "question": "Provide a full summary for Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB)) including bench, short order, advocates, and status.",
+    "answer": "<p>Sure — In the case of <strong>Muhammad Shabbir vs The Registrar (J.S.A. 1/2016 (LB))</strong>, the following details are pertinent:</p>\n<h3 id=\"bench\">Bench:</h3>\n<p>The case was heard by a bench comprising:\n- Honourable Mr. Justice Mohsin Akhtar Kayani\n- Honourable Mr. Justice Miangul Hassan Aur...",
+    "answer_type": "structured_lookup_llm",
+    "confidence": 1.0,
+    "sources_count": 1
+  }
+]

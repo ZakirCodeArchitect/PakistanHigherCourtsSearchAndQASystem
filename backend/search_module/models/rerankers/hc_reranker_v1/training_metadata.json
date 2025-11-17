@@ -1,0 +1,12 @@
+{
+  "base_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+  "max_length": 512,
+  "epochs": 1,
+  "batch_size": 16,
+  "learning_rate": 2e-05,
+  "validation_split": 0.1,
+  "seed": 42,
+  "train_samples": 51183,
+  "val_samples": 5688,
+  "dataset_path": "..\\..\\reports\\reranker_training.jsonl"
+}

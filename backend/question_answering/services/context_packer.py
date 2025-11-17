@@ -186,9 +186,10 @@ class ContextPacker:
     
     def _extract_chunk_content(self, chunk: Dict[str, Any]) -> str:
         """Extract content from chunk"""
-        # Try different content fields
+        # Try different content fields - prioritize 'text' field which contains formatted case info
         content_fields = [
-            'content', 'content_text', 'text', 'case_description', 
+            'text',  # Prioritize text field (from exact match, contains advocates)
+            'content', 'content_text', 'case_description', 
             'document_text', 'clean_text', 'summary'
         ]
         
@@ -196,24 +197,50 @@ class ContextPacker:
             if field in chunk and chunk[field]:
                 content = str(chunk[field]).strip()
                 if content:
+                    logger.debug(f"Extracted content from field '{field}', length: {len(content)}")
                     return content
         
         # Fallback: construct content from available fields
         content_parts = []
+        metadata = chunk.get('metadata', {})
+        
+        # Add case info
         if chunk.get('case_title'):
-            content_parts.append(f"Title: {chunk['case_title']}")
+            content_parts.append(f"Case Title: {chunk['case_title']}")
+        if chunk.get('case_number'):
+            content_parts.append(f"Case Number: {chunk['case_number']}")
+        
+        # Add advocates from metadata if available
+        if metadata.get('advocates_petitioner'):
+            content_parts.append(f"Petitioner's Advocates: {metadata['advocates_petitioner']}")
+        if metadata.get('advocates_respondent'):
+            content_parts.append(f"Respondent's Advocates: {metadata['advocates_respondent']}")
+        
         if chunk.get('case_description'):
             content_parts.append(f"Description: {chunk['case_description']}")
         if chunk.get('short_order'):
             content_parts.append(f"Order: {chunk['short_order']}")
         
-        return '\n'.join(content_parts) if content_parts else ""
+        result = '\n'.join(content_parts) if content_parts else ""
+        if result:
+            logger.debug(f"Constructed content from fields, length: {len(result)}")
+        return result
     
     def _classify_source_type(self, chunk: Dict[str, Any], content: str) -> str:
         """Classify the source type of the chunk"""
         content_lower = content.lower()
         
-        # Check metadata first
+        # PRIORITY 1: Check for case_id FIRST - if it's a case, it's case_law regardless of content
+        # Also check metadata for case_id and match_type
+        metadata = chunk.get('metadata', {})
+        if chunk.get('case_id') or metadata.get('case_id'):
+            return 'case_law'
+        
+        # If it's an exact case match, it's definitely case_law
+        if metadata.get('match_type') == 'exact_case_number':
+            return 'case_law'
+        
+        # Check metadata
         if chunk.get('content_type'):
             content_type = chunk['content_type'].lower()
             if 'statute' in content_type or 'law' in content_type:
@@ -233,15 +260,23 @@ class ContextPacker:
             elif 'statute' in doc_type:
                 return 'statute'
         
-        # Check content patterns
-        if any(word in content_lower for word in ['section', 'article', 'act', 'code']):
-            if 'constitution' in content_lower or 'article' in content_lower:
-                return 'constitutional_article'
-            else:
-                return 'statute'
+        # Check for case-related patterns in content (before generic patterns)
+        if any(word in content_lower for word in ['case number', 'case title', 'petitioner', 'respondent', 'advocates']):
+            return 'case_law'
         
         if any(word in content_lower for word in ['court held', 'judgment', 'decided', 'ruled']):
             return 'judgment'
+        
+        # Check content patterns (but be careful - case descriptions might mention sections)
+        # Only classify as statute if it's clearly a statute, not a case description
+        if any(word in content_lower for word in ['section', 'article', 'act', 'code']):
+            # If it also has case indicators, it's likely a case, not a statute
+            if any(word in content_lower for word in ['case number', 'case title', 'court', 'petitioner', 'respondent']):
+                return 'case_law'
+            elif 'constitution' in content_lower or 'article' in content_lower:
+                return 'constitutional_article'
+            else:
+                return 'statute'
         
         if any(word in content_lower for word in ['order', 'directed', 'instructed']):
             return 'order'
@@ -253,10 +288,7 @@ class ContextPacker:
             return 'procedural_guidance'
         
         # Default classification
-        if chunk.get('case_id'):
-            return 'case_law'
-        else:
-            return 'general'
+        return 'general'
     
     def _calculate_priority(self, chunk: Dict[str, Any], content: str, source_type: str) -> int:
         """Calculate priority score for the chunk"""

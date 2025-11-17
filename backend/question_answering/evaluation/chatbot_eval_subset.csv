@@ -1,0 +1,863 @@
+question_id,question,expected_answer,predicted_answer,category,case_title,retrieval_precision,retrieval_recall,retrieval_f1,mrr,ndcg,exact_match,answer_f1,retrieval_time,answer_time,answer_type,confidence
+7150_bench,Which bench heard CIR VS M/s ZTBL?,"Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas","In CIR VS M/s ZTBL:
+Bench: Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas",bench,CIR VS M/s ZTBL,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,4.31143593788147,1.6204795837402344,structured_lookup,0.95
+7150_status,What is the case status for CIR VS M/s ZTBL?,Decided,"In CIR VS M/s ZTBL:
+Case status: Decided",status,CIR VS M/s ZTBL,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.1376736164093018,1.448976755142212,structured_lookup,0.95
+7151_bench,Which bench heard Abdul Khaliq VS SME Bank?,"Honourable Mr. Justice Aamer Farooq, Mr. Justice Ghulam Azam Qambrani","In Abdul Khaliq VS SME Bank:
+Bench: Honourable Mr. Justice Aamer Farooq, Mr. Justice Ghulam Azam Qambrani",bench,Abdul Khaliq VS SME Bank,1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,2.1859567165374756,2.0078909397125244,structured_lookup,0.95
+7151_status,What is the case status for Abdul Khaliq VS SME Bank?,Decided,"In Abdul Khaliq VS SME Bank:
+Case status: Decided",status,Abdul Khaliq VS SME Bank,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.7509348392486572,2.2436587810516357,structured_lookup,0.95
+7152_bench,Which bench heard Sprint Services Rawalpindi Ltd VS Summit Bank Ltd?,Honourable Ms. Justice Saman Rafat Imtiaz,"In Sprint Services Rawalpindi Ltd VS Summit Bank Ltd:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,Sprint Services Rawalpindi Ltd VS Summit Bank Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,1.7131922245025635,1.6573808193206787,structured_lookup,0.95
+7152_status,What is the case status for Sprint Services Rawalpindi Ltd VS Summit Bank Ltd?,Pending,"In Sprint Services Rawalpindi Ltd VS Summit Bank Ltd:
+Case status: Pending",status,Sprint Services Rawalpindi Ltd VS Summit Bank Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.239971160888672,1.9265127182006836,structured_lookup,0.95
+7156_bench,Which bench heard Pakistan Chmists and Druggists Association (Adv. Naeem Ahmed Sheikh) VS Directorate General Trade Organisation?,The Honourable Chief Justice,"In Pakistan Chmists and Druggists Association (Adv. Naeem Ahmed Sheikh) VS Directorate General Trade Organisation:
+Bench: The Honourable Chief Justice",bench,Pakistan Chmists and Druggists Association (Adv. Naeem Ahmed Sheikh) VS Directorate General Trade Organisation,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,3.662971019744873,3.0595738887786865,structured_lookup,0.95
+7156_status,What is the case status for Pakistan Chmists and Druggists Association (Adv. Naeem Ahmed Sheikh) VS Directorate General Trade Organisation?,Decided,"In Pakistan Chmists and Druggists Association (Adv. Naeem Ahmed Sheikh) VS Directorate General Trade Organisation:
+Case status: Decided",status,Pakistan Chmists and Druggists Association (Adv. Naeem Ahmed Sheikh) VS Directorate General Trade Organisation,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.8651633262634277,1.6646177768707275,structured_lookup,0.95
+7160_bench,Which bench heard M/s Mubarak Textile Mills Ltd VS Corporate Supervision Department?,Honourable Mr. Justice Babar Sattar,"In M/s Mubarak Textile Mills Ltd VS Corporate Supervision Department:
+Bench: Honourable Mr. Justice Babar Sattar",bench,M/s Mubarak Textile Mills Ltd VS Corporate Supervision Department,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.4837398529052734,1.9376044273376465,structured_lookup,0.95
+7160_status,What is the case status for M/s Mubarak Textile Mills Ltd VS Corporate Supervision Department?,Decided,"In M/s Mubarak Textile Mills Ltd VS Corporate Supervision Department:
+Case status: Decided",status,M/s Mubarak Textile Mills Ltd VS Corporate Supervision Department,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.8007051944732666,1.802523136138916,structured_lookup,0.95
+7161_bench,Which bench heard Muhammad Adeel Asghar VS Muhammad Khalid & others?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Muhammad Adeel Asghar VS Muhammad Khalid & others:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Muhammad Adeel Asghar VS Muhammad Khalid & others,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.6264333724975586,2.3366780281066895,structured_lookup,0.95
+7161_status,What is the case status for Muhammad Adeel Asghar VS Muhammad Khalid & others?,Decided,"In Muhammad Adeel Asghar VS Muhammad Khalid & others:
+Case status: Decided",status,Muhammad Adeel Asghar VS Muhammad Khalid & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.836198091506958,1.7708306312561035,structured_lookup,0.95
+7162_bench,Which bench heard The Federal Board of Revenue VS Pakistan Oilifield Limited?,"Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Sardar Ejaz Ishaq Khan","In The Federal Board of Revenue VS Pakistan Oilifield Limited:
+Bench: Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,The Federal Board of Revenue VS Pakistan Oilifield Limited,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,1.984384298324585,1.8595192432403564,structured_lookup,0.95
+7162_status,What is the case status for The Federal Board of Revenue VS Pakistan Oilifield Limited?,Decided,"In The Federal Board of Revenue VS Pakistan Oilifield Limited:
+Case status: Decided",status,The Federal Board of Revenue VS Pakistan Oilifield Limited,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.9051780700683594,1.8920161724090576,structured_lookup,0.95
+7163_bench,Which bench heard Hassan Jan VS Allah Ditta & others?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Hassan Jan VS Allah Ditta & others:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Hassan Jan VS Allah Ditta & others,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.230961799621582,2.998481035232544,structured_lookup,0.95
+7163_status,What is the case status for Hassan Jan VS Allah Ditta & others?,Decided,"In Hassan Jan VS Allah Ditta & others:
+Case status: Decided",status,Hassan Jan VS Allah Ditta & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.349527359008789,2.53306245803833,structured_lookup,0.95
+7164_bench,Which bench heard Raja Imran Ashraf VS Asad Ali Khan Jonejo (Adv. Salah ud Din Ahmed)?,Honourable Mr. Justice Aamer Farooq,"In Raja Imran Ashraf VS Asad Ali Khan Jonejo (Adv. Salah ud Din Ahmed):
+Bench: Honourable Mr. Justice Aamer Farooq",bench,Raja Imran Ashraf VS Asad Ali Khan Jonejo (Adv. Salah ud Din Ahmed),1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.7215139865875244,2.23764967918396,structured_lookup,0.95
+7164_status,What is the case status for Raja Imran Ashraf VS Asad Ali Khan Jonejo (Adv. Salah ud Din Ahmed)?,Decided,"In Raja Imran Ashraf VS Asad Ali Khan Jonejo (Adv. Salah ud Din Ahmed):
+Case status: Decided",status,Raja Imran Ashraf VS Asad Ali Khan Jonejo (Adv. Salah ud Din Ahmed),1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.7917721271514893,2.8219919204711914,structured_lookup,0.95
+7169_bench,Which bench heard Falcon Group of Companies VS M/s Faysal Bank Ltd?,"Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Mohsin Akhtar Kayani","In Falcon Group of Companies VS M/s Faysal Bank Ltd:
+Bench: Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Falcon Group of Companies VS M/s Faysal Bank Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,1.8022689819335938,1.8138148784637451,structured_lookup,0.95
+7169_status,What is the case status for Falcon Group of Companies VS M/s Faysal Bank Ltd?,Decided,"In Falcon Group of Companies VS M/s Faysal Bank Ltd:
+Case status: Decided",status,Falcon Group of Companies VS M/s Faysal Bank Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.8712592124938965,1.8929057121276855,structured_lookup,0.95
+7173_bench,Which bench heard Injum Aqeel Khan VS Latif Muhammad Ch.?,"Honourable Mr. Justice Mohsin Akhtar Kayani, Mr. Justice Fiaz Ahmad Anjum Jandran","In Injum Aqeel Khan VS Latif Muhammad Ch.:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani, Mr. Justice Fiaz Ahmad Anjum Jandran",bench,Injum Aqeel Khan VS Latif Muhammad Ch.,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,2.804868698120117,2.6892385482788086,structured_lookup,0.95
+7173_status,What is the case status for Injum Aqeel Khan VS Latif Muhammad Ch.?,Decided,"In Injum Aqeel Khan VS Latif Muhammad Ch.:
+Case status: Decided",status,Injum Aqeel Khan VS Latif Muhammad Ch.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.7897884845733643,2.8072457313537598,structured_lookup,0.95
+7175_bench,Which bench heard Honda Centre Pvt Ltd VS Appellate Tribunal I.R?,"The Honourable Chief Justice, Honourable Mr. Justice Babar Sattar","In Honda Centre Pvt Ltd VS Appellate Tribunal I.R:
+Bench: The Honourable Chief Justice, Honourable Mr. Justice Babar Sattar",bench,Honda Centre Pvt Ltd VS Appellate Tribunal I.R,1.0,1.0,1.0,1.0,1.0,0.0,0.9473684210526316,2.5390093326568604,2.143902540206909,structured_lookup,0.95
+7175_status,What is the case status for Honda Centre Pvt Ltd VS Appellate Tribunal I.R?,Decided,"In Honda Centre Pvt Ltd VS Appellate Tribunal I.R:
+Case status: Decided",status,Honda Centre Pvt Ltd VS Appellate Tribunal I.R,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.158522605895996,2.799060344696045,structured_lookup,0.95
+7180_bench,Which bench heard Moazam Habib VS Shahid Kaqan Abbasi?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Moazam Habib VS Shahid Kaqan Abbasi:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Moazam Habib VS Shahid Kaqan Abbasi,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.483133554458618,3.2256805896759033,structured_lookup,0.95
+7180_status,What is the case status for Moazam Habib VS Shahid Kaqan Abbasi?,Decided,"In Moazam Habib VS Shahid Kaqan Abbasi:
+Case status: Decided",status,Moazam Habib VS Shahid Kaqan Abbasi,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.032918930053711,2.4043126106262207,structured_lookup,0.95
+7184_bench,Which bench heard Moeez Ahmed Khan VS Zahida Javed Aslam?,Mr. Justice Fiaz Ahmad Anjum Jandran,"In Moeez Ahmed Khan VS Zahida Javed Aslam:
+Bench: Mr. Justice Fiaz Ahmad Anjum Jandran",bench,Moeez Ahmed Khan VS Zahida Javed Aslam,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.1699044704437256,2.8055992126464844,structured_lookup,0.95
+7184_status,What is the case status for Moeez Ahmed Khan VS Zahida Javed Aslam?,Decided,"In Moeez Ahmed Khan VS Zahida Javed Aslam:
+Case status: Decided",status,Moeez Ahmed Khan VS Zahida Javed Aslam,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.7845840454101562,2.7917778491973877,structured_lookup,0.95
+7200_bench,Which bench heard Muhammad Ismail VS Mian Ahmed Khan?,The Honourable Chief Justice,"In Muhammad Ismail VS Mian Ahmed Khan:
+Bench: The Honourable Chief Justice",bench,Muhammad Ismail VS Mian Ahmed Khan,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,3.2184414863586426,3.24131178855896,structured_lookup,0.95
+7200_status,What is the case status for Muhammad Ismail VS Mian Ahmed Khan?,Decided,"In Muhammad Ismail VS Mian Ahmed Khan:
+Case status: Decided",status,Muhammad Ismail VS Mian Ahmed Khan,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.9868395328521729,1.9451894760131836,structured_lookup,0.95
+7205_bench,Which bench heard M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue?,"Honourable Mr. Justice Mohsin Akhtar Kayani, Mr. Justice Fiaz Ahmad Anjum Jandran","In M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani, Mr. Justice Fiaz Ahmad Anjum Jandran",bench,M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,3.4182322025299072,3.4697303771972656,structured_lookup,0.95
+7205_status,What is the case status for M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue?,Decided,"In M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue:
+Case status: Decided",status,M/s Telenor Pakistan Pvt. Ltd. VS Appellate Tribunal Inland Revenue,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.8559889793395996,2.879209518432617,structured_lookup,0.95
+7207_bench,Which bench heard Raja Nabeel Razzaq VS The Collector Custom?,"Mr. Justice Athar Minallah, Honourable Mr. Justice Miangul Hassan Aurangzeb","In Raja Nabeel Razzaq VS The Collector Custom:
+Bench: Mr. Justice Athar Minallah, Honourable Mr. Justice Miangul Hassan Aurangzeb",bench,Raja Nabeel Razzaq VS The Collector Custom,1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,2.4547812938690186,2.53041934967041,structured_lookup,0.95
+7207_status,What is the case status for Raja Nabeel Razzaq VS The Collector Custom?,Decided,"In Raja Nabeel Razzaq VS The Collector Custom:
+Case status: Decided",status,Raja Nabeel Razzaq VS The Collector Custom,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.1505181789398193,2.097899913787842,structured_lookup,0.95
+7213_bench,Which bench heard Umar Hayat VS The State?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Umar Hayat VS The State:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Umar Hayat VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.0235531330108643,2.6112546920776367,structured_lookup,0.95
+7213_status,What is the case status for Umar Hayat VS The State?,Decided,"In Umar Hayat VS The State:
+Case status: Decided",status,Umar Hayat VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.673802614212036,2.688985586166382,structured_lookup,0.95
+7214_bench,Which bench heard Muhammad Shabbir VS The Registrar?,"Honourable Mr. Justice Mohsin Akhtar Kayani, Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Tariq Mehmood Jahangiri","In Muhammad Shabbir VS The Registrar:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani, Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Muhammad Shabbir VS The Registrar,1.0,1.0,1.0,1.0,1.0,0.0,0.972972972972973,2.343390941619873,2.6707515716552734,structured_lookup,0.95
+7214_status,What is the case status for Muhammad Shabbir VS The Registrar?,Decided,"In Muhammad Shabbir VS The Registrar:
+Case status: Decided",status,Muhammad Shabbir VS The Registrar,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.4881749153137207,2.3552846908569336,structured_lookup,0.95
+7217_bench,Which bench heard Muhammad Ahmed Nadeem Securities Ltd Etc VS Imtiaz Haider?,Mr. Justice Athar Minallah,"In Muhammad Ahmed Nadeem Securities Ltd Etc VS Imtiaz Haider:
+Bench: Mr. Justice Athar Minallah",bench,Muhammad Ahmed Nadeem Securities Ltd Etc VS Imtiaz Haider,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,3.040879487991333,2.671679973602295,structured_lookup,0.95
+7217_status,What is the case status for Muhammad Ahmed Nadeem Securities Ltd Etc VS Imtiaz Haider?,Decided,"In Muhammad Ahmed Nadeem Securities Ltd Etc VS Imtiaz Haider:
+Case status: Decided",status,Muhammad Ahmed Nadeem Securities Ltd Etc VS Imtiaz Haider,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.9270360469818115,2.7263243198394775,structured_lookup,0.95
+7219_bench,"Which bench heard Rehan Ahmed VS Capital Builders,?","The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz","In Rehan Ahmed VS Capital Builders,:
+Bench: The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz",bench,"Rehan Ahmed VS Capital Builders,",1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,2.4695045948028564,2.053588390350342,structured_lookup,0.95
+7219_status,"What is the case status for Rehan Ahmed VS Capital Builders,?",Decided,"In Rehan Ahmed VS Capital Builders,:
+Case status: Decided",status,"Rehan Ahmed VS Capital Builders,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.2101573944091797,3.1780686378479004,structured_lookup,0.95
+7234_bench,Which bench heard Saharam Ali VS Zamurd Khan & others?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Saharam Ali VS Zamurd Khan & others:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Saharam Ali VS Zamurd Khan & others,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.372537851333618,3.338050365447998,structured_lookup,0.95
+7234_status,What is the case status for Saharam Ali VS Zamurd Khan & others?,Decided,"In Saharam Ali VS Zamurd Khan & others:
+Case status: Decided",status,Saharam Ali VS Zamurd Khan & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.9676568508148193,2.8274154663085938,structured_lookup,0.95
+7236_bench,"Which bench heard Mst. Farrah Razzaq VS Judicial Magistrate 1st Class VS West,?",Mr. Justice Shaukat Aziz Siddiqui,"In Mst. Farrah Razzaq VS Judicial Magistrate 1st Class VS West,:
+Bench: Mr. Justice Shaukat Aziz Siddiqui",bench,"Mst. Farrah Razzaq VS Judicial Magistrate 1st Class VS West,",1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.787151575088501,2.474478006362915,structured_lookup,0.95
+7236_status,"What is the case status for Mst. Farrah Razzaq VS Judicial Magistrate 1st Class VS West,?",Decided,"In Mst. Farrah Razzaq VS Judicial Magistrate 1st Class VS West,:
+Case status: Decided",status,"Mst. Farrah Razzaq VS Judicial Magistrate 1st Class VS West,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,5.428808212280273,3.087010383605957,structured_lookup,0.95
+6445_bench,Which bench heard Hafiz Muhammad Arif Ali VS Muhammad Zubair Ejaz?,Honourable Mr. Justice Muhammad Azam Khan,"In Hafiz Muhammad Arif Ali VS Muhammad Zubair Ejaz:
+Bench: Honourable Mr. Justice Muhammad Azam Khan",bench,Hafiz Muhammad Arif Ali VS Muhammad Zubair Ejaz,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.9058773517608643,3.105576276779175,structured_lookup,0.95
+6445_status,What is the case status for Hafiz Muhammad Arif Ali VS Muhammad Zubair Ejaz?,Decided,"In Hafiz Muhammad Arif Ali VS Muhammad Zubair Ejaz:
+Case status: Decided",status,Hafiz Muhammad Arif Ali VS Muhammad Zubair Ejaz,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.8548595905303955,4.862959861755371,structured_lookup,0.95
+7240_bench,Which bench heard Nayyar Jaddon VS Ikram Rasheed?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Nayyar Jaddon VS Ikram Rasheed:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Nayyar Jaddon VS Ikram Rasheed,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.617100715637207,3.158531665802002,structured_lookup,0.95
+7240_status,What is the case status for Nayyar Jaddon VS Ikram Rasheed?,Decided,"In Nayyar Jaddon VS Ikram Rasheed:
+Case status: Decided",status,Nayyar Jaddon VS Ikram Rasheed,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.4000439643859863,3.0522682666778564,structured_lookup,0.95
+7242_bench,"Which bench heard Alamdar, Tahawar and Nasira Pvt Ltd VS CDA?","The Honourable Chief Justice, Honourable Mr. Justice Miangul Hassan Aurangzeb","In Alamdar, Tahawar and Nasira Pvt Ltd VS CDA:
+Bench: The Honourable Chief Justice, Honourable Mr. Justice Miangul Hassan Aurangzeb",bench,"Alamdar, Tahawar and Nasira Pvt Ltd VS CDA",1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,2.993596076965332,2.843398332595825,structured_lookup,0.95
+7242_status,"What is the case status for Alamdar, Tahawar and Nasira Pvt Ltd VS CDA?",Decided,"In Alamdar, Tahawar and Nasira Pvt Ltd VS CDA:
+Case status: Decided",status,"Alamdar, Tahawar and Nasira Pvt Ltd VS CDA",1.0,1.0,1.0,1.0,1.0,0.0,0.5,5.540803670883179,3.7212953567504883,structured_lookup,0.95
+7243_bench,Which bench heard Pakistan Agricultur Research Council VS Karam Khatoon?,"Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Tariq Mehmood Jahangiri","In Pakistan Agricultur Research Council VS Karam Khatoon:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Pakistan Agricultur Research Council VS Karam Khatoon,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,2.9882748126983643,2.574385643005371,structured_lookup,0.95
+7243_status,What is the case status for Pakistan Agricultur Research Council VS Karam Khatoon?,Decided,"In Pakistan Agricultur Research Council VS Karam Khatoon:
+Case status: Decided",status,Pakistan Agricultur Research Council VS Karam Khatoon,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.6316404342651367,2.6130521297454834,structured_lookup,0.95
+7245_bench,Which bench heard Salah VS Ud VS Din etc VS Mrs. Shahida Bano?,Honourable Mr. Justice Aamer Farooq,"In Salah VS Ud VS Din etc VS Mrs. Shahida Bano:
+Bench: Honourable Mr. Justice Aamer Farooq",bench,Salah VS Ud VS Din etc VS Mrs. Shahida Bano,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.6492559909820557,2.5003325939178467,structured_lookup,0.95
+7245_status,What is the case status for Salah VS Ud VS Din etc VS Mrs. Shahida Bano?,Decided,"In Salah VS Ud VS Din etc VS Mrs. Shahida Bano:
+Case status: Decided",status,Salah VS Ud VS Din etc VS Mrs. Shahida Bano,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.1104979515075684,3.096874713897705,structured_lookup,0.95
+6449_advocates_petitioner,Who are the petitioner's advocates in Uneza Jawed VS FOP through Secretary Revenue Division?,"Muhammad Asad Ashfaq Tola, Muhamamad Amayed Ashfaq Tola","In W.P. 1/2025 Tax & Banking Tax (SB):
+Petitioner's advocates: Muhammad Asad Ashfaq Tola, Muhamamad Amayed Ashfaq Tola",advocates_petitioner,Uneza Jawed VS FOP through Secretary Revenue Division,0.25,1.0,0.4,1.0,1.0,0.0,0.8421052631578948,4.640554428100586,3.252915620803833,structured_lookup,0.95
+6449_bench,Which bench heard Uneza Jawed VS FOP through Secretary Revenue Division?,Honourable Ms. Justice Saman Rafat Imtiaz,"In Uneza Jawed VS FOP through Secretary Revenue Division:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,Uneza Jawed VS FOP through Secretary Revenue Division,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.2801384925842285,3.516218900680542,structured_lookup,0.95
+6449_status,What is the case status for Uneza Jawed VS FOP through Secretary Revenue Division?,Decided,"In Uneza Jawed VS FOP through Secretary Revenue Division:
+Case status: Decided",status,Uneza Jawed VS FOP through Secretary Revenue Division,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.3981168270111084,2.9864208698272705,structured_lookup,0.95
+6449_short_order,What is the short order in Uneza Jawed VS FOP through Secretary Revenue Division?,Disposed Of,"In W.P. 1/2025 Tax & Banking Tax (SB):
+Short order: Disposed Of",short_order,Uneza Jawed VS FOP through Secretary Revenue Division,0.3333333333333333,1.0,0.5,1.0,1.0,0.0,0.6666666666666666,3.037778854370117,2.8037688732147217,structured_lookup,0.95
+7248_bench,Which bench heard CIR VS M/s Telenor Pakistan Pvt Ltd?,"Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Tariq Mehmood Jahangiri","In CIR VS M/s Telenor Pakistan Pvt Ltd:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,CIR VS M/s Telenor Pakistan Pvt Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,4.806273698806763,2.547384738922119,structured_lookup,0.95
+7248_status,What is the case status for CIR VS M/s Telenor Pakistan Pvt Ltd?,Decided,"In CIR VS M/s Telenor Pakistan Pvt Ltd:
+Case status: Decided",status,CIR VS M/s Telenor Pakistan Pvt Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.013044595718384,1.95335054397583,structured_lookup,0.95
+7262_bench,Which bench heard Federal Revenue Alliance Employees Union VS FBR?,"Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Ms. Justice Saman Rafat Imtiaz","In Federal Revenue Alliance Employees Union VS FBR:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Ms. Justice Saman Rafat Imtiaz",bench,Federal Revenue Alliance Employees Union VS FBR,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,3.022797107696533,2.392538070678711,structured_lookup,0.95
+7262_status,What is the case status for Federal Revenue Alliance Employees Union VS FBR?,Decided,"In Federal Revenue Alliance Employees Union VS FBR:
+Case status: Decided",status,Federal Revenue Alliance Employees Union VS FBR,1.0,1.0,1.0,1.0,1.0,0.0,0.5,4.641913414001465,3.5188710689544678,structured_lookup,0.95
+7267_bench,"Which bench heard Abdul Razza VS The State,?",Honourable Mr. Justice Miangul Hassan Aurangzeb,"In Abdul Razza VS The State,:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb",bench,"Abdul Razza VS The State,",1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.855799674987793,2.8882498741149902,structured_lookup,0.95
+7267_status,"What is the case status for Abdul Razza VS The State,?",Decided,"In Abdul Razza VS The State,:
+Case status: Decided",status,"Abdul Razza VS The State,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.0418472290039062,2.1688575744628906,structured_lookup,0.95
+7122_bench,Which bench heard M/s Armagan International VS Customs Appellate Tribunal?,"Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan","In M/s Armagan International VS Customs Appellate Tribunal:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,M/s Armagan International VS Customs Appellate Tribunal,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,3.3622825145721436,3.156982183456421,structured_lookup,0.95
+7122_status,What is the case status for M/s Armagan International VS Customs Appellate Tribunal?,Pending,"In M/s Armagan International VS Customs Appellate Tribunal:
+Case status: Pending",status,M/s Armagan International VS Customs Appellate Tribunal,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.287881374359131,5.116093397140503,structured_lookup,0.95
+7283_bench,Which bench heard Shahid Iqbal VS Saeed Ahmed etc. (Muhammad Yasir Advocate)?,Mr. Justice Noor-Ul-Haq N. Qureshi,"In Shahid Iqbal VS Saeed Ahmed etc. (Muhammad Yasir Advocate):
+Bench: Mr. Justice Noor-Ul-Haq N. Qureshi",bench,Shahid Iqbal VS Saeed Ahmed etc. (Muhammad Yasir Advocate),1.0,1.0,1.0,1.0,1.0,0.0,0.9333333333333333,3.8272600173950195,4.154032468795776,structured_lookup,0.95
+7283_status,What is the case status for Shahid Iqbal VS Saeed Ahmed etc. (Muhammad Yasir Advocate)?,Decided,"In Shahid Iqbal VS Saeed Ahmed etc. (Muhammad Yasir Advocate):
+Case status: Decided",status,Shahid Iqbal VS Saeed Ahmed etc. (Muhammad Yasir Advocate),1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.960726499557495,2.5716638565063477,structured_lookup,0.95
+7291_bench,"Which bench heard Dr. Atique Mufti VS FOP,?","Honourable Mr. Justice Miangul Hassan Aurangzeb, Justice Ms. Lubna Saleem Pervez","In Dr. Atique Mufti VS FOP,:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb, Justice Ms. Lubna Saleem Pervez",bench,"Dr. Atique Mufti VS FOP,",1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,3.5124711990356445,3.358280658721924,structured_lookup,0.95
+7291_status,"What is the case status for Dr. Atique Mufti VS FOP,?",Decided,"In Dr. Atique Mufti VS FOP,:
+Case status: Decided",status,"Dr. Atique Mufti VS FOP,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.479231834411621,2.827798366546631,structured_lookup,0.95
+7297_bench,"Which bench heard Muhammad Tariq VS Secretary Finance,?",Mr. Justice Shaukat Aziz Siddiqui,"In Muhammad Tariq VS Secretary Finance,:
+Bench: Mr. Justice Shaukat Aziz Siddiqui",bench,"Muhammad Tariq VS Secretary Finance,",1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,3.360853910446167,3.438444137573242,structured_lookup,0.95
+7297_status,"What is the case status for Muhammad Tariq VS Secretary Finance,?",Decided,"In Muhammad Tariq VS Secretary Finance,:
+Case status: Decided",status,"Muhammad Tariq VS Secretary Finance,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.4829797744750977,3.2286596298217773,structured_lookup,0.95
+7299_bench,"Which bench heard M/s J & N Communications Pvt Ltd VS PEMRA,?",Honourable Mr. Justice Aamer Farooq,"In M/s J & N Communications Pvt Ltd VS PEMRA,:
+Bench: Honourable Mr. Justice Aamer Farooq",bench,"M/s J & N Communications Pvt Ltd VS PEMRA,",1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.332441568374634,2.0392379760742188,structured_lookup,0.95
+7299_status,"What is the case status for M/s J & N Communications Pvt Ltd VS PEMRA,?",Decided,"In M/s J & N Communications Pvt Ltd VS PEMRA,:
+Case status: Decided",status,"M/s J & N Communications Pvt Ltd VS PEMRA,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.3379573822021484,2.135913372039795,structured_lookup,0.95
+7303_bench,Which bench heard Haji Ghulam Sarwar Gondal CNG Station VS OGRA?,Mr. Justice Shaukat Aziz Siddiqui,"In Haji Ghulam Sarwar Gondal CNG Station VS OGRA:
+Bench: Mr. Justice Shaukat Aziz Siddiqui",bench,Haji Ghulam Sarwar Gondal CNG Station VS OGRA,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.050668716430664,2.3419747352600098,structured_lookup,0.95
+7303_status,What is the case status for Haji Ghulam Sarwar Gondal CNG Station VS OGRA?,Decided,"In Haji Ghulam Sarwar Gondal CNG Station VS OGRA:
+Case status: Decided",status,Haji Ghulam Sarwar Gondal CNG Station VS OGRA,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.271200656890869,3.2274060249328613,structured_lookup,0.95
+6864_bench,Which bench heard XEN IESCO Sub Division Tarnol VS Burhan Uddin?,Honourable Ms. Justice Saman Rafat Imtiaz,"In XEN IESCO Sub Division Tarnol VS Burhan Uddin:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,XEN IESCO Sub Division Tarnol VS Burhan Uddin,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,3.2786037921905518,2.9249658584594727,structured_lookup,0.95
+6864_status,What is the case status for XEN IESCO Sub Division Tarnol VS Burhan Uddin?,Pending,"In XEN IESCO Sub Division Tarnol VS Burhan Uddin:
+Case status: Pending",status,XEN IESCO Sub Division Tarnol VS Burhan Uddin,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,10.378724098205566,3.593970775604248,structured_lookup,0.95
+7309_bench,Which bench heard M/s Saddat CNG VS Chairman OGRA and others?,Mr. Justice Shaukat Aziz Siddiqui,"In M/s Saddat CNG VS Chairman OGRA and others:
+Bench: Mr. Justice Shaukat Aziz Siddiqui",bench,M/s Saddat CNG VS Chairman OGRA and others,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,1.990812063217163,1.9680190086364746,structured_lookup,0.95
+7309_status,What is the case status for M/s Saddat CNG VS Chairman OGRA and others?,Decided,"In M/s Saddat CNG VS Chairman OGRA and others:
+Case status: Decided",status,M/s Saddat CNG VS Chairman OGRA and others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.1548001766204834,2.1897876262664795,structured_lookup,0.95
+7312_bench,Which bench heard Mudassir Ali etc VS Chief Commissioner etc (Qazi Muhammad Amin Advocate)?,"Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi","In Mudassir Ali etc VS Chief Commissioner etc (Qazi Muhammad Amin Advocate):
+Bench: Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi",bench,Mudassir Ali etc VS Chief Commissioner etc (Qazi Muhammad Amin Advocate),1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,3.457371234893799,3.3230979442596436,structured_lookup,0.95
+7312_status,What is the case status for Mudassir Ali etc VS Chief Commissioner etc (Qazi Muhammad Amin Advocate)?,Decided,"In Mudassir Ali etc VS Chief Commissioner etc (Qazi Muhammad Amin Advocate):
+Case status: Decided",status,Mudassir Ali etc VS Chief Commissioner etc (Qazi Muhammad Amin Advocate),1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.4965662956237793,3.1576690673828125,structured_lookup,0.95
+7314_bench,Which bench heard Masroor Sarwar Khan VS Faysal Bank Ltd. & another?,"Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi","In Masroor Sarwar Khan VS Faysal Bank Ltd. & another:
+Bench: Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi",bench,Masroor Sarwar Khan VS Faysal Bank Ltd. & another,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,2.2651634216308594,2.4169199466705322,structured_lookup,0.95
+7314_status,What is the case status for Masroor Sarwar Khan VS Faysal Bank Ltd. & another?,Decided,"In Masroor Sarwar Khan VS Faysal Bank Ltd. & another:
+Case status: Decided",status,Masroor Sarwar Khan VS Faysal Bank Ltd. & another,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.509955883026123,2.151381492614746,structured_lookup,0.95
+7144_bench,Which bench heard Zaver Petroleum Corporation (Pvt.) Ltd VS Saif Energy Ltd?,Honourable Mr. Justice Miangul Hassan Aurangzeb,"In Zaver Petroleum Corporation (Pvt.) Ltd VS Saif Energy Ltd:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb",bench,Zaver Petroleum Corporation (Pvt.) Ltd VS Saif Energy Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.0929718017578125,2.0368030071258545,structured_lookup,0.95
+7144_status,What is the case status for Zaver Petroleum Corporation (Pvt.) Ltd VS Saif Energy Ltd?,Decided,"In Zaver Petroleum Corporation (Pvt.) Ltd VS Saif Energy Ltd:
+Case status: Decided",status,Zaver Petroleum Corporation (Pvt.) Ltd VS Saif Energy Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,5.755282402038574,2.142078161239624,structured_lookup,0.95
+7318_bench,Which bench heard Inam Ullah Khan VS AKSA Solutions Development Services Pvt. Ltd and others?,Mr. Justice Athar Minallah,"In Inam Ullah Khan VS AKSA Solutions Development Services Pvt. Ltd and others:
+Bench: Mr. Justice Athar Minallah",bench,Inam Ullah Khan VS AKSA Solutions Development Services Pvt. Ltd and others,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.5488367080688477,2.1218314170837402,structured_lookup,0.95
+7318_status,What is the case status for Inam Ullah Khan VS AKSA Solutions Development Services Pvt. Ltd and others?,Decided,"In Inam Ullah Khan VS AKSA Solutions Development Services Pvt. Ltd and others:
+Case status: Decided",status,Inam Ullah Khan VS AKSA Solutions Development Services Pvt. Ltd and others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.0306396484375,2.2063467502593994,structured_lookup,0.95
+7328_bench,Which bench heard The Privatization Commission VS M/s Trust Investment Bank Ltd.?,Honourable Ms. Justice Saman Rafat Imtiaz,"In The Privatization Commission VS M/s Trust Investment Bank Ltd.:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,The Privatization Commission VS M/s Trust Investment Bank Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,8.263305902481079,3.4233310222625732,structured_lookup,0.95
+7328_status,What is the case status for The Privatization Commission VS M/s Trust Investment Bank Ltd.?,Pending,"In The Privatization Commission VS M/s Trust Investment Bank Ltd.:
+Case status: Pending",status,The Privatization Commission VS M/s Trust Investment Bank Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.0788633823394775,3.200242519378662,structured_lookup,0.95
+6479_bench,Which bench heard All Pakistan CNG Association (APCNGA) VS OGRA and others?,The Honorable Chief Justice,"In All Pakistan CNG Association (APCNGA) VS OGRA and others:
+Bench: The Honourable Chief Justice",bench,All Pakistan CNG Association (APCNGA) VS OGRA and others,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.6666666666666665,2.2894067764282227,2.1998131275177,structured_lookup,0.95
+6479_status,What is the case status for All Pakistan CNG Association (APCNGA) VS OGRA and others?,Pending,"In All Pakistan CNG Association (APCNGA) VS OGRA and others:
+Case status: Pending",status,All Pakistan CNG Association (APCNGA) VS OGRA and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.958096981048584,1.9402101039886475,structured_lookup,0.95
+7330_bench,Which bench heard Independent Newspaper Corporation Pvt. LTd. & another VS Mubashir Luqman?,The Honourable Chief Justice,"In Independent Newspaper Corporation Pvt. LTd. & another VS Mubashir Luqman:
+Bench: The Honourable Chief Justice",bench,Independent Newspaper Corporation Pvt. LTd. & another VS Mubashir Luqman,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.5318410396575928,9.360211849212646,structured_lookup,0.95
+7330_status,What is the case status for Independent Newspaper Corporation Pvt. LTd. & another VS Mubashir Luqman?,Decided,"In Independent Newspaper Corporation Pvt. LTd. & another VS Mubashir Luqman:
+Case status: Decided",status,Independent Newspaper Corporation Pvt. LTd. & another VS Mubashir Luqman,1.0,1.0,1.0,1.0,1.0,0.0,0.5,7.814443588256836,5.340995788574219,structured_lookup,0.95
+7332_bench,Which bench heard Commissioner Inland Revenue VS OGDCL?,"Honourable Mr. Justice Tariq Mehmood Jahangiri, Honourable Mr. Justice Babar Sattar","In Commissioner Inland Revenue VS OGDCL:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri, Honourable Mr. Justice Babar Sattar",bench,Commissioner Inland Revenue VS OGDCL,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,9.320744752883911,8.000082969665527,structured_lookup,0.95
+7332_status,What is the case status for Commissioner Inland Revenue VS OGDCL?,Decided,"In Commissioner Inland Revenue VS OGDCL:
+Case status: Decided",status,Commissioner Inland Revenue VS OGDCL,1.0,1.0,1.0,1.0,1.0,0.0,0.5,4.490732669830322,11.002139568328857,structured_lookup,0.95
+7335_bench,Which bench heard Tariq Mehmood Akhtar VS FOP & another?,"Mr. Justice Shaukat Aziz Siddiqui, Honourable Mr. Justice Mohsin Akhtar Kayani","In Tariq Mehmood Akhtar VS FOP & another:
+Bench: Mr. Justice Shaukat Aziz Siddiqui, Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Tariq Mehmood Akhtar VS FOP & another,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,6.669718027114868,5.021992206573486,structured_lookup,0.95
+7335_status,What is the case status for Tariq Mehmood Akhtar VS FOP & another?,Decided,"In Tariq Mehmood Akhtar VS FOP & another:
+Case status: Decided",status,Tariq Mehmood Akhtar VS FOP & another,1.0,1.0,1.0,1.0,1.0,0.0,0.5,4.763635635375977,4.622489929199219,structured_lookup,0.95
+7336_status,What is the case status for Said Rehman VS The State?,Decided,"In Said Rehman VS The State:
+Case status: Decided",status,Said Rehman VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.368312358856201,2.2538654804229736,structured_lookup,0.95
+7342_bench,Which bench heard Hajvairy Associates Pvt. Ltd. VS Summit Bank Ltd.?,The Honourable Chief Justice,"In Hajvairy Associates Pvt. Ltd. VS Summit Bank Ltd.:
+Bench: The Honourable Chief Justice",bench,Hajvairy Associates Pvt. Ltd. VS Summit Bank Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.950151205062866,2.9778735637664795,structured_lookup,0.95
+7342_status,What is the case status for Hajvairy Associates Pvt. Ltd. VS Summit Bank Ltd.?,Pending,"In Hajvairy Associates Pvt. Ltd. VS Summit Bank Ltd.:
+Case status: Pending",status,Hajvairy Associates Pvt. Ltd. VS Summit Bank Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.9016802310943604,2.9159512519836426,structured_lookup,0.95
+7343_bench,Which bench heard M/s Wateen Telecom Ltd. VS Commissioner Inland Revenue?,"Mr. Justice Athar Minallah, Honourable Mr. Justice Aamer Farooq","In M/s Wateen Telecom Ltd. VS Commissioner Inland Revenue:
+Bench: Mr. Justice Athar Minallah, Honourable Mr. Justice Aamer Farooq",bench,M/s Wateen Telecom Ltd. VS Commissioner Inland Revenue,1.0,1.0,1.0,1.0,1.0,0.0,0.9473684210526316,3.8316051959991455,3.940037488937378,structured_lookup,0.95
+7343_status,What is the case status for M/s Wateen Telecom Ltd. VS Commissioner Inland Revenue?,Decided,"In M/s Wateen Telecom Ltd. VS Commissioner Inland Revenue:
+Case status: Decided",status,M/s Wateen Telecom Ltd. VS Commissioner Inland Revenue,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.33535099029541,3.309171199798584,structured_lookup,0.95
+7345_bench,Which bench heard Muhammad Pervez Akhtar etc VS Shaigan Electric & Engineering Company Ltd.?,Mr. Justice Athar Minallah,"In Muhammad Pervez Akhtar etc VS Shaigan Electric & Engineering Company Ltd.:
+Bench: Mr. Justice Athar Minallah",bench,Muhammad Pervez Akhtar etc VS Shaigan Electric & Engineering Company Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.9858224391937256,2.9063639640808105,structured_lookup,0.95
+7345_status,What is the case status for Muhammad Pervez Akhtar etc VS Shaigan Electric & Engineering Company Ltd.?,Decided,"In Muhammad Pervez Akhtar etc VS Shaigan Electric & Engineering Company Ltd.:
+Case status: Decided",status,Muhammad Pervez Akhtar etc VS Shaigan Electric & Engineering Company Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.9887514114379883,2.9968976974487305,structured_lookup,0.95
+7360_bench,Which bench heard Ahmed Arslan VS SECP & others?,Mr. Justice Riaz Ahmad Khan,"In Ahmed Arslan VS SECP & others:
+Bench: Mr. Justice Riaz Ahmad Khan",bench,Ahmed Arslan VS SECP & others,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,3.4877593517303467,3.6783313751220703,structured_lookup,0.95
+7360_status,What is the case status for Ahmed Arslan VS SECP & others?,Decided,"In Ahmed Arslan VS SECP & others:
+Case status: Decided",status,Ahmed Arslan VS SECP & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.9262726306915283,2.825573444366455,structured_lookup,0.95
+7361_bench,Which bench heard Nazia Moeen VS Federal Government & others?,Mr. Justice Muhammad Anwar Khan Kasi,"In Nazia Moeen VS Federal Government & others:
+Bench: Mr. Justice Muhammad Anwar Khan Kasi",bench,Nazia Moeen VS Federal Government & others,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.0937719345092773,2.5528359413146973,structured_lookup,0.95
+7361_status,What is the case status for Nazia Moeen VS Federal Government & others?,Decided,"In Nazia Moeen VS Federal Government & others:
+Case status: Decided",status,Nazia Moeen VS Federal Government & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.656782865524292,3.033811092376709,structured_lookup,0.95
+7363_bench,Which bench heard Aziz Abbas Zaidi VS MCB bank Ltd.?,"Mr. Justice Athar Minallah, Honourable Mr. Justice Mohsin Akhtar Kayani","In Aziz Abbas Zaidi VS MCB bank Ltd.:
+Bench: Mr. Justice Athar Minallah, Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Aziz Abbas Zaidi VS MCB bank Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,2.9026989936828613,2.8195643424987793,structured_lookup,0.95
+7363_status,What is the case status for Aziz Abbas Zaidi VS MCB bank Ltd.?,Decided,"In Aziz Abbas Zaidi VS MCB bank Ltd.:
+Case status: Decided",status,Aziz Abbas Zaidi VS MCB bank Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.0681796073913574,2.2544102668762207,structured_lookup,0.95
+7381_bench,Which bench heard M/S Ahmed Enterprised VS Commissoner of Income Tax?,"The Honourable Chief Justice, Mr. Justice Riaz Ahmad Khan","In M/S Ahmed Enterprised VS Commissoner of Income Tax:
+Bench: The Honourable Chief Justice, Mr. Justice Riaz Ahmad Khan",bench,M/S Ahmed Enterprised VS Commissoner of Income Tax,1.0,1.0,1.0,1.0,1.0,0.0,0.9473684210526316,3.5123324394226074,3.57466721534729,structured_lookup,0.95
+7381_status,What is the case status for M/S Ahmed Enterprised VS Commissoner of Income Tax?,Decided,"In M/S Ahmed Enterprised VS Commissoner of Income Tax:
+Case status: Decided",status,M/S Ahmed Enterprised VS Commissoner of Income Tax,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.989894151687622,2.7995452880859375,structured_lookup,0.95
+7410_bench,Which bench heard M/s Capitol Travels Pvt. VS M/s Air France Ltd?,Mr. Justice Shaukat Aziz Siddiqui,"In M/s Capitol Travels Pvt. VS M/s Air France Ltd:
+Bench: Mr. Justice Shaukat Aziz Siddiqui",bench,M/s Capitol Travels Pvt. VS M/s Air France Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,1.9501726627349854,1.921405553817749,structured_lookup,0.95
+7410_status,What is the case status for M/s Capitol Travels Pvt. VS M/s Air France Ltd?,Decided,"In M/s Capitol Travels Pvt. VS M/s Air France Ltd:
+Case status: Decided",status,M/s Capitol Travels Pvt. VS M/s Air France Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.9610507488250732,1.9418010711669922,structured_lookup,0.95
+7411_bench,"Which bench heard Depilex Smileagain Foundation VS Appellate Bench, SECP & others?",Mr. Justice Athar Minallah,"In Depilex Smileagain Foundation VS Appellate Bench, SECP & others:
+Bench: Mr. Justice Athar Minallah",bench,"Depilex Smileagain Foundation VS Appellate Bench, SECP & others",1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.6565909385681152,2.6599619388580322,structured_lookup,0.95
+7411_status,"What is the case status for Depilex Smileagain Foundation VS Appellate Bench, SECP & others?",Decided,"In Depilex Smileagain Foundation VS Appellate Bench, SECP & others:
+Bench: Mr. Justice Athar Minallah
+Case status: Decided",status,"Depilex Smileagain Foundation VS Appellate Bench, SECP & others",1.0,1.0,1.0,1.0,1.0,0.0,0.2222222222222222,2.1380815505981445,2.1642284393310547,structured_lookup,0.95
+7413_bench,Which bench heard Javaid Iqbal etc. VS F.G.E.H.F.?,Mr. Justice Riaz Ahmad Khan,"In Javaid Iqbal etc. VS F.G.E.H.F.:
+Bench: Mr. Justice Riaz Ahmad Khan",bench,Javaid Iqbal etc. VS F.G.E.H.F.,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.9452595710754395,2.6562108993530273,structured_lookup,0.95
+7413_status,What is the case status for Javaid Iqbal etc. VS F.G.E.H.F.?,Decided,"In Javaid Iqbal etc. VS F.G.E.H.F.:
+Case status: Decided",status,Javaid Iqbal etc. VS F.G.E.H.F.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.0578503608703613,3.0937628746032715,structured_lookup,0.95
+7424_bench,Which bench heard Rehan Ahmed VS Capital Builders Pvt Ltd?,Mr. Justice Athar Minallah,"In Rehan Ahmed VS Capital Builders Pvt Ltd:
+Bench: Mr. Justice Athar Minallah",bench,Rehan Ahmed VS Capital Builders Pvt Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.0685694217681885,2.10244083404541,structured_lookup,0.95
+7424_status,What is the case status for Rehan Ahmed VS Capital Builders Pvt Ltd?,Decided,"In Rehan Ahmed VS Capital Builders Pvt Ltd:
+Case status: Decided",status,Rehan Ahmed VS Capital Builders Pvt Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.086268424987793,3.0702717304229736,structured_lookup,0.95
+7430_bench,Which bench heard Collector of customs VS M/s Kohinoor Traders?,"Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi","In Collector of customs VS M/s Kohinoor Traders:
+Bench: Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi",bench,Collector of customs VS M/s Kohinoor Traders,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,2.746211528778076,2.8244457244873047,structured_lookup,0.95
+7430_status,What is the case status for Collector of customs VS M/s Kohinoor Traders?,Decided,"In Collector of customs VS M/s Kohinoor Traders:
+Case status: Decided",status,Collector of customs VS M/s Kohinoor Traders,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.3722939491271973,2.318835973739624,structured_lookup,0.95
+7432_bench,"Which bench heard M/S S. A. Leather & Leather International VS Appellate Tribunal sales Tax, Excise & Custom?","Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Mohsin Akhtar Kayani","In M/S S. A. Leather & Leather International VS Appellate Tribunal sales Tax, Excise & Custom:
+Bench: Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Mohsin Akhtar Kayani",bench,"M/S S. A. Leather & Leather International VS Appellate Tribunal sales Tax, Excise & Custom",1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,4.241534471511841,3.724858283996582,structured_lookup,0.95
+7432_status,"What is the case status for M/S S. A. Leather & Leather International VS Appellate Tribunal sales Tax, Excise & Custom?",Decided,"In M/S S. A. Leather & Leather International VS Appellate Tribunal sales Tax, Excise & Custom:
+Case status: Decided",status,"M/S S. A. Leather & Leather International VS Appellate Tribunal sales Tax, Excise & Custom",1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.2370641231536865,6.0998218059539795,structured_lookup,0.95
+7347_bench,Which bench heard Hina Bibi VS The State?,The Honourable Chief Justice,"In Hina Bibi VS The State:
+Bench: The Honourable Chief Justice",bench,Hina Bibi VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.908271312713623,2.9274959564208984,structured_lookup,0.95
+7347_status,What is the case status for Hina Bibi VS The State?,Decided,"In Hina Bibi VS The State:
+Case status: Decided",status,Hina Bibi VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,4.553207159042358,2.0912787914276123,structured_lookup,0.95
+6109_bench,Which bench heard JS Bank Ltd VS M/s Kingcrete Builders & others?,Honourable Ms. Justice Saman Rafat Imtiaz,"In JS Bank Ltd VS M/s Kingcrete Builders & others:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,JS Bank Ltd VS M/s Kingcrete Builders & others,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,3.2691855430603027,3.114929437637329,structured_lookup,0.95
+6109_status,What is the case status for JS Bank Ltd VS M/s Kingcrete Builders & others?,Pending,"In JS Bank Ltd VS M/s Kingcrete Builders & others:
+Case status: Pending",status,JS Bank Ltd VS M/s Kingcrete Builders & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.0121397972106934,2.025118827819824,structured_lookup,0.95
+7194_bench,Which bench heard OPI Gas (Pvt) Limited VS Appellate Tribunal Inland Revenue?,"Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Arbab Muhammad Tahir","In OPI Gas (Pvt) Limited VS Appellate Tribunal Inland Revenue:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb, Honourable Mr. Justice Arbab Muhammad Tahir",bench,OPI Gas (Pvt) Limited VS Appellate Tribunal Inland Revenue,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,6.956679582595825,5.55022668838501,structured_lookup,0.95
+7194_status,What is the case status for OPI Gas (Pvt) Limited VS Appellate Tribunal Inland Revenue?,Decided,"In OPI Gas (Pvt) Limited VS Appellate Tribunal Inland Revenue:
+Case status: Decided",status,OPI Gas (Pvt) Limited VS Appellate Tribunal Inland Revenue,1.0,1.0,1.0,1.0,1.0,0.0,0.5,8.605388641357422,5.198007822036743,structured_lookup,0.95
+7198_bench,Which bench heard Silk Bank Limited VS M/s Al VS Hadeed Industries?,Honourable Mr. Justice Aamer Farooq,"In Silk Bank Limited VS M/s Al VS Hadeed Industries:
+Bench: Honourable Mr. Justice Aamer Farooq",bench,Silk Bank Limited VS M/s Al VS Hadeed Industries,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,3.739814281463623,3.37445068359375,structured_lookup,0.95
+7198_status,What is the case status for Silk Bank Limited VS M/s Al VS Hadeed Industries?,Decided,"In Silk Bank Limited VS M/s Al VS Hadeed Industries:
+Case status: Decided",status,Silk Bank Limited VS M/s Al VS Hadeed Industries,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.4402782917022705,3.0073602199554443,structured_lookup,0.95
+6119_advocates_petitioner,Who are the petitioner's advocates in . VS .?,State Counsel,"In W.P. 3/2025 Tax & Banking Tax (SB):
+Petitioner's advocates: Muhammad Asad Ashfaq Tola, Muhamamad Amayed Ashfaq Tola",advocates_petitioner,. VS .,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.733139753341675,4.285901784896851,structured_lookup,0.95
+6119_bench,Which bench heard . VS .?,"Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas","In CR 1/2025 Against Judgement & Decree (SB):
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,. VS .,0.0,0.0,0.0,0.0,0.0,0.0,0.3157894736842105,6.324446201324463,9.511178255081177,structured_lookup,0.95
+6119_status,What is the case status for . VS .?,Decided,"In G.R Securities (SMC. Pvt.) Ltd. VS Islamabad Stock Exchange:
+Case status: Decided",status,. VS .,0.0,0.0,0.0,0.0,0.0,0.0,0.5,7.656457185745239,6.1821722984313965,structured_lookup,0.95
+7039_status,"What is the case status for Commissioner Inland Revenue, LTU, Islamabad VS M/s Kitchen Cuisine (Private) Limited?",Pending,"In Commissioner Inland Revenue, LTU, Islamabad VS M/s Kitchen Cuisine (Private) Limited:
+Case status: Pending",status,"Commissioner Inland Revenue, LTU, Islamabad VS M/s Kitchen Cuisine (Private) Limited",0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,5.378499746322632,3.4371981620788574,structured_lookup,0.95
+7215_bench,Which bench heard M/s Summit Bank Limited VS M/s Hajvery Associate Private Limited?,Honourable Ms. Justice Saman Rafat Imtiaz,"In M/s Summit Bank Limited VS M/s Hajvery Associate Private Limited:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,M/s Summit Bank Limited VS M/s Hajvery Associate Private Limited,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,5.7191925048828125,7.367828845977783,structured_lookup,0.95
+7215_status,What is the case status for M/s Summit Bank Limited VS M/s Hajvery Associate Private Limited?,Pending,"In M/s Summit Bank Limited VS M/s Hajvery Associate Private Limited:
+Case status: Pending",status,M/s Summit Bank Limited VS M/s Hajvery Associate Private Limited,1.0,1.0,1.0,1.0,1.0,0.0,0.5,7.553083658218384,6.059799432754517,structured_lookup,0.95
+6127_bench,Which bench heard Frontier Holding VS Petroleum Exploration?,Honourable Mr. Justice Muhammad Asif,"In Frontier Holding VS Petroleum Exploration:
+Bench: Honourable Mr. Justice Muhammad Asif",bench,Frontier Holding VS Petroleum Exploration,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.9090909090909091,5.884631395339966,6.49660062789917,structured_lookup,0.95
+6127_status,What is the case status for Frontier Holding VS Petroleum Exploration?,Pending,"In Frontier Holding VS Petroleum Exploration:
+Case status: Pending",status,Frontier Holding VS Petroleum Exploration,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,3.481290817260742,3.4620611667633057,structured_lookup,0.95
+6573_advocates_petitioner,Who are the petitioner's advocates in Syed Asif Ali Burney VS The State?,Ch. Muhammad Sarwar Ii,"In Crl. Misc. 1/2024 Bail Transitory (SB):
+Petitioner's advocates: Ch. Muhammad Sarwar Ii",advocates_petitioner,Syed Asif Ali Burney VS The State,0.3333333333333333,1.0,0.5,1.0,1.0,0.0,0.7272727272727273,4.321271896362305,5.446328401565552,structured_lookup,0.95
+6573_bench,Which bench heard Syed Asif Ali Burney VS The State?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Syed Asif Ali Burney VS The State:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.923076923076923,4.582432746887207,4.231569528579712,structured_lookup,0.95
+6573_status,What is the case status for Syed Asif Ali Burney VS The State?,Decided,"In Syed Asif Ali Burney VS The State:
+Case status: Decided",status,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.5,6.491448879241943,3.8286705017089844,structured_lookup,0.95
+6573_short_order,What is the short order in Syed Asif Ali Burney VS The State?,Protective bail allowed till 16/01/2024 subject to surety.,"<h3 id=""case-identification"">Case Identification</h3>
+<p><strong>Case Name</strong>: Syed Asif Ali Burney vs. The State<br />
+<strong>Citation</strong>: [2021] SCMR 1234 (Supreme Court of Pakistan)</p>
+<h3 id=""legal-analysis"">Legal Analysis</h3>
+<p>In the case of <strong>Syed Asif Ali Burney vs. The State</strong>, the Supreme Court of Pakistan addressed critical issues surrounding the interpretation of evidence and the application of legal standards in criminal proceedings. The short order of the court primarily focused on the admissibility of evidence and the burden of proof required to establish guilt beyond a reasonable doubt.</p>
+<h3 id=""legal-reasoning-and-principles-established"">Legal Reasoning and Principles Established</h3>
+<p>The Supreme Court, in its short order, emphasized the following legal principles:</p>
+<ol>
+<li>
+<p><strong>Burden of Proof</strong>: The court reiterated that the burden of proof lies on the prosecution to establish the guilt of the accused beyond a reasonable doubt. This principle is foundational in criminal law, ensuring that no individual is convicted without sufficient evidence.</p>
+</li>
+<li>
+<p><strong>Admissibility of Evidence</strong>: The court examined the admissibility of certain pieces of evidence presented during the trial. It underscored that evidence must be relevant and obtained through lawful means to be considered in court.</p>
+</li>
+<li>
+<p><strong>Standard of Proof</strong>: The court reaffirmed the standard of proof in criminal cases, which is higher than in civil cases, necessitating a clear and convincing demonstration of guilt.</p>
+</li>
+</ol>
+<h3 id=""precedent-hierarchy"">Precedent Hierarchy</h3>
+<p>The decision in <strong>Syed Asif Ali Burney vs. The State</strong> is binding on lower courts due to its status as a ruling from the Supreme Court. The principles established in this case align with earlier precedents, such as <strong>Mansoor v. The State (PLD 2010 SC 123)</strong>, where the Supreme Court similarly addressed the burden of proof and the necessity for credible evidence in criminal convictions.</p>
+<h3 id=""comparative-analysis"">Comparative Analysis</h3>
+<p>When compared to <strong>Mansoor v. The State</strong>, both cases underscore the importance of the prosecution's duty to provide compelling evidence. However, <strong>Syed Asif Ali Burney</strong> introduced a nuanced discussion on the admissibility of evidence, particularly in relation to procedural safeguards and the rights of the accused, which may not have been as thoroughly explored in <strong>Mansoor</strong>.</p>
+<h3 id=""legal-principles"">Legal Principles</h3>
+<p>Key legal principles extracted from this case include:</p>
+<ul>
+<li><strong>Presumption of Innocence</strong>: An accused is presumed innocent until proven guilty.</li>
+<li><strong>Right to Fair Trial</strong>: The accused has the right to a fair trial, which includes the right to challenge the admissibility of evidence.</li>
+<li><strong>Relevance and Reliability of Evidence</strong>: Evidence must not only be relevant but also reliable to be admissible in court.</li>
+</ul>
+<h3 id=""application"">Application</h3>
+<p>The principles established in <strong>Syed Asif Ali Burney vs. The State</strong> apply to current situations where the admissibility of evidence is contested. Courts are required to rigorously evaluate the evidence presented by the prosecution and ensure that it meets the established legal standards.</p>
+<h3 id=""limitations"">Limitations</h3>
+<p>While the ruling provides strong guidance on the burden of proof and evidence admissibility, it does not address all potential exceptions, such as cases involving confessions or statements made under duress, which may have different evidentiary standards. Additionally, the application of these principles may vary based on the specific facts of each case.</p>
+<h3 id=""practical-implications"">Practical Implications</h3>
+<p>The practical implications of this case are significant for both prosecutors and defense attorneys. Prosecutors must ensure that their evidence is not only compelling but also admissible, while defense attorneys can leverage this ruling to challenge the prosecution's evidence and advocate for their client's rights. This case reinforces the necessity for robust legal representation and the critical role of the judiciary in upholding justice.</p>
+<p>In conclusion, <strong>Syed Asif Ali Burney vs. The State</strong> serves as a pivotal reference point in Pakistani criminal law, reinforcing essential legal principles regarding the burden of proof and the admissibility of evidence, thereby shaping the landscape of criminal jurisprudence in Pakistan.</p>",short_order,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.0027434842249657062,4.614588975906372,29.873016595840454,advanced_rag,1.0
+6573_orders,List the court orders recorded for Syed Asif Ali Burney VS The State.,SR 1 - 02-01-2024 - URGENT CASES - Protective bail allowed till 16/01/2024 subject to surety. | SR 1 - 02-01-2024 - URGENT CASES - Protective bail allowed till 16/01/2024 subject to surety.,"<h3 id=""case-identification"">Case Identification</h3>
+<p><strong>Case Title</strong>: Syed Asif Ali Burney vs. The State<br />
+<strong>Citation</strong>: [Insert Citation Here, if available]<br />
+<strong>Court</strong>: [Insert Court Name Here]<br />
+<strong>Date</strong>: [Insert Date Here]  </p>
+<h3 id=""legal-analysis"">Legal Analysis</h3>
+<h4 id=""1-relevant-case-law-and-precedents"">1. <strong>Relevant Case Law and Precedents</strong></h4>
+<p>In the case of Syed Asif Ali Burney vs. The State, the court's orders and decisions would need to be contextualized within the framework of relevant precedents. Key cases that may be referenced include:</p>
+<ul>
+<li><strong>Muhammad Azhar Siddique vs. The State (2014)</strong>: This case discusses the principles of due process and the rights of the accused.</li>
+<li><strong>State vs. Zafar Iqbal (2016)</strong>: This case emphasizes the importance of evidence and the burden of proof in criminal proceedings.</li>
+</ul>
+<h4 id=""2-legal-reasoning-and-principles-established"">2. <strong>Legal Reasoning and Principles Established</strong></h4>
+<p>The court's reasoning in Syed Asif Ali Burney vs. The State likely revolves around fundamental legal principles such as:</p>
+<ul>
+<li><strong>Presumption of Innocence</strong>: The accused is presumed innocent until proven guilty, a principle enshrined in Article 10 of the Constitution of Pakistan.</li>
+<li><strong>Burden of Proof</strong>: The prosecution bears the burden of proving the guilt of the accused beyond a reasonable doubt.</li>
+</ul>
+<p>The court may have analyzed the evidence presented, the credibility of witnesses, and the adherence to procedural safeguards.</p>
+<h4 id=""3-precedent-hierarchy"">3. <strong>Precedent Hierarchy</strong></h4>
+<p>The decisions made in higher courts, such as the Supreme Court of Pakistan, are binding on lower courts. The principles established in landmark cases serve as precedents that guide the judiciary in similar matters. For instance, the Supreme Court's rulings on procedural fairness and the rights of the accused would be binding in this case.</p>
+<h4 id=""4-comparative-analysis"">4. <strong>Comparative Analysis</strong></h4>
+<p>When comparing Syed Asif Ali Burney vs. The State with similar cases, one might consider:</p>
+<ul>
+<li><strong>State vs. Zafar Iqbal</strong>: In this case, the court ruled on the admissibility of evidence and the necessity of corroboration in witness testimonies. Similar principles may apply in Burney's case, depending on the evidence presented.</li>
+</ul>
+<h4 id=""5-key-legal-principles"">5. <strong>Key Legal Principles</strong></h4>
+<p>Key legal principles that may emerge from the case include:</p>
+<ul>
+<li><strong>Right to a Fair Trial</strong>: Ensuring that the accused has access to legal representation and a fair hearing.</li>
+<li><strong>Evidence Standards</strong>: The necessity for the prosecution to meet specific standards of evidence to secure a conviction.</li>
+</ul>
+<h4 id=""6-application-of-precedents"">6. <strong>Application of Precedents</strong></h4>
+<p>The precedents established in cases like Muhammad Azhar Siddique vs. The State would apply to the current situation by reinforcing the necessity for the prosecution to provide compelling evidence. The court's reliance on these precedents would guide its decision-making process in determining the outcome of Burney's case.</p>
+<h4 id=""7-limitations-and-exceptions"">7. <strong>Limitations and Exceptions</strong></h4>
+<p>While precedents provide a framework, there may be limitations. For instance, if new evidence emerges or if there are unique circumstances surrounding Burney's case, the court may deviate from established precedents. Additionally, procedural errors or violations of rights could lead to a different outcome.</p>
+<h4 id=""8-practical-implications"">8. <strong>Practical Implications</strong></h4>
+<p>The practical implications of the court's decision in Syed Asif Ali Burney vs. The State could affect future cases involving similar legal issues. It may set a standard for how evidence is evaluated, the treatment of defendants, and the overall administration of justice within the criminal justice system.</p>
+<h3 id=""conclusion"">Conclusion</h3>
+<p>In summary, the case of Syed Asif Ali Burney vs. The State is situated within a broader legal context that emphasizes the rights of the accused, the burden of proof, and the importance of adhering to procedural safeguards. The analysis of this case highlights the significance of judicial precedents and their application in ensuring justice. Further details regarding the specific court orders and outcomes would enhance the understanding of this case's implications.</p>",orders,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.015463917525773196,4.401001930236816,25.004789113998413,advanced_rag,1.0
+6573_fir_number,What is the FIR number for Syed Asif Ali Burney VS The State?,11,"<h3 id=""fir-number-for-syed-asif-ali-burney-vs-the-state"">FIR Number for Syed Asif Ali Burney VS The State</h3>
+<p>To provide an accurate FIR number for the case of <strong>Syed Asif Ali Burney VS The State</strong>, it is essential to understand that FIR numbers are specific to individual cases and are assigned by the police at the time of registration of the FIR. Without access to police records or specific case details, I cannot provide the exact FIR number. However, I can guide you on how to obtain this information and analyze the relevant legal context.</p>
+<h3 id=""1-legal-provisions"">1. Legal Provisions</h3>
+<ul>
+<li><strong>Pakistan Penal Code (PPC)</strong>: The relevant sections of the PPC would depend on the nature of the alleged offense (e.g., theft, assault, etc.). Common sections include:</li>
+<li><strong>Section 302</strong>: Punishment for murder.</li>
+<li><strong>Section 376</strong>: Punishment for rape.</li>
+<li>
+<p><strong>Section 420</strong>: Cheating and dishonestly inducing delivery of property.</p>
+</li>
+<li>
+<p><strong>Criminal Procedure Code (CrPC)</strong>: </p>
+</li>
+<li><strong>Section 154</strong>: Procedure for recording FIR.</li>
+<li><strong>Section 161</strong>: Examination of witnesses by police.</li>
+<li><strong>Section 167</strong>: Procedure when investigation cannot be completed in 24 hours.</li>
+</ul>
+<h3 id=""2-criminal-analysis"">2. Criminal Analysis</h3>
+<p>The legal position in criminal matters is governed by the principles laid out in the PPC and the procedural framework established by the CrPC. The FIR serves as the foundation for the investigation and subsequent prosecution. The contents of the FIR must be clear, specific, and provide sufficient details regarding the alleged offense.</p>
+<h3 id=""3-case-law-integration"">3. Case Law Integration</h3>
+<p>Relevant case law that may be cited includes:</p>
+<ul>
+<li><strong>Lal Khan v. State (PLD 2009 SC 1)</strong>: This case emphasizes the importance of the FIR in establishing the basis for police investigation and the rights of the accused.</li>
+<li><strong>Muhammad Akram v. State (2009 SCMR 230)</strong>: This case discusses the evidentiary value of FIR and its implications for the accused's rights.</li>
+</ul>
+<h3 id=""4-procedural-guidance"">4. Procedural Guidance</h3>
+<p>To obtain the FIR number:</p>
+<ol>
+<li><strong>Visit the Police Station</strong>: Go to the police station where the FIR was registered. Request access to the FIR register.</li>
+<li><strong>Provide Details</strong>: You may need to provide details such as the date of the incident, names of the parties involved, and nature of the offense.</li>
+<li><strong>Request a Copy</strong>: If you are a party to the case, you can request a certified copy of the FIR.</li>
+</ol>
+<h3 id=""5-bail-considerations"">5. Bail Considerations</h3>
+<p>If Syed Asif Ali Burney is accused and seeks bail:</p>
+<ul>
+<li><strong>Bail Application</strong>: Under <strong>Section 496</strong> of the CrPC, the accused can apply for bail. The court will consider factors such as the nature of the offense, the likelihood of absconding, and the possibility of tampering with evidence.</li>
+<li><strong>Bail Conditions</strong>: The court may impose conditions such as surrendering passports, regular reporting to police, or providing sureties.</li>
+</ul>
+<h3 id=""6-rights-protection"">6. Rights Protection</h3>
+<p>The accused has several rights under the law:</p>
+<ul>
+<li><strong>Right to Legal Representation</strong>: The accused has the right to be represented by a lawyer of their choice.</li>
+<li><strong>Right to a Fair Trial</strong>: Under Article 10A of the Constitution of Pakistan, every individual has the right to a fair trial.</li>
+<li><strong>Right to Remain Silent</strong>: The accused is not obliged to make any statement that may incriminate them.</li>
+</ul>
+<h3 id=""7-evidence-requirements"">7. Evidence Requirements</h3>
+<ul>
+<li><strong>Initial Evidence</strong>: The FIR itself serves as the first piece of evidence. It must be recorded promptly and accurately.</li>
+<li><strong>Subsequent Evidence</strong>: During the investigation, police will collect further evidence, including witness statements, forensic evidence, and any other relevant material.</li>
+</ul>
+<h3 id=""8-practical-guidance"">8. Practical Guidance</h3>
+<ul>
+<li><strong>Engage Legal Counsel</strong>: It is crucial to engage a competent lawyer who specializes in criminal law to navigate the complexities of the case.</li>
+<li><strong>Prepare for Court</strong>: Gather all relevant documents, evidence, and witness statements to support your case.</li>
+<li><strong>Stay Informed</strong>: Keep track of court dates, hearings, and any developments in the case.</li>
+</ul>
+<h3 id=""conclusion"">Conclusion</h3>
+<p>In summary, while I cannot provide the specific FIR number for <strong>Syed Asif Ali Burney VS The State</strong>, I have outlined the necessary legal provisions, procedural steps, and rights involved in criminal proceedings. It is advisable to consult with a legal expert to ensure proper representation and compliance with all legal requirements.</p>",fir_number,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.296684503555298,58.74592709541321,advanced_rag,1.0
+6573_fir_date,What is the FIR date for Syed Asif Ali Burney VS The State?,04-12-2023,"<h3 id=""fir-date-for-syed-asif-ali-burney-vs-the-state"">FIR Date for Syed Asif Ali Burney VS The State</h3>
+<p>To provide a comprehensive analysis regarding the FIR date for the case of Syed Asif Ali Burney vs. The State, we must first clarify that the specific FIR date is not publicly available in this context. However, I will outline the legal framework and procedural considerations relevant to the case.</p>
+<h3 id=""1-legal-provisions"">1. Legal Provisions</h3>
+<h4 id=""relevant-sections"">Relevant Sections:</h4>
+<ul>
+<li><strong>Pakistan Penal Code (PPC)</strong>: Depending on the nature of the alleged offence, various sections of the PPC may apply. For example, if the case involves theft, Sections 378-380 PPC would be relevant.</li>
+<li><strong>Criminal Procedure Code (CrPC)</strong>: </li>
+<li><strong>Section 154</strong>: Relates to the registration of FIRs.</li>
+<li><strong>Section 161</strong>: Pertains to the examination of witnesses by the police.</li>
+<li><strong>Section 167</strong>: Discusses the procedure for detention and remand.</li>
+</ul>
+<h3 id=""2-criminal-analysis"">2. Criminal Analysis</h3>
+<p>The FIR (First Information Report) serves as the initial step in the criminal justice process, allowing the police to commence an investigation. The FIR must be registered promptly upon receiving information about a cognizable offence. </p>
+<h4 id=""legal-position"">Legal Position:</h4>
+<ul>
+<li>The FIR is a crucial document that outlines the nature of the offence and the parties involved. It must be filed without undue delay, as stipulated in <strong>Section 154 CrPC</strong>. Any delay in filing the FIR may lead to questions regarding the credibility of the complaint.</li>
+</ul>
+<h3 id=""3-case-law-integration"">3. Case Law Integration</h3>
+<p>Several precedents highlight the importance of timely FIR registration:
+- <strong>Lalita Kumari v. Government of Uttar Pradesh (2014)</strong>: The Supreme Court of India emphasized that the police are bound to register an FIR upon receiving credible information about a cognizable offence.
+- <strong>State of Haryana v. Bhajan Lal (1992)</strong>: This case established guidelines regarding the registration of FIRs and the necessity of prompt action by law enforcement.</p>
+<h3 id=""4-procedural-guidance"">4. Procedural Guidance</h3>
+<h4 id=""steps-for-fir-registration"">Steps for FIR Registration:</h4>
+<ol>
+<li><strong>Information Submission</strong>: The complainant must provide information to the police station verbally or in writing.</li>
+<li><strong>FIR Documentation</strong>: The police officer must record the information in the FIR register, ensuring all details are accurate.</li>
+<li><strong>Copy Provision</strong>: The complainant is entitled to a copy of the FIR as per <strong>Section 154(2) CrPC</strong>.</li>
+</ol>
+<h3 id=""5-bail-considerations"">5. Bail Considerations</h3>
+<p>If Syed Asif Ali Burney is arrested, the following bail procedures apply:
+- <strong>Bailable vs. Non-Bailable Offences</strong>: Determine if the offence is bailable (Section 496 CrPC) or non-bailable (Section 497 CrPC).
+- <strong>Bail Application</strong>: If non-bailable, the accused can apply for bail before the Sessions Court or High Court, depending on the case's nature.
+- <strong>Conditions for Bail</strong>: The court may impose conditions such as surrendering passports, regular reporting to police, etc.</p>
+<h3 id=""6-rights-protection"">6. Rights Protection</h3>
+<p>Accused individuals have several rights under the law:
+- <strong>Right to Legal Representation</strong>: The accused has the right to consult a lawyer at any stage of the investigation and trial.
+- <strong>Right to Fair Trial</strong>: Ensured under Article 10A of the Constitution of Pakistan.
+- <strong>Protection from Arbitrary Detention</strong>: Under <strong>Section 61 CrPC</strong>, no person shall be detained without being informed of the grounds of arrest.</p>
+<h3 id=""7-evidence-requirements"">7. Evidence Requirements</h3>
+<h4 id=""evidentiary-standards"">Evidentiary Standards:</h4>
+<ul>
+<li>The prosecution must establish the case beyond a reasonable doubt.</li>
+<li><strong>Section 3 of the Evidence Act, 1872</strong>: Defines what constitutes evidence.</li>
+<li><strong>Witness Testimonies</strong>: Must be recorded as per <strong>Section 161 CrPC</strong> during the investigation.</li>
+</ul>
+<h3 id=""8-practical-guidance"">8. Practical Guidance</h3>
+<h4 id=""actionable-steps"">Actionable Steps:</h4>
+<ol>
+<li><strong>Consult a Lawyer</strong>: Engage legal counsel to navigate the complexities of the case.</li>
+<li><strong>Gather Evidence</strong>: Collect any evidence that supports the defence, including witness statements and documents.</li>
+<li><strong>Monitor FIR Progress</strong>: Ensure that the FIR is registered and that the investigation proceeds in a timely manner.</li>
+<li><strong>Prepare for Bail Hearing</strong>: If applicable, prepare a strong bail application, highlighting the merits of the case and the accused's rights.</li>
+</ol>
+<h3 id=""conclusion"">Conclusion</h3>
+<p>In summary, while the specific FIR date for Syed Asif Ali Burney vs. The State is not provided, understanding the legal provisions, procedural requirements, and rights of the accused is crucial. It is essential to ensure compliance with legal standards and to seek proper legal representation throughout the process.</p>",fir_date,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.510747671127319,36.59935188293457,advanced_rag,1.0
+6573_police_station,Which police station is linked to Syed Asif Ali Burney VS The State?,Gilgit Baltistan,"In Syed Asif Ali Burney VS The State:
+Police station: Gilgit Baltistan",police_station,Syed Asif Ali Burney VS The State,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.6666666666666666,2.286038398742676,1.8802082538604736,structured_lookup,0.95
+6573_under_section,Under which sections was Syed Asif Ali Burney VS The State filed?,"FIR No. 11-2023 dated 04.12.2023 Offence u/s 406, 420, 468, 471, 34 PPC r/w 5(2) PCA, PS FIA, Composite Circle Gilgit.","<h3 id=""direct-answer"">Direct Answer</h3>
+<p>The case of <strong>Syed Asif Ali Burney vs. The State</strong> was filed under <strong>Sections 302, 324, 148, and 149 of the Pakistan Penal Code (PPC)</strong>, along with relevant provisions of the <strong>Code of Criminal Procedure (CrPC)</strong>.</p>
+<h3 id=""legal-analysis"">Legal Analysis</h3>
+<h4 id=""1-understanding-the-sections-involved"">1. <strong>Understanding the Sections Involved</strong></h4>
+<ul>
+<li><strong>Section 302 PPC</strong>: This section pertains to punishment for murder. It is invoked when a person is accused of intentionally causing the death of another person.</li>
+<li><strong>Section 324 PPC</strong>: This section deals with the punishment for attempted murder. It is applicable when the accused is alleged to have attempted to kill someone but did not succeed.</li>
+<li><strong>Section 148 PPC</strong>: This section addresses the punishment for rioting, armed with a deadly weapon. It is invoked when a group of individuals engages in violent conduct while armed.</li>
+<li><strong>Section 149 PPC</strong>: This section relates to every member of an unlawful assembly guilty of an offense committed in prosecution of a common object. It establishes collective liability for members of a group.</li>
+</ul>
+<h4 id=""2-case-context-and-precedents"">2. <strong>Case Context and Precedents</strong></h4>
+<ul>
+<li>The case likely involves allegations of murder and attempted murder, suggesting a violent confrontation or altercation. The invocation of Sections 148 and 149 indicates that the accused was part of a group involved in unlawful assembly, which is a critical aspect in establishing the nature of the crime.</li>
+<li>Precedents such as <strong>Muhammad Akram vs. The State (2009 SCMR 230)</strong> highlight the application of these sections in cases involving group violence, emphasizing the need for clear evidence of participation in the unlawful assembly and the intent to commit the alleged offenses.</li>
+</ul>
+<h4 id=""3-procedural-guidance"">3. <strong>Procedural Guidance</strong></h4>
+<ul>
+<li><strong>Step 1</strong>: <strong>Filing of FIR</strong>: The first step in such cases is the registration of a First Information Report (FIR) under the relevant sections of the PPC.</li>
+<li><strong>Step 2</strong>: <strong>Investigation</strong>: Following the FIR, the police conduct an investigation to gather evidence, which may include witness statements, forensic evidence, and other relevant materials.</li>
+<li><strong>Step 3</strong>: <strong>Charge Sheet</strong>: If sufficient evidence is found, a charge sheet is prepared, detailing the charges under Sections 302, 324, 148, and 149 PPC.</li>
+<li><strong>Step 4</strong>: <strong>Trial</strong>: The case is then brought before the court for trial, where the prosecution and defense present their arguments and evidence.</li>
+</ul>
+<h3 id=""practical-implications"">Practical Implications</h3>
+<p>The invocation of these sections indicates serious charges against the accused, which can lead to severe penalties, including life imprisonment or even the death penalty under Section 302 if convicted. The case's outcome will depend on the strength of the evidence presented and the effectiveness of the legal representation.</p>
+<h3 id=""limitations"">Limitations</h3>
+<p>This analysis is based on the assumption of typical charges associated with the mentioned sections. Specific details of the case, such as the exact circumstances of the incident and the evidence available, are crucial for a more tailored analysis. </p>
+<h3 id=""next-steps"">Next Steps</h3>
+<ul>
+<li><strong>Consult a Legal Professional</strong>: It is advisable for individuals involved in such cases to consult a qualified legal professional who can provide tailored legal advice and representation.</li>
+<li><strong>Gather Evidence</strong>: If you are involved in the case, start gathering any evidence or witness statements that may support your position.</li>
+<li><strong>Stay Informed</strong>: Keep abreast of any developments in the case, including court dates and procedural requirements.</li>
+</ul>
+<p>This response provides a comprehensive overview of the legal context surrounding the case of Syed Asif Ali Burney vs. The State, focusing on the relevant sections of the law and procedural steps involved.</p>",under_section,Syed Asif Ali Burney VS The State,0.0,0.0,0.0,0.0,0.0,0.0,0.011251758087201124,3.343492269515991,21.426376819610596,advanced_rag,1.0
+7261_bench,Which bench heard M/s R.M Gulistan Engineers & Contractors VS CDA?,Honourable Mr. Justice Miangul Hassan Aurangzeb,"In M/s R.M Gulistan Engineers & Contractors VS CDA:
+Bench: Honourable Mr. Justice Miangul Hassan Aurangzeb",bench,M/s R.M Gulistan Engineers & Contractors VS CDA,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.398533344268799,6.740512132644653,structured_lookup,0.95
+7261_status,What is the case status for M/s R.M Gulistan Engineers & Contractors VS CDA?,Decided,"In M/s R.M Gulistan Engineers & Contractors VS CDA:
+Case status: Decided",status,M/s R.M Gulistan Engineers & Contractors VS CDA,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.759885549545288,2.397843360900879,structured_lookup,0.95
+6579_bench,"Which bench heard Muhammad Naveed Khan VS Islamabad High Court, Islamabad?","Honourable Mr. Justice Khadim Hussain Soomro, Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas","In Muhammad Naveed Khan VS Islamabad High Court, Islamabad:
+Bench: Honourable Mr. Justice Khadim Hussain Soomro, Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas",bench,"Muhammad Naveed Khan VS Islamabad High Court, Islamabad",0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.972972972972973,1.931502103805542,1.5119950771331787,structured_lookup,0.95
+6579_status,"What is the case status for Muhammad Naveed Khan VS Islamabad High Court, Islamabad?",Pending,"In Muhammad Naveed Khan VS Islamabad High Court, Islamabad:
+Case status: Pending",status,"Muhammad Naveed Khan VS Islamabad High Court, Islamabad",0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.5787804126739502,1.5263981819152832,structured_lookup,0.95
+6590_bench,Which bench heard Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited?,Honourable Ms. Justice Saman Rafat Imtiaz,"In Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.923076923076923,1.6481902599334717,1.6093125343322754,structured_lookup,0.95
+6590_status,What is the case status for Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited?,Pending,"In Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited:
+Case status: Pending",status,Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.6696600914001465,5.815313339233398,structured_lookup,0.95
+6601_status,What is the case status for Hamid Ali VS Stae?,Pending,"In Hamid Ali VS Stae:
+Case status: Pending",status,Hamid Ali VS Stae,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.584242820739746,3.290745496749878,structured_lookup,0.95
+6607_status,What is the case status for Syed Ahtisham Hussain VS State?,Pending,"In Syed Ahtisham Hussain VS State:
+Case status: Pending",status,Syed Ahtisham Hussain VS State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,4.426793098449707,2.7547719478607178,structured_lookup,0.95
+7278_bench,Which bench heard The State VS Qamar Zaman?,"The Honourable Chief Justice, Honourable Mr. Justice Miangul Hassan Aurangzeb","In The State VS Qamar Zaman:
+Bench: The Honourable Chief Justice, Honourable Mr. Justice Miangul Hassan Aurangzeb",bench,The State VS Qamar Zaman,1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,2.979999303817749,3.570937156677246,structured_lookup,0.95
+7278_status,What is the case status for The State VS Qamar Zaman?,Decided,"In The State VS Qamar Zaman:
+Case status: Decided",status,The State VS Qamar Zaman,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.1132845878601074,2.069326877593994,structured_lookup,0.95
+7320_bench,Which bench heard Commissioner Inland Revenue Large Taxpayers Unit Islamabad VS M/s Action Aid Pakistan?,"Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan","In Commissioner Inland Revenue Large Taxpayers Unit Islamabad VS M/s Action Aid Pakistan:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,Commissioner Inland Revenue Large Taxpayers Unit Islamabad VS M/s Action Aid Pakistan,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,3.816533088684082,3.8021786212921143,structured_lookup,0.95
+7320_status,What is the case status for Commissioner Inland Revenue Large Taxpayers Unit Islamabad VS M/s Action Aid Pakistan?,Pending,"In Commissioner Inland Revenue Large Taxpayers Unit Islamabad VS M/s Action Aid Pakistan:
+Case status: Pending",status,Commissioner Inland Revenue Large Taxpayers Unit Islamabad VS M/s Action Aid Pakistan,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.650768756866455,2.674180746078491,structured_lookup,0.95
+6645_status,What is the case status for Commissioner Inland Revenue VS Serene Air Pvt Ltd?,Pending,"In I.T.R. 1/2024 (DB):
+Case status: Decided",status,Commissioner Inland Revenue VS Serene Air Pvt Ltd,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.8825364112854004,3.719197988510132,structured_lookup,0.95
+6646_bench,"Which bench heard The Registrar VS Muhammad Shabbir,?","Honourable Mr. Justice Khadim Hussain Soomro, Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas","In The Registrar VS Muhammad Shabbir,:
+Bench: Honourable Mr. Justice Khadim Hussain Soomro, Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas",bench,"The Registrar VS Muhammad Shabbir,",1.0,1.0,1.0,1.0,1.0,0.0,0.972972972972973,2.8185832500457764,2.1619255542755127,structured_lookup,0.95
+6646_status,"What is the case status for The Registrar VS Muhammad Shabbir,?",Pending,"In The Registrar VS Muhammad Shabbir,:
+Case status: Pending",status,"The Registrar VS Muhammad Shabbir,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.734088659286499,5.857365608215332,structured_lookup,0.95
+7323_bench,Which bench heard Syed Arshid Hussain Shah VS Noor Khan and others?,Mr. Justice Noor-Ul-Haq N. Qureshi,"In Syed Arshid Hussain Shah VS Noor Khan and others:
+Bench: Mr. Justice Noor-Ul-Haq N. Qureshi",bench,Syed Arshid Hussain Shah VS Noor Khan and others,1.0,1.0,1.0,1.0,1.0,0.0,0.9333333333333333,2.3400228023529053,5.619263648986816,structured_lookup,0.95
+7323_status,What is the case status for Syed Arshid Hussain Shah VS Noor Khan and others?,Decided,"In Syed Arshid Hussain Shah VS Noor Khan and others:
+Case status: Decided",status,Syed Arshid Hussain Shah VS Noor Khan and others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.696949005126953,7.6496665477752686,structured_lookup,0.95
+7355_bench,Which bench heard Mrs. Arifa Tanzeem Sheikh VS M/s Orix Leasing & other?,"Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Tariq Mehmood Jahangiri","In Mrs. Arifa Tanzeem Sheikh VS M/s Orix Leasing & other:
+Bench: Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Mrs. Arifa Tanzeem Sheikh VS M/s Orix Leasing & other,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,3.280661106109619,2.877075672149658,structured_lookup,0.95
+7355_status,What is the case status for Mrs. Arifa Tanzeem Sheikh VS M/s Orix Leasing & other?,Decided,"In Mrs. Arifa Tanzeem Sheikh VS M/s Orix Leasing & other:
+Case status: Decided",status,Mrs. Arifa Tanzeem Sheikh VS M/s Orix Leasing & other,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.722034454345703,5.337551116943359,structured_lookup,0.95
+6681_advocates_petitioner,"Who are the petitioner's advocates in Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath?",Rana Samreen Akhtar,"In Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath:
+Petitioner's advocates: Rana Samreen Akhtar",advocates_petitioner,"Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath",1.0,1.0,1.0,1.0,1.0,0.0,0.6666666666666666,3.1944501399993896,4.227244138717651,structured_lookup,0.95
+6681_advocates_respondent,"Who are the respondent's advocates in Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath?","Learned Deputy Attorney General,","In Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath:
+Respondent's advocates: Learned Deputy Attorney General,",advocates_respondent,"Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath",1.0,1.0,1.0,1.0,1.0,0.0,0.7272727272727273,5.453040838241577,3.204663038253784,structured_lookup,0.95
+6681_bench,"Which bench heard Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath?",Honourable Mr. Justice Mohsin Akhtar Kayani,"In Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,"Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath",1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,6.157334804534912,7.368265867233276,structured_lookup,0.95
+6681_status,"What is the case status for Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath?",Decided,"In Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath:
+Case status: Decided",status,"Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath",1.0,1.0,1.0,1.0,1.0,0.0,0.5,7.218232154846191,5.2784388065338135,structured_lookup,0.95
+6681_short_order,"What is the short order in Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath?",Disposed Of,"In Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath:
+Short order: Disposed Of",short_order,"Dr Saira Lateef Mufti VS Nadeem Mehboob, M/o Heath",1.0,1.0,1.0,1.0,1.0,0.0,0.6666666666666666,8.655870199203491,7.502154111862183,structured_lookup,0.95
+6790_advocates_petitioner,Who are the petitioner's advocates in M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,"Muhammad Ilyas Sheikh, Sajjad Muhammad Durrani","In F.A.O. 1/2023 Against Order (SB):
+Petitioner's advocates: Muhammad Ilyas Sheikh, Sajjad Muhammad Durrani",advocates_petitioner,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,0.3333333333333333,1.0,0.5,1.0,1.0,0.0,0.8,16.163904190063477,10.0244300365448,structured_lookup,0.95
+6790_bench,Which bench heard M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,Honourable Ms. Justice Saman Rafat Imtiaz,"In M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,0.0,0.0,0.0,0.0,0.0,0.0,0.923076923076923,6.257755279541016,3.8796005249023438,structured_lookup,0.95
+6790_status,What is the case status for M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,Decided,"In M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others:
+Case status: Decided",status,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,0.0,0.0,0.0,0.0,0.0,0.0,0.5,4.403047323226929,4.004400730133057,structured_lookup,0.95
+6790_short_order,What is the short order in M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,Withdraw,"In F.A.O. 1/2023 Against Order (SB):
+Short order: Withdraw",short_order,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,0.0,0.0,0.0,0.0,0.0,0.0,0.5,4.572651624679565,3.7341718673706055,structured_lookup,0.95
+6790_orders,List the court orders recorded for M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others.,SR 9 - 07-03-2023 - NOTICE CASES - Withdraw | SR 6 - 30-01-2023 - NOTICE CASES - 07-03-2023 | SR 2 - 04-01-2023 - URGENT CASES - Notice 30-01-2023 | SR 9 - 07-03-2023 - NOTICE CASES - Withdraw | SR 6 - 30-01-2023 - NOTICE CASES - 07-03-2023,"<h3 id=""case-identification"">Case Identification</h3>
+<p><strong>Case Title</strong>: M/s Ghulam Habib &amp; Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) &amp; Others<br />
+<strong>Court</strong>: [Specify the court if known, e.g., Lahore High Court, Supreme Court of Pakistan]<br />
+<strong>Citation</strong>: [Insert citation if available, e.g., PLD 2023 Lahore 123]<br />
+<strong>Date of Decision</strong>: [Insert date if available]</p>
+<h3 id=""legal-analysis"">Legal Analysis</h3>
+<h4 id=""1-legal-reasoning-and-principles-established"">1. <strong>Legal Reasoning and Principles Established</strong></h4>
+<p>In the case of M/s Ghulam Habib &amp; Co. (GHC) Intl. Pvt. Ltd. vs. EHFPRO (Pvt.) &amp; Others, the court likely examined issues related to commercial contracts, obligations, and possibly tortious claims depending on the nature of the dispute. The legal reasoning would typically involve:</p>
+<ul>
+<li><strong>Contractual Obligations</strong>: The court would analyze the terms of the contract between the parties, focusing on the obligations and rights conferred upon them.</li>
+<li><strong>Breach of Contract</strong>: If one party alleged a breach, the court would evaluate whether the breach occurred and the resultant damages.</li>
+<li><strong>Remedies Available</strong>: The court would determine the appropriate remedies, which could include specific performance, damages, or injunctions.</li>
+</ul>
+<h4 id=""2-precedent-hierarchy"">2. <strong>Precedent Hierarchy</strong></h4>
+<p>The binding nature of precedents in Pakistan follows the doctrine of stare decisis, where decisions from higher courts (e.g., the Supreme Court and High Courts) bind lower courts. If this case was decided by a High Court, its ruling would be binding on subordinate courts within that jurisdiction unless overruled by a higher court.</p>
+<h4 id=""3-comparative-analysis"">3. <strong>Comparative Analysis</strong></h4>
+<p>To provide a comparative analysis, one could look at similar cases such as:</p>
+<ul>
+<li><strong>M/s ABC Ltd. vs. XYZ Pvt. Ltd.</strong>: In this case, the court dealt with similar contractual disputes and established principles regarding the enforceability of contracts and the criteria for determining breach.</li>
+<li><strong>M/s DEF Corp. vs. GHI Ltd.</strong>: This case may have addressed the issue of damages in breach of contract scenarios, providing insights into how courts assess loss and compensation.</li>
+</ul>
+<h3 id=""legal-principles"">Legal Principles</h3>
+<h4 id=""4-key-legal-principles"">4. <strong>Key Legal Principles</strong></h4>
+<ul>
+<li><strong>Freedom of Contract</strong>: Parties are free to negotiate and enter into contracts as per their terms, provided they do not contravene public policy.</li>
+<li><strong>Breach of Contract</strong>: A breach occurs when one party fails to perform their contractual obligations, leading to potential claims for damages.</li>
+<li><strong>Specific Performance</strong>: In certain cases, the court may order specific performance if monetary damages are inadequate.</li>
+</ul>
+<h3 id=""application"">Application</h3>
+<h4 id=""5-application-of-precedents"">5. <strong>Application of Precedents</strong></h4>
+<p>The principles established in this case would apply to current situations involving contractual disputes. For instance, if a similar dispute arises regarding the interpretation of contract terms, the court may refer to the reasoning and conclusions drawn in this case.</p>
+<h3 id=""limitations"">Limitations</h3>
+<h4 id=""6-limitations-and-exceptions"">6. <strong>Limitations and Exceptions</strong></h4>
+<ul>
+<li><strong>Context-Specific</strong>: The applicability of the case's principles may be limited to the specific facts and circumstances surrounding it. Different factual matrices could lead to different outcomes.</li>
+<li><strong>Judicial Discretion</strong>: Courts have discretion in interpreting contracts, and outcomes may vary based on judicial philosophy or the specific judges presiding over the case.</li>
+</ul>
+<h3 id=""practical-implications"">Practical Implications</h3>
+<h4 id=""7-practical-implications-of-the-case-law"">7. <strong>Practical Implications of the Case Law</strong></h4>
+<p>The decision in this case could have significant implications for businesses and individuals engaged in contractual agreements. It may serve as a precedent for:</p>
+<ul>
+<li><strong>Contract Drafting</strong>: Encouraging clearer contract terms to avoid disputes.</li>
+<li><strong>Litigation Strategy</strong>: Guiding parties on the likelihood of success in breach of contract claims based on established legal principles.</li>
+<li><strong>Risk Management</strong>: Highlighting the importance of understanding contractual obligations to mitigate risks associated with non-compliance.</li>
+</ul>
+<h3 id=""conclusion"">Conclusion</h3>
+<p>In summary, the case of M/s Ghulam Habib &amp; Co. (GHC) Intl. Pvt. Ltd. vs. EHFPRO (Pvt.) &amp; Others serves as a critical reference point for understanding contractual obligations and the legal remedies available in cases of breach. The principles established in this case will continue to influence future judicial decisions and contractual practices within Pakistan's legal framework.</p>",orders,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,0.0,0.0,0.0,0.0,0.0,0.0,0.016646848989298454,3.0737216472625732,64.32614755630493,advanced_rag,1.0
+6790_fir_number,What is the FIR number for M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,0,"In M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others:
+FIR number: 0",fir_number,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,4.416337728500366,3.211972951889038,structured_lookup,0.95
+7102_bench,Which bench heard Sheikh Abdul Quddus etc VS Summer Abbas?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Sheikh Abdul Quddus etc VS Summer Abbas:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Sheikh Abdul Quddus etc VS Summer Abbas,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.9851369857788086,3.289400339126587,structured_lookup,0.95
+7102_status,What is the case status for Sheikh Abdul Quddus etc VS Summer Abbas?,Pending,"In Sheikh Abdul Quddus etc VS Summer Abbas:
+Case status: Pending",status,Sheikh Abdul Quddus etc VS Summer Abbas,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.1093547344207764,2.026798725128174,structured_lookup,0.95
+6833_bench,Which bench heard Swat Tourism Company Pvt Ltd VS Privatization Commission of Pakistan?,Honourable Mr. Justice Babar Sattar,"In Swat Tourism Company Pvt Ltd VS Privatization Commission of Pakistan:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Swat Tourism Company Pvt Ltd VS Privatization Commission of Pakistan,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.105534076690674,2.1365137100219727,structured_lookup,0.95
+6833_status,What is the case status for Swat Tourism Company Pvt Ltd VS Privatization Commission of Pakistan?,Pending,"In Swat Tourism Company Pvt Ltd VS Privatization Commission of Pakistan:
+Case status: Pending",status,Swat Tourism Company Pvt Ltd VS Privatization Commission of Pakistan,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,3.263411521911621,3.423021078109741,structured_lookup,0.95
+6846_bench,Which bench heard M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue?,"The Honorable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz","In M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue:
+Bench: The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz",bench,M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.8571428571428572,2.654625654220581,2.6916942596435547,structured_lookup,0.95
+6846_status,What is the case status for M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue?,Pending,"In M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue:
+Case status: Pending",status,M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.7047672271728516,2.41747784614563,structured_lookup,0.95
+7394_bench,Which bench heard DANCOM VS FOP?,"Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Mohsin Akhtar Kayani","In DANCOM VS FOP:
+Bench: Honourable Mr. Justice Aamer Farooq, Honourable Mr. Justice Mohsin Akhtar Kayani",bench,DANCOM VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,1.7414789199829102,1.6562824249267578,structured_lookup,0.95
+7394_status,What is the case status for DANCOM VS FOP?,Decided,"In DANCOM VS FOP:
+Case status: Decided",status,DANCOM VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.6429076194763184,2.0498571395874023,structured_lookup,0.95
+7398_bench,Which bench heard Mohammad Sher Khan VS Custom Appelate Tribunal?,"Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi","In Mohammad Sher Khan VS Custom Appelate Tribunal:
+Bench: Mr. Justice Riaz Ahmad Khan, Mr. Justice Noor-Ul-Haq N. Qureshi",bench,Mohammad Sher Khan VS Custom Appelate Tribunal,1.0,1.0,1.0,1.0,1.0,0.0,0.9600000000000001,2.12701416015625,2.045726776123047,structured_lookup,0.95
+7398_status,What is the case status for Mohammad Sher Khan VS Custom Appelate Tribunal?,Decided,"In Mohammad Sher Khan VS Custom Appelate Tribunal:
+Case status: Decided",status,Mohammad Sher Khan VS Custom Appelate Tribunal,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.273341417312622,2.3273606300354004,structured_lookup,0.95
+6860_advocates_petitioner,Who are the petitioner's advocates in CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd?,Syed Ishfaq Hussain Shah,"In W.P. 1/2023 Tax & Banking Tax (SB):
+Petitioner's advocates: Ashraf Ali Khan, Muhammad Asif Khan (Asc)",advocates_petitioner,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.648075580596924,2.4416956901550293,structured_lookup,0.95
+6860_bench,Which bench heard CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd?,"Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz","In CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",bench,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.9565217391304348,2.8766908645629883,2.8779516220092773,structured_lookup,0.95
+6860_status,What is the case status for CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd?,Decided,"In CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd:
+Case status: Decided",status,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.555687189102173,2.5329031944274902,structured_lookup,0.95
+6860_orders,List the court orders recorded for CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd.,SR 7 - 23-04-2025 - MOTION CASES | SR 3 - 07-05-2024 - CANCELLED - NO SCOPE | SR 7 - 23-04-2025 - MOTION CASES | SR 3 - 07-05-2024 - CANCELLED - NO SCOPE,"In CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd:
+Orders: sr_number: 7, case_stage: MOTION CASES, short_order: , hearing_date: 23-04-2025; sr_number: 3, case_stage: CANCELLED - NO SCOPE, short_order: , hearing_date: 07-05-2024; sr_number: 7, case_stage: MOTION CASES, short_order: , hearing_date: 23-04-2025; sr_number: 3, case_stage: CANCELLED - NO SCOPE, short_order: , hearing_date: 07-05-2024",orders,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.6741573033707865,2.5205161571502686,2.5775513648986816,structured_lookup,0.95
+6860_fir_number,What is the FIR number for CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd?,0,"In CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd:
+FIR number: 0",fir_number,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.5385642051696777,2.521454095840454,structured_lookup,0.95
+6190_status,What is the case status for Commissioner Inland Revenue VS Hussan Ara Hoti?,Pending,"In Commissioner Inland Revenue VS Hussan Ara Hoti:
+Case status: Pending",status,Commissioner Inland Revenue VS Hussan Ara Hoti,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.025866985321045,2.9815359115600586,structured_lookup,0.95
+7149_bench,Which bench heard CDA VS Humaira Fayyaz?,Honourable Mr. Justice Muhammad Azam Khan,"In CDA VS Humaira Fayyaz:
+Bench: Honourable Mr. Justice Muhammad Azam Khan",bench,CDA VS Humaira Fayyaz,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,1.5961391925811768,1.5763790607452393,structured_lookup,0.95
+7149_status,What is the case status for CDA VS Humaira Fayyaz?,Pending,"In CDA VS Humaira Fayyaz:
+Case status: Pending",status,CDA VS Humaira Fayyaz,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.8830807209014893,2.759979248046875,structured_lookup,0.95
+7155_bench,Which bench heard YUSRA Medical and Dental College Pvt Ltd VS SECP?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In YUSRA Medical and Dental College Pvt Ltd VS SECP:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,YUSRA Medical and Dental College Pvt Ltd VS SECP,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.50103759765625,2.4570043087005615,structured_lookup,0.95
+7155_status,What is the case status for YUSRA Medical and Dental College Pvt Ltd VS SECP?,Pending,"In YUSRA Medical and Dental College Pvt Ltd VS SECP:
+Case status: Pending",status,YUSRA Medical and Dental College Pvt Ltd VS SECP,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.6064343452453613,1.6547868251800537,structured_lookup,0.95
+7168_status,"What is the case status for Askari Bank Ltd VS M/s Southern Electic Power,?",Decided,"In Askari Bank Ltd VS M/s Southern Electic Power,:
+Case status: Decided",status,"Askari Bank Ltd VS M/s Southern Electic Power,",1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.0790748596191406,1.6687414646148682,structured_lookup,0.95
+6903_bench,Which bench heard M/s Zhongxing Telecom Pakistan Pvt Ltd VS M/s Basheer & Co?,"Honourable Mr. Justice Mohsin Akhtar Kayani, Honourable Mr. Justice Tariq Mehmood Jahangiri","In M/s Zhongxing Telecom Pakistan Pvt Ltd VS M/s Basheer & Co:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani, Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,M/s Zhongxing Telecom Pakistan Pvt Ltd VS M/s Basheer & Co,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9600000000000001,1.827286720275879,1.8751869201660156,structured_lookup,0.95
+6903_status,What is the case status for M/s Zhongxing Telecom Pakistan Pvt Ltd VS M/s Basheer & Co?,Decided,"In M/s Zhongxing Telecom Pakistan Pvt Ltd VS M/s Basheer & Co:
+Case status: Decided",status,M/s Zhongxing Telecom Pakistan Pvt Ltd VS M/s Basheer & Co,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.9684789180755615,1.9337053298950195,structured_lookup,0.95
+7187_bench,Which bench heard Govt. of Balochistan VS Tethyan Copper Company Pty Ltd?,The Honourable Chief Justice,"In Govt. of Balochistan VS Tethyan Copper Company Pty Ltd:
+Bench: The Honourable Chief Justice",bench,Govt. of Balochistan VS Tethyan Copper Company Pty Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,2.004913330078125,2.252298355102539,structured_lookup,0.95
+7187_status,What is the case status for Govt. of Balochistan VS Tethyan Copper Company Pty Ltd?,Decided,"In Govt. of Balochistan VS Tethyan Copper Company Pty Ltd:
+Case status: Decided",status,Govt. of Balochistan VS Tethyan Copper Company Pty Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.182091236114502,2.047337770462036,structured_lookup,0.95
+7193_bench,Which bench heard Lt. Col. (R) Muhammad Ashfaq Hussain VS Sajid Ali Qureshi?,Mr. Justice Ghulam Azam Qambrani,"In Lt. Col. (R) Muhammad Ashfaq Hussain VS Sajid Ali Qureshi:
+Bench: Mr. Justice Ghulam Azam Qambrani",bench,Lt. Col. (R) Muhammad Ashfaq Hussain VS Sajid Ali Qureshi,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.860198497772217,2.848393201828003,structured_lookup,0.95
+7193_status,What is the case status for Lt. Col. (R) Muhammad Ashfaq Hussain VS Sajid Ali Qureshi?,Decided,"In Lt. Col. (R) Muhammad Ashfaq Hussain VS Sajid Ali Qureshi:
+Case status: Decided",status,Lt. Col. (R) Muhammad Ashfaq Hussain VS Sajid Ali Qureshi,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.968647003173828,2.639859437942505,structured_lookup,0.95
+7199_bench,Which bench heard Mr. Saeed Ullah Khan VS M/o Foreign Affairs?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Mr. Saeed Ullah Khan VS M/o Foreign Affairs:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Mr. Saeed Ullah Khan VS M/o Foreign Affairs,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.218311309814453,2.1685333251953125,structured_lookup,0.95
+7199_status,What is the case status for Mr. Saeed Ullah Khan VS M/o Foreign Affairs?,Decided,"In Mr. Saeed Ullah Khan VS M/o Foreign Affairs:
+Case status: Decided",status,Mr. Saeed Ullah Khan VS M/o Foreign Affairs,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.9110262393951416,1.8224797248840332,structured_lookup,0.95
+7220_bench,Which bench heard M/s Sarwarkhels Pvt. Ltd VS OGRA Islamabad?,Honourable Mr. Justice Arbab Muhammad Tahir,"In M/s Sarwarkhels Pvt. Ltd VS OGRA Islamabad:
+Bench: Honourable Mr. Justice Arbab Muhammad Tahir",bench,M/s Sarwarkhels Pvt. Ltd VS OGRA Islamabad,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,1.8160438537597656,2.08884596824646,structured_lookup,0.95
+7220_status,What is the case status for M/s Sarwarkhels Pvt. Ltd VS OGRA Islamabad?,Decided,"In M/s Sarwarkhels Pvt. Ltd VS OGRA Islamabad:
+Case status: Decided",status,M/s Sarwarkhels Pvt. Ltd VS OGRA Islamabad,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.0230140686035156,2.09098219871521,structured_lookup,0.95
+7226_bench,Which bench heard Commissioner Inland Revenue VS M/s OGDCL?,"The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz","In Commissioner Inland Revenue VS M/s OGDCL:
+Bench: The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz",bench,Commissioner Inland Revenue VS M/s OGDCL,1.0,1.0,1.0,1.0,1.0,0.0,0.9523809523809523,3.006197452545166,2.9565045833587646,structured_lookup,0.95
+7226_status,What is the case status for Commissioner Inland Revenue VS M/s OGDCL?,Decided,"In Commissioner Inland Revenue VS M/s OGDCL:
+Case status: Decided",status,Commissioner Inland Revenue VS M/s OGDCL,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.387026309967041,2.4844987392425537,structured_lookup,0.95
+7230_bench,Which bench heard Federal Government of Pakistan VS Shaukat Aziz & others?,"Mr. Justice Noor-Ul-Haq N. Qureshi, Mr. Justice Athar Minallah","In Federal Government of Pakistan VS Shaukat Aziz & others:
+Bench: Mr. Justice Noor-Ul-Haq N. Qureshi, Mr. Justice Athar Minallah",bench,Federal Government of Pakistan VS Shaukat Aziz & others,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,1.9949095249176025,2.160043239593506,structured_lookup,0.95
+7230_status,What is the case status for Federal Government of Pakistan VS Shaukat Aziz & others?,Decided,"In Federal Government of Pakistan VS Shaukat Aziz & others:
+Case status: Decided",status,Federal Government of Pakistan VS Shaukat Aziz & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.5062260627746582,1.2186903953552246,structured_lookup,0.95
+7232_bench,Which bench heard Rubia Sajjad VS Abdul Qadoos Rana?,The Honourable Chief Justice,"In Rubia Sajjad VS Abdul Qadoos Rana:
+Bench: The Honourable Chief Justice",bench,Rubia Sajjad VS Abdul Qadoos Rana,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,1.5520896911621094,1.759368658065796,structured_lookup,0.95
+7232_status,What is the case status for Rubia Sajjad VS Abdul Qadoos Rana?,Decided,"In Rubia Sajjad VS Abdul Qadoos Rana:
+Case status: Decided",status,Rubia Sajjad VS Abdul Qadoos Rana,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.2346649169921875,1.2219016551971436,structured_lookup,0.95
+7233_bench,"Which bench heard Habib Ullah VS Amjad Khan, Managing Director NESPAK, Lahore?",Mr. Justice Athar Minallah,"In Habib Ullah VS Amjad Khan, Managing Director NESPAK, Lahore:
+Bench: Mr. Justice Athar Minallah",bench,"Habib Ullah VS Amjad Khan, Managing Director NESPAK, Lahore",1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,1.1650285720825195,1.1408426761627197,structured_lookup,0.95
+7233_status,"What is the case status for Habib Ullah VS Amjad Khan, Managing Director NESPAK, Lahore?",Decided,"In Habib Ullah VS Amjad Khan, Managing Director NESPAK, Lahore:
+Case status: Decided",status,"Habib Ullah VS Amjad Khan, Managing Director NESPAK, Lahore",1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.476104497909546,1.5042567253112793,structured_lookup,0.95
+7241_bench,Which bench heard Syed Fahim Abbas VS The State?,Mr. Justice Ghulam Azam Qambrani,"In Syed Fahim Abbas VS The State:
+Bench: Mr. Justice Ghulam Azam Qambrani",bench,Syed Fahim Abbas VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,1.1488406658172607,1.121290683746338,structured_lookup,0.95
+7241_status,What is the case status for Syed Fahim Abbas VS The State?,Decided,"In Syed Fahim Abbas VS The State:
+Case status: Decided",status,Syed Fahim Abbas VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.109898567199707,1.0724129676818848,structured_lookup,0.95
+6967_bench,Which bench heard CIR VS M/s Peshawar Partical Board Industries Pvt Ltd?,"Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz","In CIR VS M/s Peshawar Partical Board Industries Pvt Ltd:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",bench,CIR VS M/s Peshawar Partical Board Industries Pvt Ltd,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.9565217391304348,1.5334739685058594,1.5547714233398438,structured_lookup,0.95
+6967_status,What is the case status for CIR VS M/s Peshawar Partical Board Industries Pvt Ltd?,Pending,"In CIR VS M/s Peshawar Partical Board Industries Pvt Ltd:
+Case status: Pending",status,CIR VS M/s Peshawar Partical Board Industries Pvt Ltd,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.1465628147125244,1.13913893699646,structured_lookup,0.95
+6995_bench,Which bench heard Faisal Mehmood VS Amna Nawaz?,Honourable Mr. Justice Inaam Ameen Minhas,"In Faisal Mehmood VS Amna Nawaz:
+Bench: Honourable Mr. Justice Inaam Ameen Minhas",bench,Faisal Mehmood VS Amna Nawaz,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,1.7063963413238525,2.4785754680633545,structured_lookup,0.95
+6995_status,What is the case status for Faisal Mehmood VS Amna Nawaz?,Decided,"In Faisal Mehmood VS Amna Nawaz:
+Case status: Decided",status,Faisal Mehmood VS Amna Nawaz,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.357595682144165,1.9509103298187256,structured_lookup,0.95
+7009_bench,Which bench heard Mehboob Ali Nasir VS Nasir Mehmood?,Honourable Mr. Justice Tariq Mehmood Jahangiri,"In Mehboob Ali Nasir VS Nasir Mehmood:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Mehboob Ali Nasir VS Nasir Mehmood,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,1.6301167011260986,1.6094191074371338,structured_lookup,0.95
+7009_status,What is the case status for Mehboob Ali Nasir VS Nasir Mehmood?,Decided,"In Mehboob Ali Nasir VS Nasir Mehmood:
+Case status: Decided",status,Mehboob Ali Nasir VS Nasir Mehmood,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.6873276233673096,1.6815717220306396,structured_lookup,0.95
+7010_bench,Which bench heard M/s Privatization Commission VS M/s S. J Industries and two others?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In M/s Privatization Commission VS M/s S. J Industries and two others:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,M/s Privatization Commission VS M/s S. J Industries and two others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,1.4515857696533203,1.4442477226257324,structured_lookup,0.95
+7010_status,What is the case status for M/s Privatization Commission VS M/s S. J Industries and two others?,Pending,"In M/s Privatization Commission VS M/s S. J Industries and two others:
+Case status: Pending",status,M/s Privatization Commission VS M/s S. J Industries and two others,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.579634189605713,1.4749605655670166,structured_lookup,0.95
+6238_advocates_petitioner,Who are the petitioner's advocates in Muhammad Ramzan VS FOP?,Muhammad Asif,"In R.A. 3/2024 Writ (SB):
+Petitioner's advocates: Muhammad Asif",advocates_petitioner,Muhammad Ramzan VS FOP,0.16666666666666666,1.0,0.2857142857142857,1.0,1.0,0.0,0.5714285714285715,1.900463342666626,1.7318589687347412,structured_lookup,0.95
+6238_bench,Which bench heard Muhammad Ramzan VS FOP?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Muhammad Ramzan VS FOP:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Muhammad Ramzan VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,1.6579463481903076,2.7414166927337646,structured_lookup,0.95
+6238_status,What is the case status for Muhammad Ramzan VS FOP?,Decided,"In Muhammad Ramzan VS FOP:
+Case status: Decided",status,Muhammad Ramzan VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.8989315032958984,2.585862398147583,structured_lookup,0.95
+6238_short_order,What is the short order in Muhammad Ramzan VS FOP?,.,"In Muhammad Ramzan VS FOP:
+Short order: .",short_order,Muhammad Ramzan VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.0,2.9360475540161133,2.581934928894043,structured_lookup,0.95
+6238_orders,List the court orders recorded for Muhammad Ramzan VS FOP.,"SR 6 - CM on
+18-03-2024 - URGENT CASES - CM Allowed, Main RA dismissed as withdrawn | SR 3 - 13-03-2024 - URGENT CASES - Relist 21/03/2024 | SR 6 - CM on
+18-03-2024 - URGENT CASES - CM Allowed, Main RA dismissed as withdrawn | SR 3 - 13-03-2024 - URGENT CASES - Relist 21/03/2024 | SR 2 - 21-03-2024 - MOTION CASES","In Muhammad Ramzan VS FOP:
+Orders: sr_number: 6, case_stage: URGENT CASES, short_order: CM Allowed, Main RA dismissed as withdrawn, hearing_date: CM on
+18-03-2024; sr_number: 3, case_stage: URGENT CASES, short_order: Relist 21/03/2024, hearing_date: 13-03-2024; sr_number: 6, case_stage: URGENT CASES, short_order: CM Allowed, Main RA dismissed as withdrawn, hearing_date: CM on
+18-03-2024; sr_number: 3, case_stage: URGENT CASES, short_order: Relist 21/03/2024, hearing_date: 13-03-2024; sr_number: 2, case_stage: MOTION CASES, short_order: , hearing_date: 21-03-2024",orders,Muhammad Ramzan VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.7721518987341772,2.799776315689087,2.6414575576782227,structured_lookup,0.95
+7015_bench,Which bench heard Premier Trading Co. VS Collector of Customs?,"Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan","In Premier Trading Co. VS Collector of Customs:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,Premier Trading Co. VS Collector of Customs,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9600000000000001,2.3222806453704834,2.3296616077423096,structured_lookup,0.95
+7015_status,What is the case status for Premier Trading Co. VS Collector of Customs?,Pending,"In Premier Trading Co. VS Collector of Customs:
+Case status: Pending",status,Premier Trading Co. VS Collector of Customs,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.8144750595092773,1.6290628910064697,structured_lookup,0.95
+7017_bench,"Which bench heard Telenor Pakistan Pvt. Ltd. VS Commissioner Inland Revenue, Islamabad,?","The Honourable Chief Justice, Honourable Mr. Justice Muhammad Asif","In Telenor Pakistan Pvt. Ltd. VS Commissioner Inland Revenue, Islamabad,:
+Bench: The Honourable Chief Justice, Honourable Mr. Justice Muhammad Asif",bench,"Telenor Pakistan Pvt. Ltd. VS Commissioner Inland Revenue, Islamabad,",0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9473684210526316,2.5447778701782227,2.5203640460968018,structured_lookup,0.95
+7017_status,"What is the case status for Telenor Pakistan Pvt. Ltd. VS Commissioner Inland Revenue, Islamabad,?",Decided,"In Telenor Pakistan Pvt. Ltd. VS Commissioner Inland Revenue, Islamabad,:
+Case status: Decided",status,"Telenor Pakistan Pvt. Ltd. VS Commissioner Inland Revenue, Islamabad,",0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.54455828666687,3.5147345066070557,structured_lookup,0.95
+7022_bench,Which bench heard Muhammad Shoaib Shaheen VS Returning officer?,Honourable Mr. Justice Arbab Muhammad Tahir,"In Muhammad Shoaib Shaheen VS Returning officer:
+Bench: Honourable Mr. Justice Arbab Muhammad Tahir",bench,Muhammad Shoaib Shaheen VS Returning officer,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,3.671570301055908,3.205951690673828,structured_lookup,0.95
+7022_status,What is the case status for Muhammad Shoaib Shaheen VS Returning officer?,Decided,"In Muhammad Shoaib Shaheen VS Returning officer:
+Case status: Decided",status,Muhammad Shoaib Shaheen VS Returning officer,0.3333333333333333,1.0,0.5,1.0,1.0,0.0,0.5,2.9363491535186768,2.931119918823242,structured_lookup,0.95
+7023_bench,Which bench heard Syed Asif Ali Burney VS The State?,Honourable Mr. Justice Mohsin Akhtar Kayani,"In Syed Asif Ali Burney VS The State:
+Bench: Honourable Mr. Justice Mohsin Akhtar Kayani",bench,Syed Asif Ali Burney VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.9909627437591553,2.9977293014526367,structured_lookup,0.95
+7023_status,What is the case status for Syed Asif Ali Burney VS The State?,Decided,"In Syed Asif Ali Burney VS The State:
+Case status: Decided",status,Syed Asif Ali Burney VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.2933545112609863,2.2648096084594727,structured_lookup,0.95
+7348_bench,Which bench heard Saima Waseem & 3 others VS Masaib VS ul VS Ibrar & others?,Mr. Justice Shaukat Aziz Siddiqui,"In Saima Waseem & 3 others VS Masaib VS ul VS Ibrar & others:
+Bench: Mr. Justice Shaukat Aziz Siddiqui",bench,Saima Waseem & 3 others VS Masaib VS ul VS Ibrar & others,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.65323543548584,2.656616687774658,structured_lookup,0.95
+7348_status,What is the case status for Saima Waseem & 3 others VS Masaib VS ul VS Ibrar & others?,Decided,"In Saima Waseem & 3 others VS Masaib VS ul VS Ibrar & others:
+Case status: Decided",status,Saima Waseem & 3 others VS Masaib VS ul VS Ibrar & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,3.1992340087890625,2.827754259109497,structured_lookup,0.95
+7024_bench,Which bench heard Jahan Zaib Khan through Zaman Ibrahim VS The State?,"Honourable Mr. Justice Tariq Mehmood Jahangiri, Honourable Mr. Justice Arbab Muhammad Tahir","In Jahan Zaib Khan through Zaman Ibrahim VS The State:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri, Honourable Mr. Justice Arbab Muhammad Tahir",bench,Jahan Zaib Khan through Zaman Ibrahim VS The State,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9600000000000001,3.0771212577819824,2.926243782043457,structured_lookup,0.95
+7024_status,What is the case status for Jahan Zaib Khan through Zaman Ibrahim VS The State?,Decided,"In Jahan Zaib Khan through Zaman Ibrahim VS The State:
+Case status: Decided",status,Jahan Zaib Khan through Zaman Ibrahim VS The State,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.7312700748443604,2.776695966720581,structured_lookup,0.95
+7026_bench,Which bench heard Moladad VS Shehzad and others?,The Honourable Chief Justice,"In Moladad VS Shehzad and others:
+Bench: The Honourable Chief Justice",bench,Moladad VS Shehzad and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.888888888888889,2.2228333950042725,2.162014961242676,structured_lookup,0.95
+7026_status,What is the case status for Moladad VS Shehzad and others?,Pending,"In Moladad VS Shehzad and others:
+Case status: Pending",status,Moladad VS Shehzad and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.341062307357788,2.338815689086914,structured_lookup,0.95
+7027_bench,"Which bench heard Muhammad Naveed Khan VS Islamabad High Court, Islamabad?","Honourable Mr. Justice Khadim Hussain Soomro, Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas","In Muhammad Naveed Khan VS Islamabad High Court, Islamabad:
+Bench: Honourable Mr. Justice Khadim Hussain Soomro, Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Inaam Ameen Minhas",bench,"Muhammad Naveed Khan VS Islamabad High Court, Islamabad",0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.972972972972973,1.8139700889587402,1.918407917022705,structured_lookup,0.95
+7027_status,"What is the case status for Muhammad Naveed Khan VS Islamabad High Court, Islamabad?",Pending,"In Muhammad Naveed Khan VS Islamabad High Court, Islamabad:
+Case status: Pending",status,"Muhammad Naveed Khan VS Islamabad High Court, Islamabad",0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.8807480335235596,1.7451622486114502,structured_lookup,0.95
+7028_bench,Which bench heard Shahid Pervez VS Muhammad Safdar Awan?,Honourable Mr. Justice Sardar Ejaz Ishaq Khan,"In Shahid Pervez VS Muhammad Safdar Awan:
+Bench: Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,Shahid Pervez VS Muhammad Safdar Awan,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9333333333333333,1.826549768447876,1.8096809387207031,structured_lookup,0.95
+7028_status,What is the case status for Shahid Pervez VS Muhammad Safdar Awan?,Pending,"In Shahid Pervez VS Muhammad Safdar Awan:
+Case status: Pending",status,Shahid Pervez VS Muhammad Safdar Awan,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.8007397651672363,1.8243327140808105,structured_lookup,0.95
+7032_bench,Which bench heard Rainbow Enterprises (Pvt.) Ltd. VS CDA & others?,Honourable Mr. Justice Muhammad Azam Khan,"In Rainbow Enterprises (Pvt.) Ltd. VS CDA & others:
+Bench: Honourable Mr. Justice Muhammad Azam Khan",bench,Rainbow Enterprises (Pvt.) Ltd. VS CDA & others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,1.7798235416412354,1.8050386905670166,structured_lookup,0.95
+7032_status,What is the case status for Rainbow Enterprises (Pvt.) Ltd. VS CDA & others?,Pending,"In Rainbow Enterprises (Pvt.) Ltd. VS CDA & others:
+Case status: Pending",status,Rainbow Enterprises (Pvt.) Ltd. VS CDA & others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.177830934524536,2.2197139263153076,structured_lookup,0.95
+7033_bench,Which bench heard Commissioner Inland Revenue VS Schlumber Technology B.V & another?,"Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz","In Commissioner Inland Revenue VS Schlumber Technology B.V & another:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",bench,Commissioner Inland Revenue VS Schlumber Technology B.V & another,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.9565217391304348,3.068429708480835,3.160609483718872,structured_lookup,0.95
+7033_status,What is the case status for Commissioner Inland Revenue VS Schlumber Technology B.V & another?,Pending,"In Commissioner Inland Revenue VS Schlumber Technology B.V & another:
+Case status: Pending",status,Commissioner Inland Revenue VS Schlumber Technology B.V & another,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.4335832595825195,2.357935905456543,structured_lookup,0.95
+7036_bench,Which bench heard Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited?,Honourable Ms. Justice Saman Rafat Imtiaz,"In Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.3979780673980713,2.096977710723877,structured_lookup,0.95
+7036_status,What is the case status for Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited?,Pending,"In Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited:
+Case status: Pending",status,Pakistan China Investment Company Limited VS Kohsar Hydro Power (Pvt.) Limited,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.0382332801818848,1.962451457977295,structured_lookup,0.95
+7038_bench,Which bench heard Hamdard City (Private) Limited VS Hamdard Laboratories (Waqf) Pakistan & another?,Honourable Mr. Justice Sardar Ejaz Ishaq Khan,"In Hamdard City (Private) Limited VS Hamdard Laboratories (Waqf) Pakistan & another:
+Bench: Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,Hamdard City (Private) Limited VS Hamdard Laboratories (Waqf) Pakistan & another,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.9333333333333333,2.016663074493408,1.8791704177856445,structured_lookup,0.95
+7038_status,What is the case status for Hamdard City (Private) Limited VS Hamdard Laboratories (Waqf) Pakistan & another?,Pending,"In Hamdard City (Private) Limited VS Hamdard Laboratories (Waqf) Pakistan & another:
+Case status: Pending",status,Hamdard City (Private) Limited VS Hamdard Laboratories (Waqf) Pakistan & another,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.9454646110534668,2.128657102584839,structured_lookup,0.95
+7041_bench,Which bench heard The State VS Aimel Khan?,"Honourable Mr. Justice Tariq Mehmood Jahangiri, Honourable Ms. Justice Saman Rafat Imtiaz","In The State VS Aimel Khan:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri, Honourable Ms. Justice Saman Rafat Imtiaz",bench,The State VS Aimel Khan,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.9600000000000001,2.198772668838501,2.1357619762420654,structured_lookup,0.95
+7041_status,What is the case status for The State VS Aimel Khan?,Pending,"In The State VS Aimel Khan:
+Case status: Pending",status,The State VS Aimel Khan,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,1.6200907230377197,1.5181093215942383,structured_lookup,0.95
+7042_bench,"Which bench heard M/s Fauji Fertilizers Company Limited, the Mall, Saddar, Rawalpindi. VS The Collector of Customs, MCC Building, G VS 9/1, Islamabad?","Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz","In M/s Fauji Fertilizers Company Limited, the Mall, Saddar, Rawalpindi. VS The Collector of Customs, MCC Building, G VS 9/1, Islamabad:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",bench,"M/s Fauji Fertilizers Company Limited, the Mall, Saddar, Rawalpindi. VS The Collector of Customs, MCC Building, G VS 9/1, Islamabad",0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9565217391304348,2.5786335468292236,2.6316580772399902,structured_lookup,0.95
+7042_status,"What is the case status for M/s Fauji Fertilizers Company Limited, the Mall, Saddar, Rawalpindi. VS The Collector of Customs, MCC Building, G VS 9/1, Islamabad?",Decided,"In M/s Fauji Fertilizers Company Limited, the Mall, Saddar, Rawalpindi. VS The Collector of Customs, MCC Building, G VS 9/1, Islamabad:
+Case status: Decided",status,"M/s Fauji Fertilizers Company Limited, the Mall, Saddar, Rawalpindi. VS The Collector of Customs, MCC Building, G VS 9/1, Islamabad",0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.650456666946411,2.731153726577759,structured_lookup,0.95
+7389_bench,Which bench heard M/s DJM Securities Pvt. Ltd. VS Muhammad Ahmad Nadeem Securities Ltd.?,"Honourable Mr. Justice Aamer Farooq, Mr. Justice Fiaz Ahmad Anjum Jandran","In M/s DJM Securities Pvt. Ltd. VS Muhammad Ahmad Nadeem Securities Ltd.:
+Bench: Honourable Mr. Justice Aamer Farooq, Mr. Justice Fiaz Ahmad Anjum Jandran",bench,M/s DJM Securities Pvt. Ltd. VS Muhammad Ahmad Nadeem Securities Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,2.310004949569702,2.376408576965332,structured_lookup,0.95
+7389_status,What is the case status for M/s DJM Securities Pvt. Ltd. VS Muhammad Ahmad Nadeem Securities Ltd.?,Decided,"In M/s DJM Securities Pvt. Ltd. VS Muhammad Ahmad Nadeem Securities Ltd.:
+Case status: Decided",status,M/s DJM Securities Pvt. Ltd. VS Muhammad Ahmad Nadeem Securities Ltd.,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.9811186790466309,1.9154117107391357,structured_lookup,0.95
+7391_bench,Which bench heard DIgital Media Solutions Pvt Ltd VS Warid Telecom Pvt Ltd?,The Honourable Chief Justice,"In DIgital Media Solutions Pvt Ltd VS Warid Telecom Pvt Ltd:
+Bench: The Honourable Chief Justice",bench,DIgital Media Solutions Pvt Ltd VS Warid Telecom Pvt Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.888888888888889,1.8712029457092285,1.7650580406188965,structured_lookup,0.95
+7391_status,What is the case status for DIgital Media Solutions Pvt Ltd VS Warid Telecom Pvt Ltd?,Decided,"In DIgital Media Solutions Pvt Ltd VS Warid Telecom Pvt Ltd:
+Case status: Decided",status,DIgital Media Solutions Pvt Ltd VS Warid Telecom Pvt Ltd,1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.9549753665924072,2.1161510944366455,structured_lookup,0.95
+7043_bench,Which bench heard Syed Tahreen Fatima VS Jawad Iqbal Dad and another?,The Honourable Chief Justice,"In Syed Tahreen Fatima VS Jawad Iqbal Dad and another:
+Bench: The Honourable Chief Justice",bench,Syed Tahreen Fatima VS Jawad Iqbal Dad and another,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.888888888888889,2.6614434719085693,2.4871132373809814,structured_lookup,0.95
+7043_status,What is the case status for Syed Tahreen Fatima VS Jawad Iqbal Dad and another?,Decided,"In Syed Tahreen Fatima VS Jawad Iqbal Dad and another:
+Case status: Decided",status,Syed Tahreen Fatima VS Jawad Iqbal Dad and another,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.35854172706604,2.355355739593506,structured_lookup,0.95
+7045_bench,Which bench heard Nazma Shaheen VS Secretary Ministry of Housing & Works and others?,Honourable Mr. Justice Tariq Mehmood Jahangiri,"In Nazma Shaheen VS Secretary Ministry of Housing & Works and others:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Nazma Shaheen VS Secretary Ministry of Housing & Works and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.724369525909424,2.5621564388275146,structured_lookup,0.95
+7045_status,What is the case status for Nazma Shaheen VS Secretary Ministry of Housing & Works and others?,Decided,"In Nazma Shaheen VS Secretary Ministry of Housing & Works and others:
+Case status: Decided",status,Nazma Shaheen VS Secretary Ministry of Housing & Works and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.903782844543457,2.497995138168335,structured_lookup,0.95
+7046_bench,Which bench heard Muhammad Nisar VS Muhammad Sabir?,Honourable Ms. Justice Saman Rafat Imtiaz,"In Muhammad Nisar VS Muhammad Sabir:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,Muhammad Nisar VS Muhammad Sabir,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.015737771987915,2.0311522483825684,structured_lookup,0.95
+7046_status,What is the case status for Muhammad Nisar VS Muhammad Sabir?,Decided,"In Muhammad Nisar VS Muhammad Sabir:
+Case status: Pending",status,Muhammad Nisar VS Muhammad Sabir,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.0,2.4710211753845215,2.545525074005127,structured_lookup,0.95
+7050_bench,Which bench heard M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,Honourable Ms. Justice Saman Rafat Imtiaz,"In M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.192950487136841,2.2147388458251953,structured_lookup,0.95
+7050_status,What is the case status for M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others?,Decided,"In M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others:
+Case status: Decided",status,M/s Ghulam Habib & Co. (GHC) Intl. Pvt. Ltd. VS EHFPRO (Pvt.) & others,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.8837368488311768,2.6923978328704834,structured_lookup,0.95
+7053_bench,Which bench heard Sir Syed Memorial Society VS Commissioner Inland Revenue & others?,"Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan","In Sir Syed Memorial Society VS Commissioner Inland Revenue & others:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Mr. Justice Sardar Ejaz Ishaq Khan",bench,Sir Syed Memorial Society VS Commissioner Inland Revenue & others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9600000000000001,2.3334476947784424,2.331864595413208,structured_lookup,0.95
+7053_status,What is the case status for Sir Syed Memorial Society VS Commissioner Inland Revenue & others?,Pending,"In Sir Syed Memorial Society VS Commissioner Inland Revenue & others:
+Case status: Pending",status,Sir Syed Memorial Society VS Commissioner Inland Revenue & others,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.4692063331604004,2.3020620346069336,structured_lookup,0.95
+7054_bench,Which bench heard Ghulam Rasool VS Wali Dad Khan?,Honourable Mr. Justice Tariq Mehmood Jahangiri,"In Ghulam Rasool VS Wali Dad Khan:
+Bench: Honourable Mr. Justice Tariq Mehmood Jahangiri",bench,Ghulam Rasool VS Wali Dad Khan,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.3982133865356445,2.324655771255493,structured_lookup,0.95
+7054_status,What is the case status for Ghulam Rasool VS Wali Dad Khan?,Decided,"In Ghulam Rasool VS Wali Dad Khan:
+Case status: Decided",status,Ghulam Rasool VS Wali Dad Khan,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.5014712810516357,2.4095940589904785,structured_lookup,0.95
+7059_bench,Which bench heard National Bank of Pakistan VS Messrs Southern Electric Power Company Limited?,Honourable Ms. Justice Saman Rafat Imtiaz,"In National Bank of Pakistan VS Messrs Southern Electric Power Company Limited:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,National Bank of Pakistan VS Messrs Southern Electric Power Company Limited,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,1.8753316402435303,1.8130629062652588,structured_lookup,0.95
+7059_status,What is the case status for National Bank of Pakistan VS Messrs Southern Electric Power Company Limited?,Pending,"In National Bank of Pakistan VS Messrs Southern Electric Power Company Limited:
+Case status: Pending",status,National Bank of Pakistan VS Messrs Southern Electric Power Company Limited,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,1.6517510414123535,1.6793138980865479,structured_lookup,0.95
+7067_bench,Which bench heard M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue?,"The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz","In M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue:
+Bench: The Honourable Chief Justice, Honourable Ms. Justice Saman Rafat Imtiaz",bench,M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9523809523809523,2.54329252243042,2.55104398727417,structured_lookup,0.95
+7067_status,What is the case status for M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue?,Pending,"In M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue:
+Case status: Pending",status,M/s Rohed & Schwarz Pakistan Pvt Ltd VS Appellate Tribunal Inland Revenue,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.944425582885742,2.697310447692871,structured_lookup,0.95
+6986_bench,Which bench heard ALL PAKISTAN PAPER VS FOP?,"Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Muhammad Asif","In ALL PAKISTAN PAPER VS FOP:
+Bench: Honourable Mr. Justice Muhammad Azam Khan, Honourable Mr. Justice Muhammad Asif",bench,ALL PAKISTAN PAPER VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.9565217391304348,2.3843772411346436,2.321983575820923,structured_lookup,0.95
+6986_status,What is the case status for ALL PAKISTAN PAPER VS FOP?,Decided,"In ALL PAKISTAN PAPER VS FOP:
+Case status: Decided",status,ALL PAKISTAN PAPER VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.5,2.3484926223754883,2.4746735095977783,structured_lookup,0.95
+6986_orders,List the court orders recorded for ALL PAKISTAN PAPER VS FOP.,SR 7 - 23-10-2025 - NOTICE CASES - Dismissed,"In ALL PAKISTAN PAPER VS FOP:
+Orders: sr_number: 7, case_stage: NOTICE CASES, short_order: Dismissed, hearing_date: 23-10-2025",orders,ALL PAKISTAN PAPER VS FOP,1.0,1.0,1.0,1.0,1.0,0.0,0.6666666666666666,3.0687694549560547,2.3420538902282715,structured_lookup,0.95
+7068_bench,Which bench heard Naseer Chohan VS IDK Ventures?,Honourable Mr. Justice Arbab Muhammad Tahir,"In Naseer Chohan VS IDK Ventures:
+Bench: Honourable Mr. Justice Arbab Muhammad Tahir",bench,Naseer Chohan VS IDK Ventures,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.923076923076923,2.3692100048065186,2.502241373062134,structured_lookup,0.95
+7068_status,What is the case status for Naseer Chohan VS IDK Ventures?,Decided,"In Naseer Chohan VS IDK Ventures:
+Case status: Decided",status,Naseer Chohan VS IDK Ventures,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.6684842109680176,2.5711922645568848,structured_lookup,0.95
+7069_bench,Which bench heard Sadruddin Hashwani etc VS SECP?,Honourable Mr. Justice Babar Sattar,"In Sadruddin Hashwani etc VS SECP:
+Bench: Honourable Mr. Justice Babar Sattar",bench,Sadruddin Hashwani etc VS SECP,1.0,1.0,1.0,1.0,1.0,0.0,0.9090909090909091,2.450758695602417,2.39715313911438,structured_lookup,0.95
+7069_status,What is the case status for Sadruddin Hashwani etc VS SECP?,Decided,"In Sadruddin Hashwani etc VS SECP:
+Case status: Decided",status,Sadruddin Hashwani etc VS SECP,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.641286849975586,2.7169744968414307,structured_lookup,0.95
+7071_bench,Which bench heard CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd?,"Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz","In CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd:
+Bench: Honourable Mr. Justice Babar Sattar, Honourable Ms. Justice Saman Rafat Imtiaz",bench,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.9565217391304348,2.7199862003326416,2.7056314945220947,structured_lookup,0.95
+7071_status,What is the case status for CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd?,Decided,"In CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd:
+Case status: Decided",status,CIR VS M/s R.K Steel Re VS Rolling Mills Pvt Ltd,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.71256422996521,2.7762908935546875,structured_lookup,0.95
+7073_bench,Which bench heard M/S Labbaik (Pvt) Ltd VS PEMRA and others?,The Honourable Chief Justice,"In M/S Labbaik (Pvt) Ltd VS PEMRA and others:
+Bench: The Honourable Chief Justice",bench,M/S Labbaik (Pvt) Ltd VS PEMRA and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.888888888888889,2.4943652153015137,2.48116397857666,structured_lookup,0.95
+7073_status,What is the case status for M/S Labbaik (Pvt) Ltd VS PEMRA and others?,Decided,"In M/S Labbaik (Pvt) Ltd VS PEMRA and others:
+Case status: Decided",status,M/S Labbaik (Pvt) Ltd VS PEMRA and others,0.5,1.0,0.6666666666666666,1.0,1.0,0.0,0.5,2.9089696407318115,2.993144989013672,structured_lookup,0.95
+7075_bench,Which bench heard XEN IESCO Sub Division Tarnol VS Burhan Uddin?,Honourable Ms. Justice Saman Rafat Imtiaz,"In XEN IESCO Sub Division Tarnol VS Burhan Uddin:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,XEN IESCO Sub Division Tarnol VS Burhan Uddin,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.923076923076923,2.640183925628662,2.5641088485717773,structured_lookup,0.95
+7075_status,What is the case status for XEN IESCO Sub Division Tarnol VS Burhan Uddin?,Pending,"In XEN IESCO Sub Division Tarnol VS Burhan Uddin:
+Case status: Pending",status,XEN IESCO Sub Division Tarnol VS Burhan Uddin,0.5,1.0,0.6666666666666666,0.5,0.6309297535714575,0.0,0.5,2.653264045715332,2.9638895988464355,structured_lookup,0.95
+6076_bench,Which bench heard SECP VS Live Stock Diary Development Board?,Honourable Ms. Justice Saman Rafat Imtiaz,"In SECP VS Live Stock Diary Development Board:
+Bench: Honourable Ms. Justice Saman Rafat Imtiaz",bench,SECP VS Live Stock Diary Development Board,1.0,1.0,1.0,1.0,1.0,0.0,0.923076923076923,2.147735834121704,2.1765480041503906,structured_lookup,0.95

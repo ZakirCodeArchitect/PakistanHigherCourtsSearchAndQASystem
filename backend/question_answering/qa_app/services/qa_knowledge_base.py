@@ -9,6 +9,7 @@ import json
 import hashlib
 import logging
 import time
+import traceback
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from dataclasses import dataclass
@@ -16,10 +17,16 @@ from dataclasses import dataclass
 from django.db import transaction, connection, models
 from django.utils import timezone
 from django.conf import settings
+from django.apps import apps
 
 from qa_app.models import QAKnowledgeBase, QASession, QAQuery, QAResponse
-# Note: Cases models are in search_module, we'll need to import them differently
-# from apps.cases.models import Case, Document, DocumentText, UnifiedCaseView
+
+# Dynamically load models from search_module.apps.cases
+Case = apps.get_model('cases', 'Case')
+Document = apps.get_model('cases', 'Document')
+DocumentText = apps.get_model('cases', 'DocumentText')
+UnifiedCaseView = apps.get_model('cases', 'UnifiedCaseView')
+CaseDocument = apps.get_model('cases', 'CaseDocument')
 
 logger = logging.getLogger(__name__)
 
@@ -537,11 +544,11 @@ class QALawReferenceNormalizer:
             elif 'rule' in pattern_text or 'order' in pattern_text:
                 # Rule/Order pattern
                 reference_type = 'rule_order'
-            for group in groups:
-                if group and group.isdigit():
-                    section_num = int(group)
-                elif group and group.lower() in self.legal_abbreviations:
-                    act_abbr = group.lower()
+                for group in groups:
+                    if group and group.isdigit():
+                        section_num = int(group)
+                    elif group and group.lower() in self.legal_abbreviations:
+                        act_abbr = group.lower()
             
             # Government agency pattern detection
             elif any(agency in pattern_text for agency in ['fia', 'nab', 'fbr', 'secp', 'sbp', 'pemra', 'pta']):
@@ -645,13 +652,13 @@ class QALawReferenceNormalizer:
             return f"Art. {section} Constitution"
             
         else:  # Standard section reference
-        section = ref_info['section_number']
-        act_abbr = ref_info['act_abbreviation']
+            section = ref_info['section_number']
+            act_abbr = ref_info['act_abbreviation']
         
             if act_abbr and act_abbr != 'unknown':
-            return f"s. {section} {act_abbr.upper()}"
-        else:
-            return f"s. {section}"
+                return f"s. {section} {act_abbr.upper()}"
+            else:
+                return f"s. {section}"
     
     def _calculate_qa_relevance(self, act_abbr: str, section_num: int = None, reference_type: str = 'section') -> float:
         """Calculate relevance score for QA context"""
@@ -839,26 +846,66 @@ class QAEnhancedChunkingService:
     def _get_document_text(self, case_id: int, document_id: Optional[int] = None) -> str:
         """Get document text from database"""
         try:
+            texts: List[str] = []
+            
+            # 1) If a specific document is requested, collect all of its page texts
             if document_id:
-                # Get specific document text
-                doc_text = DocumentText.objects.filter(
-                    document_id=document_id
-                ).first()
-                if doc_text:
-                    return doc_text.clean_text or doc_text.raw_text
-            else:
-                # Get case text from unified view
-                unified_view = UnifiedCaseView.objects.filter(case_id=case_id).first()
-                if unified_view and unified_view.pdf_content_summary:
-                    content = unified_view.pdf_content_summary
-                    if isinstance(content, dict):
-                        return content.get('full_text', '')
-                    return str(content)
+                doc_page_qs = DocumentText.objects.filter(document_id=document_id).order_by('page_number')
+                for page in doc_page_qs:
+                    page_text = page.clean_text or page.raw_text or ''
+                    if page_text:
+                        texts.append(page_text)
+                if texts:
+                    return '\n\n'.join(texts)
+            
+            # 2) Use unified case view aggregated content if available
+            unified_view = UnifiedCaseView.objects.filter(case_id=case_id).first()
+            if unified_view and unified_view.pdf_content_summary:
+                summary = unified_view.pdf_content_summary
+                
+                # Helper to normalize various content structures into text
+                def _extract_texts_from_summary(summary_obj) -> List[str]:
+                    collected: List[str] = []
+                    if isinstance(summary_obj, str):
+                        if summary_obj.strip():
+                            collected.append(summary_obj)
+                    elif isinstance(summary_obj, list):
+                        for item in summary_obj:
+                            collected.extend(_extract_texts_from_summary(item))
+                    elif isinstance(summary_obj, dict):
+                        # Preferred keys in order
+                        for key in ('full_text', 'complete_text', 'text', 'text_snippet'):
+                            value = summary_obj.get(key)
+                            if value:
+                                collected.extend(_extract_texts_from_summary(value))
+                        # Also check nested collections such as complete_pdf_content or sample_texts
+                        for key in ('complete_pdf_content', 'sample_texts', 'documents'):
+                            nested = summary_obj.get(key)
+                            if nested:
+                                collected.extend(_extract_texts_from_summary(nested))
+                    return collected
+                
+                summary_texts = _extract_texts_from_summary(summary)
+                if summary_texts:
+                    combined = '\n\n'.join(t for t in summary_texts if t and t.strip())
+                    if combined.strip():
+                        return combined
+            
+            # 3) Fallback: aggregate all related document texts for the case
+            case_document_ids = CaseDocument.objects.filter(case_id=case_id).values_list('document_id', flat=True).distinct()
+            for doc_id in case_document_ids:
+                doc_page_qs = DocumentText.objects.filter(document_id=doc_id).order_by('page_number')
+                for page in doc_page_qs:
+                    page_text = page.clean_text or page.raw_text or ''
+                    if page_text:
+                        texts.append(page_text)
+            if texts:
+                return '\n\n'.join(text for text in texts if text and text.strip())
             
             return ""
             
         except Exception as e:
-            self.logger.error(f"Error getting document text: {str(e)}")
+            self.logger.error(f"Error getting document text: {str(e)}", exc_info=True)
             return ""
     
     def _get_case_metadata(self, case_id: int) -> Optional[Dict[str, Any]]:
@@ -869,15 +916,30 @@ class QAEnhancedChunkingService:
                 return None
             
             # Get court information
-            court_name = case.court.name if case.court else "Unknown Court"
+            court_name = getattr(case.court, 'name', None) or "Unknown Court"
             
-            # Get judges
-            judges = []
+            # Get judges (if relation exists)
+            judges: List[str] = []
             if hasattr(case, 'judges_data'):
-                judges = [judge.judge_name for judge in case.judges_data.all()]
+                try:
+                    judges = [judge.judge_name for judge in case.judges_data.all() if getattr(judge, 'judge_name', None)]
+                except Exception:
+                    # judges_data may not be a related manager if data not populated; ignore gracefully
+                    judges = []
             
-            # Get year
-            year = case.hearing_date.year if case.hearing_date else None
+            # Parse year from hearing date (stored as string in scraped data)
+            year: Optional[int] = None
+            hearing_date_value = case.hearing_date
+            if hearing_date_value:
+                if isinstance(hearing_date_value, datetime):
+                    year = hearing_date_value.year
+                else:
+                    match = re.search(r'(19|20)\\d{2}', str(hearing_date_value))
+                    if match:
+                        try:
+                            year = int(match.group())
+                        except ValueError:
+                            year = None
             
             return {
                 'case_no': case.case_number or f"CASE-{case_id}",
@@ -887,7 +949,7 @@ class QAEnhancedChunkingService:
                 'case_title': case.case_title or "",
                 'status': case.status or "",
                 'bench': case.bench or "",
-                'hearing_date': case.hearing_date,
+                'hearing_date': hearing_date_value,
                 'case_id': case_id
             }
             
@@ -1295,7 +1357,7 @@ class QAKnowledgeBaseService:
                         processing_results['qa_metrics']['avg_qa_relevance'] += chunk.get('qa_relevance', 0)
             
             # Process individual documents for QA
-            documents = Document.objects.filter(case_id=case_id)
+            documents = Document.objects.filter(case_documents__case_id=case_id).distinct()
             for document in documents:
                 try:
                     chunks = self.chunking_service.chunk_document_for_qa(
@@ -1314,11 +1376,10 @@ class QAKnowledgeBaseService:
                             processing_results['qa_metrics']['total_references'] += len(chunk.get('normalized_references', []))
                             processing_results['qa_metrics']['avg_ai_context_score'] += chunk.get('ai_context_score', 0)
                             processing_results['qa_metrics']['avg_qa_relevance'] += chunk.get('qa_relevance', 0)
-                
                 except Exception as e:
                     error_msg = f"Error processing document {document.id} for QA: {str(e)}"
                     processing_results['errors'].append(error_msg)
-                    self.logger.error(error_msg)
+                    self.logger.error(error_msg, exc_info=True)
             
             # Calculate averages
             if processing_results['qa_entries_created'] > 0:
@@ -1336,7 +1397,7 @@ class QAKnowledgeBaseService:
             return processing_results
             
         except Exception as e:
-            self.logger.error(f"Error in QA processing: {str(e)}")
+            self.logger.error(f"Error in QA processing: {str(e)}", exc_info=True)
             return {
                 'success': False,
                 'error': str(e),
@@ -1349,6 +1410,17 @@ class QAKnowledgeBaseService:
             with transaction.atomic():
                 for chunk_data in chunks:
                     metadata = chunk_data['metadata']
+                    
+                    # Skip duplicates by content hash
+                    existing_entry = QAKnowledgeBase.objects.filter(content_hash=chunk_data['chunk_hash']).first()
+                    if existing_entry:
+                        self.logger.debug(
+                            "Skipping duplicate QA chunk (hash=%s, existing_case=%s, new_case=%s)",
+                            chunk_data['chunk_hash'],
+                            existing_entry.source_case_id,
+                            case_id
+                        )
+                        continue
                     
                     # Create QA Knowledge Base entry
                     qa_entry = QAKnowledgeBase(

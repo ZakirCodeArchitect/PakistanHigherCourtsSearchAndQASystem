@@ -88,6 +88,39 @@ class Case(models.Model):
         ]
 
 
+class CaseSearchProfile(models.Model):
+    """Normalized search metadata derived from case content for indexing."""
+
+    case = models.OneToOneField(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="search_profile",
+        db_constraint=False,
+    )
+
+    clean_case_title = models.CharField(max_length=800, blank=True, default='')
+    normalized_case_title = models.CharField(max_length=800, blank=True, default='')
+    party_tokens = models.JSONField(default=list, blank=True)
+    subject_tags = models.JSONField(default=list, blank=True)
+    keyword_highlights = models.JSONField(default=list, blank=True)
+    summary_text = models.TextField(blank=True, default='')
+    case_number_tokens = models.JSONField(default=list, blank=True)
+    section_tags = models.JSONField(default=list, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Search profile for {self.case.case_number}"
+
+    class Meta:
+        db_table = "case_search_profiles"
+        indexes = [
+            models.Index(fields=["clean_case_title"]),
+        ]
+
+
 class CaseDetail(models.Model):
     """Detailed case information from case details modal (for 'Decided' cases)"""
 
@@ -491,7 +524,7 @@ class Term(models.Model):
     
     # Term identification
     type = models.CharField(max_length=50, db_index=True)  # 'section', 'statute', 'citation', 'court', 'judge'
-    canonical = models.CharField(max_length=500, db_index=True)  # Normalized canonical form
+    canonical = models.CharField(max_length=1000, db_index=True)  # Normalized canonical form
     
     # Statute-specific fields (optional)
     statute_code = models.CharField(max_length=50, blank=True, null=True)  # 'ppc', 'crpc', 'cpc', etc.
@@ -533,7 +566,7 @@ class TermOccurrence(models.Model):
     page_no = models.IntegerField(null=True, blank=True)  # Page number if available
     
     # Extraction metadata
-    surface = models.CharField(max_length=500)  # Original text as found
+    surface = models.CharField(max_length=1000)  # Original text as found
     confidence = models.FloatField(default=0.0)  # Confidence score (0.0-1.0)
     source_rule = models.CharField(max_length=100)  # Which extraction rule matched
     rules_version = models.CharField(max_length=20)  # Version of rules used

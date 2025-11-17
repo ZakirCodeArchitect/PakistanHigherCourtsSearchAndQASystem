@@ -147,6 +147,9 @@ class IHCSeleniumScraper:
         self.years = list(range(2010, 2026))  # From 2010 to 2025
         self.case_numbers = list(range(1, 1001))  # Case numbers 1-1000
 
+        # Limit history table extraction to first N rows for performance
+        self.max_history_rows = 2
+
     def _cleanup_on_exit(self):
         """Cleanup function called on exit"""
         if hasattr(self, 'driver') and self.driver:
@@ -1285,7 +1288,19 @@ class IHCSeleniumScraper:
                                     start_row = 1
                                     print(f"🔍 DEBUG: Case {case_no}, Page {page_number}, No resume row, Start row: {start_row}")
                                 
+                                # Track consecutive stale element errors (session timeout detection)
+                                consecutive_stale_errors = 0
+                                max_consecutive_stale = 5  # Stop after 5 consecutive stale errors
+                                
                                 for i, row in enumerate(current_rows, 1):
+                                    # Check if too many consecutive stale errors (session timeout)
+                                    if consecutive_stale_errors >= max_consecutive_stale:
+                                        print(f"🚨 CRITICAL: {consecutive_stale_errors} consecutive stale element errors!")
+                                        print(f"📍 Current URL: {self.driver.current_url}")
+                                        print(f"⚠️ Session expired - page likely redirected. Stopping row processing.")
+                                        # Return early to trigger re-navigation in run_scraper.py
+                                        return all_cases
+                                    
                                     # Skip rows before resume point (on any page when resuming)
                                     if case_no and resume_row > 0 and i < start_row:
                                         print(f"⏭️ Skipping row {i} (before resume point {start_row})")
@@ -1313,7 +1328,7 @@ class IHCSeleniumScraper:
                                     
                                     # Proactive activity updates during intensive operations
                                     if i % 5 == 0:  # Update every 5 rows during intensive operations
-                                            self._update_activity_time()
+                                        self._update_activity_time()
                                     
 
                                     
@@ -1423,6 +1438,8 @@ class IHCSeleniumScraper:
                                                     case_data, case_no, page_number, i
                                                 )
                                                 if saved:
+                                                    # Reset stale error counter on successful save (session is working)
+                                                    consecutive_stale_errors = 0
                                                     # Update progress after successful save
                                                     actual_saved_count = self.get_total_rows_for_case(case_no)
                                                     session_saved_count += 1
@@ -1441,7 +1458,9 @@ class IHCSeleniumScraper:
                                             )
 
                                     except StaleElementReferenceException as e:
+                                        consecutive_stale_errors += 1  # Increment counter for session timeout detection
                                         print(f"⚠️ Stale element error on page {page_number}, row {i}: {e}")
+                                        print(f"⚠️ Consecutive stale errors: {consecutive_stale_errors}/{max_consecutive_stale}")
                                         # Update progress even for failed rows to track where we reached
                                         if case_no:
                                             total_rows = self.progress_data.get(str(case_no), {}).get('total_rows')
@@ -3004,6 +3023,11 @@ class IHCSeleniumScraper:
                 data_tr_elements = all_tr_elements[1:] if all_tr_elements else []
 
                 for tr_index, tr in enumerate(data_tr_elements):
+                    if len(rows) >= self.max_history_rows:
+                        print(
+                            f"⏹️ Orders: Reached max history rows ({self.max_history_rows}) during primary extraction"
+                        )
+                        break
                     cells = tr.find_elements(By.TAG_NAME, "td")
                     row_data = []
 
@@ -3076,98 +3100,120 @@ class IHCSeleniumScraper:
                         print(f"⚠️ Orders: Skipping empty TR {tr_index + 1}: {row_data}")
 
                 # Method 2: Also check tbody specifically
-                tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
-                if tbody_elements:
-                    print(f"🔍 Orders: Found {len(tbody_elements)} tbody elements")
-                    for tbody_index, tbody in enumerate(tbody_elements):
-                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
-                        print(
-                            f"🔍 Orders: Tbody {tbody_index + 1} has {len(tbody_rows)} rows"
-                        )
+                if len(rows) < self.max_history_rows:
+                    tbody_elements = table.find_elements(By.TAG_NAME, "tbody")
+                    if tbody_elements:
+                        print(f"🔍 Orders: Found {len(tbody_elements)} tbody elements")
+                        for tbody_index, tbody in enumerate(tbody_elements):
+                            if len(rows) >= self.max_history_rows:
+                                print(
+                                    f"⏹️ Orders: Reached max history rows ({self.max_history_rows}) during tbody scanning"
+                                )
+                                break
 
-                        for row_index, row in enumerate(tbody_rows):
-                            cells = row.find_elements(By.TAG_NAME, "td")
-                            row_data = []
-
-                            for cell_index, cell in enumerate(cells):
-                                cell_text = cell.text.strip()
-
-                                # Special handling for VIEW column (last column)
-                                if (
-                                    cell_index == len(cells) - 1
-                                    and "VIEW" in headers[-1]
-                                ):
-                                    # Look for download links in the VIEW column
-                                    try:
-                                        # Find download links within this cell
-                                        download_links = cell.find_elements(
-                                            By.TAG_NAME, "a"
-                                        )
-                                        if download_links:
-                                            # Extract href attributes from download links
-                                            link_data = []
-                                            for link in download_links:
-                                                href = link.get_attribute("href")
-                                                title = (
-                                                    link.get_attribute("title") or ""
-                                                )
-                                                link_text = link.text.strip()
-
-                                                if href:
-                                                    link_info = {
-                                                        "href": href,
-                                                        "title": title,
-                                                        "text": link_text,
-                                                    }
-                                                    link_data.append(link_info)
-
-                                            if link_data:
-                                                row_data.append(link_data)
-                                                print(
-                                                    f"✅ Orders: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}"
-                                                )
-                                            else:
-                                                row_data.append(cell_text)
-                                        else:
-                                            row_data.append(cell_text)
-                                    except Exception as link_error:
-                                        print(
-                                            f"⚠️ Error extracting VIEW column links: {link_error}"
-                                        )
-                                        row_data.append(cell_text)
-                                else:
-                                    row_data.append(cell_text)
-
+                            tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
                             print(
-                                f"🔍 Orders: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}"
+                                f"🔍 Orders: Tbody {tbody_index + 1} has {len(tbody_rows)} rows"
                             )
 
-                            # Include row if it has any data (not just empty cells)
-                            if row_data and any(
-                                cell_text
-                                for cell_text in row_data
-                                if isinstance(cell_text, str)
-                            ):
-                                # Skip rows that contain "No data available"
-                                if not any(
-                                    "No data available" in str(cell_text)
+                            for row_index, row in enumerate(tbody_rows):
+                                if len(rows) >= self.max_history_rows:
+                                    print(
+                                        f"⏹️ Orders: Reached max history rows ({self.max_history_rows}) inside tbody loop"
+                                    )
+                                    break
+
+                                cells = row.find_elements(By.TAG_NAME, "td")
+                                row_data = []
+
+                                for cell_index, cell in enumerate(cells):
+                                    cell_text = cell.text.strip()
+
+                                    # Special handling for VIEW column (last column)
+                                    if (
+                                        cell_index == len(cells) - 1
+                                        and "VIEW" in headers[-1]
+                                    ):
+                                        # Look for download links in the VIEW column
+                                        try:
+                                            # Find download links within this cell
+                                            download_links = cell.find_elements(
+                                                By.TAG_NAME, "a"
+                                            )
+                                            if download_links:
+                                                # Extract href attributes from download links
+                                                link_data = []
+                                                for link in download_links:
+                                                    href = link.get_attribute("href")
+                                                    title = (
+                                                        link.get_attribute("title") or ""
+                                                    )
+                                                    link_text = link.text.strip()
+
+                                                    if href:
+                                                        link_info = {
+                                                            "href": href,
+                                                            "title": title,
+                                                            "text": link_text,
+                                                        }
+                                                        link_data.append(link_info)
+
+                                                if link_data:
+                                                    row_data.append(link_data)
+                                                    print(
+                                                        f"✅ Orders: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}"
+                                                    )
+                                                else:
+                                                    row_data.append(cell_text)
+                                            else:
+                                                row_data.append(cell_text)
+                                        except Exception as link_error:
+                                            print(
+                                                f"⚠️ Error extracting VIEW column links: {link_error}"
+                                            )
+                                            row_data.append(cell_text)
+                                    else:
+                                        row_data.append(cell_text)
+
+                                print(
+                                    f"🔍 Orders: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}"
+                                )
+
+                                # Include row if it has any data (not just empty cells)
+                                if row_data and any(
+                                    cell_text
                                     for cell_text in row_data
+                                    if isinstance(cell_text, str)
                                 ):
-                                    # Check if this row is already added
-                                    if row_data not in rows:
-                                        rows.append(row_data)
+                                    # Skip rows that contain "No data available"
+                                    if not any(
+                                        "No data available" in str(cell_text)
+                                        for cell_text in row_data
+                                    ):
+                                        # Check if this row is already added
+                                        if row_data not in rows:
+                                            rows.append(row_data)
+                                            print(
+                                                f"✅ Orders: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}"
+                                            )
+                                    else:
                                         print(
-                                            f"✅ Orders: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}"
+                                            f"⚠️ Orders: Skipping 'No data available' tbody row: {row_data}"
                                         )
                                 else:
-                                    print(
-                                        f"⚠️ Orders: Skipping 'No data available' tbody row: {row_data}"
-                                    )
-                            else:
-                                print(f"⚠️ Orders: Skipping empty tbody row: {row_data}")
+                                    print(f"⚠️ Orders: Skipping empty tbody row: {row_data}")
+
+                            if len(rows) >= self.max_history_rows:
+                                break
+
+                        # Safety check after completing tbody loop
+                        if len(rows) >= self.max_history_rows:
+                            print(
+                                f"⏹️ Orders: Finished tbody scanning at max history rows ({self.max_history_rows})"
+                            )
 
                 if rows:
-                    history_content["content"]["rows"] = rows
+                    history_content["content"]["rows"] = rows[: self.max_history_rows]
                     print(
                         f"✅ Orders: Found {len(rows)} data rows with VIEW column links"
                     )
@@ -3196,7 +3242,7 @@ class IHCSeleniumScraper:
                     history_content["content"]["headers"] = headers
                     print(f"✅ Comments: Found {len(headers)} headers: {headers}")
 
-                # Extract ALL rows including first entry
+                # Extract limited rows including first entry
                 rows = []
                 row_elements = table.find_elements(By.TAG_NAME, "tr")[
                     1:
@@ -3204,6 +3250,11 @@ class IHCSeleniumScraper:
                 print(f"🔍 Comments: Found {len(row_elements)} total row elements")
 
                 for row_index, row in enumerate(row_elements):
+                    if len(rows) >= self.max_history_rows:
+                        print(
+                            f"⏹️ Comments: Reached max history rows ({self.max_history_rows})"
+                        )
+                        break
                     cells = row.find_elements(By.TAG_NAME, "td")
                     row_data = []
 
@@ -3229,7 +3280,7 @@ class IHCSeleniumScraper:
                         print(f"⚠️ Comments: Skipped empty row {row_index + 1}")
 
                 if rows:
-                    history_content["content"]["rows"] = rows
+                    history_content["content"]["rows"] = rows[: self.max_history_rows]
                     print(
                         f"✅ Comments: Found {len(rows)} data rows (including first entry)"
                     )
@@ -3258,7 +3309,7 @@ class IHCSeleniumScraper:
                     history_content["content"]["headers"] = headers
                     print(f"✅ Case CMs: Found {len(headers)} headers: {headers}")
 
-                # Extract ALL rows including first entry
+                # Extract limited rows including first entry
                 rows = []
                 row_elements = table.find_elements(By.TAG_NAME, "tr")[
                     1:
@@ -3266,6 +3317,11 @@ class IHCSeleniumScraper:
                 print(f"🔍 Case CMs: Found {len(row_elements)} total row elements")
 
                 for row_index, row in enumerate(row_elements):
+                    if len(rows) >= self.max_history_rows:
+                        print(
+                            f"⏹️ Case CMs: Reached max history rows ({self.max_history_rows})"
+                        )
+                        break
                     cells = row.find_elements(By.TAG_NAME, "td")
                     row_data = []
 
@@ -3291,7 +3347,7 @@ class IHCSeleniumScraper:
                         print(f"⚠️ Case CMs: Skipped empty row {row_index + 1}")
 
                 if rows:
-                    history_content["content"]["rows"] = rows
+                    history_content["content"]["rows"] = rows[: self.max_history_rows]
                     print(
                         f"✅ Case CMs: Found {len(rows)} data rows (including first entry)"
                     )
@@ -4029,83 +4085,115 @@ class IHCSeleniumScraper:
             return None
 
     def _extract_hearing_details_data(self, option_content):
-        """Extract data from Hearing Details modal (Case History)"""
-        try:
-            # Look for the specific table with id="tblCseHstry" (same as Orders)
-            table = self.driver.find_element(By.ID, "tblCseHstry")
-            if not table:
-                print("⚠️ Hearing Details: Table not found")
-                return None
-
-                # Extract headers
+        """Extract data from Hearing Details modal (Case History) with robust stale element handling"""
+        
+        def extract_hearing_details():
+            """Inner function for extraction with retry logic"""
+            try:
+                # Update activity time before extraction
+                self._update_activity_time()
+                
+                # Look for the specific table with id="tblCseHstry" (same as Orders)
+                table = self._safe_find_element(self.driver, By.ID, "tblCseHstry")
+                if not table:
+                    print("⚠️ Hearing Details: Table not found")
+                    return None
+                
+                # Extract headers with retry
                 headers = []
-            header_elements = self.driver.find_elements(By.TAG_NAME, "th")
-            
+                header_elements = self._safe_find_elements_with_retry(self.driver, By.TAG_NAME, "th", timeout=5)
+                
                 for header in header_elements:
-                header_text = header.text.strip()
-                if header_text:
-                    headers.append(header_text)
+                    header_text = self._safe_get_text_with_retry(header)
+                    if header_text:
+                        headers.append(header_text)
 
                 if headers:
                     option_content["content"]["headers"] = headers
-                print(f"✅ Hearing Details: Found {len(headers)} headers: {headers}")
+                    print(f"✅ Hearing Details: Found {len(headers)} headers: {headers}")
 
-            # Extract rows from the specific table
+                # Single comprehensive row extraction approach (avoiding duplicate DOM traversals)
                 rows = []
+                
+                # Get all tbody elements first
+                tbody_elements = self._safe_find_elements_with_retry(self.driver, By.TAG_NAME, "tbody", timeout=5)
+                
+                if tbody_elements:
+                    print(f"🔍 Hearing Details: Found {len(tbody_elements)} tbody elements")
+                    
+                    for tbody_index, tbody in enumerate(tbody_elements):
+                        # Update activity time for each tbody
+                        self._update_activity_time()
+                        
+                        tbody_rows = self._safe_find_elements_with_retry(tbody, By.TAG_NAME, "tr", timeout=5)
+                        print(f"🔍 Hearing Details: Tbody {tbody_index + 1} has {len(tbody_rows)} rows")
 
-            # Get tbody from the specific table
-            tbody = table.find_element(By.TAG_NAME, "tbody")
-            if tbody:
-                        tbody_rows = tbody.find_elements(By.TAG_NAME, "tr")
-                print(f"🔍 Hearing Details: Found {len(tbody_rows)} rows in tbody")
+                        # Early exit: Skip tbody with many rows if first 3 are empty (likely empty tbody)
+                        if len(tbody_rows) > 10:
+                            first_row_cells = self._safe_find_elements_with_retry(tbody_rows[0], By.TAG_NAME, "td", timeout=1)
+                            if first_row_cells:
+                                first_row_text = " ".join([self._safe_get_text_with_retry(cell) for cell in first_row_cells[:3]])
+                                if not first_row_text.strip():
+                                    print(f"⚠️ Hearing Details: Tbody {tbody_index + 1} appears empty (first row has no text), skipping all {len(tbody_rows)} rows")
+                                    continue
 
+                        consecutive_empty = 0
+                        max_consecutive_empty = 5  # Stop after 5 consecutive empty rows
+                        
                         for row_index, row in enumerate(tbody_rows):
-                            cells = row.find_elements(By.TAG_NAME, "td")
+                            # Update activity time for each row
+                            self._update_activity_time()
+                            
+                            cells = self._safe_find_elements_with_retry(row, By.TAG_NAME, "td", timeout=5)
                             row_data = []
 
                             for cell_index, cell in enumerate(cells):
-                                cell_text = cell.text.strip()
+                                cell_text = self._safe_get_text_with_retry(cell)
 
                                 # Special handling for VIEW column (last column)
-                        if cell_index == len(cells) - 1 and headers and "VIEW" in headers[-1]:
-                                    # Look for download links in the VIEW column
+                                if cell_index == len(cells) - 1 and headers and "VIEW" in headers[-1]:
+                                    # Look for download links in the VIEW column with retry
                                     try:
-                                download_links = cell.find_elements(By.TAG_NAME, "a")
+                                        download_links = self._safe_find_elements_with_retry(cell, By.TAG_NAME, "a", timeout=3)
                                         if download_links:
                                             link_data = []
                                             for link in download_links:
-                                                href = link.get_attribute("href")
-                                        title = link.get_attribute("title") or ""
-                                                link_text = link.text.strip()
+                                                try:
+                                                    href = link.get_attribute("href")
+                                                    title = link.get_attribute("title") or ""
+                                                    link_text = self._safe_get_text_with_retry(link)
 
-                                                if href:
-                                                    link_info = {
-                                                        "href": href,
-                                                        "title": title,
-                                                        "text": link_text,
-                                                    }
-                                                    link_data.append(link_info)
+                                                    if href:
+                                                        link_info = {
+                                                            "href": href,
+                                                            "title": title,
+                                                            "text": link_text,
+                                                        }
+                                                        link_data.append(link_info)
+                                                except StaleElementReferenceException:
+                                                    print(f"⚠️ Stale link element, skipping...")
+                                                    continue
 
                                             if link_data:
                                                 row_data.append(link_data)
-                                        print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in row {row_index + 1}")
+                                                print(f"✅ Hearing Details: Found {len(link_data)} download link(s) in tbody {tbody_index + 1}, row {row_index + 1}")
                                             else:
                                                 row_data.append(cell_text)
                                         else:
                                             row_data.append(cell_text)
                                     except Exception as link_error:
-                                print(f"⚠️ Error extracting VIEW column links: {link_error}")
+                                        print(f"⚠️ Error extracting VIEW column links: {link_error}")
                                         row_data.append(cell_text)
                                 else:
                                     row_data.append(cell_text)
 
-                    print(f"🔍 Hearing Details: Row {row_index + 1} has {len(cells)} cells: {row_data}")
+                            print(f"🔍 Hearing Details: Tbody {tbody_index + 1}, Row {row_index + 1} has {len(cells)} cells: {row_data}")
 
                             # Include row if it has any data (not just empty cells)
                             if row_data and any(
                                 cell_text
                                 for cell_text in row_data
-                        if isinstance(cell_text, str) and cell_text.strip()
+                                if isinstance(cell_text, str) and cell_text.strip()
                             ):
                                 # Skip rows that contain "No data available"
                                 if not any(
@@ -4115,23 +4203,37 @@ class IHCSeleniumScraper:
                                     # Check if this row is already added
                                     if row_data not in rows:
                                         rows.append(row_data)
-                                print(f"✅ Hearing Details: Added row {row_index + 1}: {row_data}")
+                                        print(f"✅ Hearing Details: Added tbody {tbody_index + 1}, row {row_index + 1}: {row_data}")
+                                        consecutive_empty = 0  # Reset counter on valid row
                                 else:
-                            print(f"⚠️ Hearing Details: Skipping 'No data available' row: {row_data}")
+                                    print(f"⚠️ Hearing Details: Skipping 'No data available' tbody row: {row_data}")
+                                    consecutive_empty += 1
                             else:
-                        print(f"⚠️ Hearing Details: Skipping empty row: {row_data}")
+                                print(f"⚠️ Hearing Details: Skipping empty tbody row: {row_data}")
+                                consecutive_empty += 1
+                            
+                            # Break early if too many consecutive empty rows
+                            if consecutive_empty >= max_consecutive_empty:
+                                print(f"⚠️ Hearing Details: Found {consecutive_empty} consecutive empty rows, skipping remaining {len(tbody_rows) - row_index - 1} rows in tbody {tbody_index + 1}")
+                                break
 
                 if rows:
                     option_content["content"]["rows"] = rows
-                print(f"✅ Hearing Details: Found {len(rows)} data rows")
+                    print(f"✅ Hearing Details: Found {len(rows)} data rows with VIEW column links")
                 else:
                     print("⚠️ Hearing Details: No data rows found")
 
                 return option_content
 
-        except Exception as e:
-            print(f"❌ Error extracting Hearing Details data: {e}")
-            return None
+            except StaleElementReferenceException as e:
+                print(f"⚠️ Stale element during Hearing Details extraction: {e}")
+                raise  # Re-raise to be caught by retry logic
+            except Exception as e:
+                print(f"❌ Unexpected error during Hearing Details extraction: {e}")
+                return None
+        
+        # Use the retry wrapper for the entire extraction
+        return self._safe_extract_with_retry(extract_hearing_details, max_retries=3, retry_delay=3)
 
     def close_case_detail_option_modal(self):
         """Close a case detail option modal/popup"""

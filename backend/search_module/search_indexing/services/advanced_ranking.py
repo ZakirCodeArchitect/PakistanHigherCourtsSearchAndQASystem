@@ -5,11 +5,12 @@ Implements sophisticated ranking logic with boosting, diversity control, and sco
 
 import logging
 import math
+import re
 from typing import List, Dict, Optional, Tuple, Any
 from datetime import datetime, date
 from django.utils import timezone
 from django.db.models import Q, F
-from apps.cases.models import Case, Term, TermOccurrence
+from apps.cases.models import Case, CaseSearchProfile, Term, TermOccurrence
 from ..models import SearchMetadata
 
 logger = logging.getLogger(__name__)
@@ -25,20 +26,25 @@ class AdvancedRankingService:
         self.default_config = {
             'semantic_weight': 0.6,
             'lexical_weight': 0.4,
-            'exact_match_boost': 3.0,
+            'exact_match_boost': 25.0,
             'citation_boost': 2.0,
             'legal_term_boost': 1.5,
+            'party_match_boost': 2.5,
+            'subject_tag_boost': 1.4,
+            'section_tag_boost': 0.9,
             'filter_alignment_boost': 0.3,
             'recency_decay_factor': 0.1,
             'diversity_threshold': 0.7,
             'mmr_lambda': 0.5,
-            'max_boost': 5.0,
+            'max_boost': 50.0,
             'score_normalization': 'z_score',  # 'z_score', 'min_max', 'percentile'
         }
         
         # Update with custom config
         if config:
             self.default_config.update(config)
+        
+        self._profile_cache: Dict[int, Optional[Dict[str, Any]]] = {}
     
     def rank_results(self, 
                     vector_results: List[Dict], 
@@ -78,7 +84,7 @@ class AdvancedRankingService:
             diverse_results = self._apply_diversity_control(recency_results, top_k)
             
             # Step 6: Final score fusion and normalization
-            final_results = self._final_score_fusion(diverse_results, top_k)
+            final_results = self._final_score_fusion(diverse_results, top_k, query_info)
             
             # Step 7: Add ranking metadata
             ranked_results = self._add_ranking_metadata(final_results, query_info)
@@ -167,7 +173,7 @@ class AdvancedRankingService:
             
             # 1. Exact match boost
             if query_info.get('exact_identifiers'):
-                exact_boost = self._calculate_exact_match_boost(case_id, query_info['exact_identifiers'])
+                exact_boost = self._calculate_exact_match_boost(case_id, query_info)
                 boost_factors.append(('exact_match', exact_boost))
                 total_boost += exact_boost
             
@@ -189,7 +195,25 @@ class AdvancedRankingService:
                 boost_factors.append(('title_match', title_boost))
                 total_boost += title_boost
             
-            # 5. Filter alignment boost
+            # 5. Party match boost (NEW - prioritise both parties appearing in title)
+            party_boost = self._calculate_party_match_boost(result, query_info.get('original_query', ''))
+            if party_boost > 0:
+                boost_factors.append(('party_match', party_boost))
+                total_boost += party_boost
+            
+            # 6. Subject tag boost (NEW - leverage enriched subject tags)
+            subject_boost = self._calculate_subject_tag_boost(result, query_info)
+            if subject_boost > 0:
+                boost_factors.append(('subject_tag', subject_boost))
+                total_boost += subject_boost
+
+            # 7. Section tag boost (NEW - emphasise statutory matches)
+            section_boost = self._calculate_section_tag_boost(result, query_info)
+            if section_boost > 0:
+                boost_factors.append(('section_tag', section_boost))
+                total_boost += section_boost
+            
+            # 8. Filter alignment boost
             if filters:
                 filter_boost = self._calculate_filter_alignment_boost(case_id, filters)
                 if filter_boost > 0:
@@ -207,23 +231,19 @@ class AdvancedRankingService:
         
         return boosted_results
     
-    def _calculate_exact_match_boost(self, case_id: int, exact_identifiers: List[Dict]) -> float:
+    def _calculate_exact_match_boost(self, case_id: int, query_info: Dict[str, Any]) -> float:
         """Calculate boost for exact case number/citation matches"""
         try:
             case = Case.objects.filter(id=case_id).first()
             if not case:
                 return 0.0
+
+            original_query = (query_info.get('original_query') or '').lower()
+            case_number = (case.case_number or '').strip()
+            if case_number and case_number.lower() in original_query:
+                return self.default_config['max_boost']
             
-            boost = 0.0
-            
-            for identifier in exact_identifiers:
-                if identifier['type'] == 'case_number':
-                    # Check for exact case number match
-                    if case.case_number and identifier['value'].lower() in case.case_number.lower():
-                        boost += self.default_config['exact_match_boost']
-                        break
-            
-            return boost
+            return 0.0
             
         except Exception as e:
             logger.error(f"Error calculating exact match boost: {str(e)}")
@@ -335,6 +355,169 @@ class AdvancedRankingService:
                     boost += 1.0
         
         return min(boost, 3.0)  # Cap at 3.0 for title matches
+    
+    def _calculate_party_match_boost(self, result: Dict, query: str) -> float:
+        """Boost when both party names from the query appear in the case title"""
+        if not query or not result.get('result_data'):
+            return 0.0
+        
+        parties = self._extract_parties_from_query(query)
+        if len(parties) < 2:
+            return 0.0
+        
+        case_title = (result['result_data'].get('case_title') or '').lower()
+        if not case_title:
+            return 0.0
+        
+        matches = sum(1 for party in parties if party and party in case_title)
+        if matches < 2:
+            return 0.0
+        
+        # Reward tighter matches (shorter titles often mean more specific parties)
+        title_len = max(1, len(case_title.split()))
+        length_factor = 1.0 if title_len > 12 else 1.3
+        return min(self.default_config['party_match_boost'] * length_factor, self.default_config['max_boost'])
+
+    def _calculate_subject_tag_boost(self, result: Dict, query_info: Dict[str, Any]) -> float:
+        """Boost results when query terms align with enriched subject tags."""
+        case_id = result.get('case_id')
+        if not case_id:
+            return 0.0
+
+        profile = self._get_case_profile(case_id, result)
+        if not profile:
+            return 0.0
+
+        candidate_terms = set()
+        for tag in profile.get('subject_tags', []):
+            if tag:
+                candidate_terms.add(tag.lower())
+
+        metadata = profile.get('metadata') or {}
+        for label in metadata.get('subject_labels', []):
+            if label:
+                candidate_terms.add(label.lower())
+
+        if not candidate_terms:
+            return 0.0
+
+        query_tokens = self._extract_query_tokens(query_info)
+        if not query_tokens:
+            return 0.0
+
+        matches = sum(1 for term in candidate_terms if any(token in term for token in query_tokens))
+        if matches == 0:
+            return 0.0
+
+        boost_unit = self.default_config['subject_tag_boost']
+        boost = boost_unit * min(matches, 3)
+        return min(boost, self.default_config['max_boost'])
+
+    def _calculate_section_tag_boost(self, result: Dict, query_info: Dict[str, Any]) -> float:
+        """Boost when statutory sections/articles overlap with the query."""
+        case_id = result.get('case_id')
+        if not case_id:
+            return 0.0
+
+        profile = self._get_case_profile(case_id, result)
+        if not profile:
+            return 0.0
+
+        sections = [s.lower() for s in profile.get('section_tags', []) if s]
+        metadata = profile.get('metadata') or {}
+        headers = [h.lower() for h in metadata.get('section_headers', []) if h]
+        candidate_terms = sections + headers
+        if not candidate_terms:
+            return 0.0
+
+        query_tokens = self._extract_query_tokens(query_info)
+        if not query_tokens:
+            return 0.0
+
+        matches = sum(1 for term in candidate_terms if any(token in term for token in query_tokens))
+        if matches == 0:
+            return 0.0
+
+        boost_unit = self.default_config['section_tag_boost']
+        boost = boost_unit * min(matches, 3)
+        return min(boost, self.default_config['max_boost'])
+
+    def _extract_query_tokens(self, query_info: Dict[str, Any]) -> List[str]:
+        tokens: set = set()
+        if not query_info:
+            return []
+
+        normalized_query = (query_info.get('normalized_query') or '').lower()
+        original_query = (query_info.get('original_query') or '').lower()
+
+        for source in [normalized_query, original_query]:
+            if source:
+                tokens.update(re.findall(r"[a-z0-9]{3,}", source))
+
+        candidate_lists = [
+            'normalized_terms',
+            'canonical_terms',
+            'lemmatized_terms',
+            'expanded_terms',
+            'query_terms',
+        ]
+        for key in candidate_lists:
+            for term in query_info.get(key, []) or []:
+                if isinstance(term, str):
+                    tokens.update(re.findall(r"[a-z0-9]{3,}", term.lower()))
+
+        return [token for token in tokens if len(token) > 2]
+
+    def _get_case_profile(self, case_id: int, result: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
+        if not case_id:
+            return None
+
+        # Check if result already carries profile data
+        if result:
+            result_data = result.get('result_data') or {}
+            profile_data = result_data.get('case_profile')
+            if isinstance(profile_data, dict):
+                return profile_data
+
+        if case_id in self._profile_cache:
+            return self._profile_cache[case_id]
+
+        profile_obj = CaseSearchProfile.objects.filter(case_id=case_id).first()
+        if not profile_obj:
+            self._profile_cache[case_id] = None
+            return None
+
+        serialized = self._serialize_profile(profile_obj)
+        self._profile_cache[case_id] = serialized
+        if result:
+            result_data = result.setdefault('result_data', {})
+            result_data['case_profile'] = serialized
+        return serialized
+
+    def _serialize_profile(self, profile: CaseSearchProfile) -> Dict[str, Any]:
+        return {
+            'subject_tags': profile.subject_tags or [],
+            'section_tags': profile.section_tags or [],
+            'party_tokens': profile.party_tokens or [],
+            'summary_text': profile.summary_text or '',
+            'case_number_tokens': profile.case_number_tokens or [],
+            'metadata': profile.metadata or {},
+        }
+    
+    def _extract_parties_from_query(self, query: str) -> List[str]:
+        """Extract party fragments from queries that look like 'A VS B'."""
+        normalized = query.lower()
+        if ' vs ' not in normalized:
+            return []
+        
+        raw_parties = re.split(r'\bvs\b', normalized)
+        cleaned = []
+        for party in raw_parties:
+            party = party.strip(' ,."\'')
+            if not party or len(party) < 3:
+                continue
+            cleaned.append(party)
+        return cleaned[:2]
     
     def _calculate_filter_alignment_boost(self, case_id: int, filters: Dict) -> float:
         """Calculate boost for filter alignment"""
@@ -502,16 +685,15 @@ class AdvancedRankingService:
             logger.error(f"Error calculating case similarity: {str(e)}")
             return 0.0
     
-    def _final_score_fusion(self, results: List[Dict], top_k: int) -> List[Dict]:
+    def _final_score_fusion(self, results: List[Dict], top_k: int, query_info: Dict) -> List[Dict]:
         """Final score fusion and normalization"""
         try:
             fused_results = []
             
+            semantic_weight, lexical_weight = self._determine_score_weights(query_info)
+            
             for result in results:
-                # Calculate base hybrid score
-                semantic_weight = self.default_config['semantic_weight']
-                lexical_weight = self.default_config['lexical_weight']
-                
+                # Calculate base hybrid score                
                 base_score = (
                     result['vector_score'] * semantic_weight +
                     result['keyword_score'] * lexical_weight
@@ -538,6 +720,42 @@ class AdvancedRankingService:
         except Exception as e:
             logger.error(f"Error in final score fusion: {str(e)}")
             return results[:top_k]
+    
+    def _determine_score_weights(self, query_info: Dict) -> Tuple[float, float]:
+        """
+        Dynamically adjust semantic vs lexical weighting based on query intent.
+        Case numbers / citations lean on lexical, verbose contextual queries lean semantic.
+        """
+        semantic_weight = self.default_config['semantic_weight']
+        lexical_weight = self.default_config['lexical_weight']
+        
+        try:
+            exact_ids = query_info.get('exact_identifiers', []) if query_info else []
+            normalized = (query_info.get('normalized_query') if query_info else '') or ''
+            token_count = len(normalized.split())
+            
+            if exact_ids:
+                # Strongly favour lexical ranking for explicit case numbers
+                lexical_weight = 0.75
+                semantic_weight = 0.25
+            elif token_count <= 4:
+                # Short queries often benefit from stronger lexical grounding
+                lexical_weight = 0.6
+                semantic_weight = 0.4
+            else:
+                # More descriptive queries: lean semantic but keep lexical support
+                lexical_weight = 0.35
+                semantic_weight = 0.65
+        
+        except Exception as exc:
+            logger.warning(f"Unable to determine dynamic weights: {exc}")
+        
+        # Ensure weights sum to 1.0
+        total = max(semantic_weight + lexical_weight, 1e-6)
+        semantic_weight /= total
+        lexical_weight /= total
+        
+        return semantic_weight, lexical_weight
     
     def _add_ranking_metadata(self, results: List[Dict], query_info: Dict) -> List[Dict]:
         """Add ranking metadata and explanations"""

@@ -3,80 +3,77 @@
 {% block title %}Home - Law Information Resource{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-section">
+<!-- Modern Hero Section -->
+<div class="hero-section py-5" style="background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%);">
     <div class="container">
-        <div class="row align-items-center">
+        <div class="row align-items-center min-vh-50">
             <div class="col-lg-8">
-                <h1 class="display-4 fw-bold mb-4">
-                    <i class="fas fa-gavel me-3"></i>
-                    Law Information Resource
-                </h1>
-                <p class="lead mb-4">
-                    A public-friendly knowledge base where you can find information about Pakistan's legal system. 
-                    Search for laws, understand punishments, and know your rights.
-                </p>
-                
-                <!-- Search Box -->
-                <div class="row">
-                    <div class="col-lg-8">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold mb-4" style="color: white;">
+                        <i class="fas fa-gavel me-3" style="color: white;"></i>
+                        Law Information Resource
+                    </h1>
+                    <p class="lead mb-4" style="color: rgba(255, 255, 255, 0.9);">
+                        A modern, accessible knowledge base where you can find comprehensive information about Pakistan's legal system. 
+                        Search for laws, understand punishments, and know your rights with ease.
+                    </p>
+                    
+                    <!-- Modern Search Box -->
+                    <div class="search-container">
                         <form method="GET" action="{% url 'law_information:search' %}">
-                            <div class="input-group">
-                                <input 
-                                    type="text" 
-                                    class="form-control search-box" 
-                                    name="q" 
-                                    placeholder="Search for laws (e.g., 'theft punishment', 'hit and run')"
-                                >
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-search me-2"></i>Search
-                                </button>
+                            <div class="row g-3">
+                                <div class="col-lg-8">
+                                    <div class="input-group">
+                                        <input 
+                                            type="text" 
+                                            class="form-control search-box" 
+                                            name="q" 
+                                            placeholder="Search for laws (e.g., 'theft punishment', 'hit and run')"
+                                            style="height: 50px; font-size: 1.1rem; background: white; border: 2px solid rgba(255, 255, 255, 0.3); color: #333;"
+                                        >
+                                        <button class="btn btn-primary" type="submit" style="height: 50px; padding: 0 2rem; background: white; color: var(--primary-orange); border: 2px solid white; font-weight: 600;">
+                                            <i class="fas fa-search me-2"></i>Search
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4 text-center">
-                <i class="fas fa-balance-scale" style="font-size: 8rem; opacity: 0.3;"></i>
+                <div class="hero-icon">
+                    <i class="fas fa-balance-scale" style="font-size: 8rem; color: rgba(255, 255, 255, 0.2);"></i>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container">
-    <!-- Quick Stats -->
+<div class="container py-5">
+    <!-- Simple Stats Section -->
     <div class="row mb-5">
-        <div class="col-md-3">
+        <div class="col-md-6 mb-4">
             <div class="stats-card">
                 <div class="stats-number">{{ total_laws_count }}</div>
-                <div class="text-muted">Laws Available</div>
+                <div style="color: var(--text-primary);">Laws Available</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 mb-4">
             <div class="stats-card">
                 <div class="stats-number">{{ total_categories_count }}</div>
-                <div class="text-muted">Categories</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">24/7</div>
-                <div class="text-muted">Access</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">Free</div>
-                <div class="text-muted">Service</div>
+                <div style="color: var(--text-primary);">Categories</div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <!-- Featured Laws -->
+        <!-- Featured Laws Section -->
         <div class="col-lg-8">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-star me-2"></i>Featured Laws</h2>
+                <h2 style="color: var(--text-primary);">
+                    <i class="fas fa-star me-2" style="color: var(--primary-orange);"></i>Featured Laws
+                </h2>
                 <a href="{% url 'law_information:search' %}" class="btn btn-outline-primary">
                     View All <i class="fas fa-arrow-right ms-1"></i>
                 </a>
@@ -86,29 +83,34 @@
                 <div class="row">
                     {% for law in featured_laws %}
                         <div class="col-md-6 mb-4">
-                            <div class="law-card card h-100">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">
-                                        <i class="fas fa-gavel me-2"></i>
-                                        {{ law.title }}
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text">
-                                        <strong>Jurisdiction:</strong> {{ law.jurisdiction }}
-                                    </p>
-                                    <p class="card-text">
-                                        <strong>Sections:</strong> {{ law.get_sections_display }}
-                                    </p>
-                                    <div class="mb-3">
-                                        {% for tag in law.get_tags_display %}
-                                            <span class="tag-badge">{{ tag }}</span>
-                                        {% endfor %}
+                            <div class="featured-law-card">
+                                <div class="law-card-header">
+                                    <div class="law-icon">
+                                        <i class="fas fa-gavel"></i>
+                                    </div>
+                                    <div class="law-info">
+                                        <h5 class="law-title">{{ law.title }}</h5>
+                                        <p class="law-jurisdiction">{{ law.jurisdiction }}</p>
                                     </div>
                                 </div>
-                                <div class="card-footer bg-transparent">
-                                    <a href="{% url 'law_information:law_detail' law.slug %}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-info-circle me-1"></i>View Details
+                                
+                                <div class="law-card-body">
+                                    {% if law.get_tags_display %}
+                                        <div class="law-tags">
+                                            {% for tag in law.get_tags_display|slice:":3" %}
+                                                <span class="law-tag">{{ tag }}</span>
+                                            {% endfor %}
+                                            {% if law.get_tags_display|length > 3 %}
+                                                <span class="law-tag-more">+{{ law.get_tags_display|length|add:"-3" }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="law-card-footer">
+                                    <a href="{% url 'law_information:law_detail' law.slug %}" class="law-view-btn">
+                                        <span>View Details</span>
+                                        <i class="fas fa-arrow-right"></i>
                                     </a>
                                 </div>
                             </div>
@@ -117,53 +119,307 @@
                 </div>
             {% else %}
                 <div class="text-center py-5">
-                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">No featured laws available</h4>
-                    <p class="text-muted">Check back later for featured legal information.</p>
+                    <i class="fas fa-info-circle fa-3x mb-3" style="color: var(--text-muted);"></i>
+                    <h4 style="color: var(--text-muted);">No featured laws available</h4>
+                    <p style="color: var(--text-muted);">Check back later for featured legal information.</p>
                 </div>
             {% endif %}
         </div>
         
-        <!-- Sidebar -->
+        <!-- Simplified Sidebar -->
         <div class="col-lg-4">
-            <!-- Popular Tags -->
+            <!-- Popular Categories -->
             <div class="sidebar">
                 <h4><i class="fas fa-tags me-2"></i>Popular Categories</h4>
                 {% if popular_tags %}
-                    <div class="mb-3">
-                        {% for tag, count in popular_tags %}
+                    <div class="categories-grid">
+                        {% for tag, count in popular_tags|slice:":6" %}
                             <a href="{% url 'law_information:search' %}?q={{ tag|urlencode }}&type=tags" 
                                class="tag-badge text-decoration-none">
-                                {{ tag }} ({{ count }})
+                                {{ tag }} <span class="badge bg-secondary ms-1">{{ count }}</span>
                             </a>
                         {% endfor %}
                     </div>
+                    {% if popular_tags|length > 6 %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'law_information:search' %}" class="btn btn-outline-primary btn-sm">
+                                View All Categories
+                            </a>
+                        </div>
+                    {% endif %}
                 {% else %}
-                    <p class="text-muted">No categories available yet.</p>
+                    <p style="color: var(--text-primary);">No categories available yet.</p>
                 {% endif %}
             </div>
             
-            <!-- Recent Laws -->
+            <!-- Quick Access -->
             <div class="sidebar">
-                <h4><i class="fas fa-clock me-2"></i>Recently Updated</h4>
-                {% if recent_laws %}
-                    <div class="list-group list-group-flush">
-                        {% for law in recent_laws %}
-                            <a href="{% url 'law_information:law_detail' law.slug %}" 
-                               class="list-group-item list-group-item-action border-0 px-0">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ law.title }}</h6>
-                                    <small class="text-muted">{{ law.updated_at|date:"M d" }}</small>
-                                </div>
-                                <p class="mb-1 text-muted">{{ law.jurisdiction }}</p>
-                            </a>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-muted">No recent updates available.</p>
-                {% endif %}
+                <h4><i class="fas fa-bolt me-2"></i>Quick Access</h4>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'law_information:search' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-search me-1"></i>Advanced Search
+                    </a>
+                    <a href="{% url 'law_information:search' %}?type=gpt" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-robot me-1"></i>AI-Powered Search
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.min-vh-50 {
+    min-height: 50vh;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.search-container {
+    position: relative;
+    z-index: 2;
+}
+
+.law-meta .meta-item {
+    margin-bottom: 0.5rem;
+}
+
+.tags-container {
+    margin-top: 1rem;
+}
+
+.categories-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.recent-law-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.recent-law-item:last-child {
+    border-bottom: none;
+}
+
+.recent-law-item:hover {
+    background: var(--dark-bg-tertiary);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.recent-law-item a:hover {
+    text-decoration: none !important;
+}
+
+/* Hero Section Orange Background Styling */
+.hero-section .search-box:focus {
+    border-color: white !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+}
+
+.hero-section .btn-primary:hover {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: var(--primary-orange-dark) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Professional Featured Law Cards */
+.featured-law-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.featured-law-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-orange), #ffa500);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.featured-law-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(255, 140, 0, 0.15);
+    border-color: rgba(255, 140, 0, 0.2);
+}
+
+.featured-law-card:hover::before {
+    opacity: 1;
+}
+
+.law-card-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.law-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-orange), #ffa500);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.law-icon i {
+    color: white;
+    font-size: 20px;
+}
+
+.law-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.law-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.law-jurisdiction {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 500;
+}
+
+.law-card-body {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+.law-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.law-tag {
+    background: #f8f9fa;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.law-tag:hover {
+    background: var(--primary-orange);
+    color: white;
+    border-color: var(--primary-orange);
+}
+
+.law-tag-more {
+    background: #e5e7eb;
+    color: #6b7280;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.law-card-footer {
+    margin-top: auto;
+}
+
+.law-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-orange);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    padding: 8px 0;
+}
+
+.law-view-btn:hover {
+    color: var(--primary-orange-dark);
+    transform: translateX(4px);
+}
+
+.law-view-btn i {
+    transition: transform 0.3s ease;
+}
+
+.law-view-btn:hover i {
+    transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 0;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-icon {
+        margin-top: 2rem;
+    }
+    
+    .featured-law-card {
+        padding: 20px;
+    }
+    
+    .law-card-header {
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .law-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .law-icon i {
+        font-size: 16px;
+    }
+    
+    .law-title {
+        font-size: 16px;
+    }
+    
+    .law-jurisdiction {
+        font-size: 13px;
+    }
+}
+</style>
 {% endblock %}

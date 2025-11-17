@@ -99,6 +99,7 @@ class VectorIndexingService:
             
             chunks = []
             content = case_data.get('combined_content', '') or case_data.get('pdf_content', '')
+            semantic_header = case_data.get('semantic_header', '')
             
             if not content:
                 logger.warning(f"No content found for case {case_id}")
@@ -118,6 +119,9 @@ class VectorIndexingService:
                 
                 if len(chunk_text.strip()) < 10:  # Skip very short chunks
                     continue
+
+                if semantic_header:
+                    chunk_text = f"{semantic_header} || {chunk_text}"
                 
                 # Generate unique chunk ID
                 chunk_id = hashlib.sha256(f"{case_id}_{chunk_count}_{chunk_text}".encode()).hexdigest()
@@ -156,6 +160,39 @@ class VectorIndexingService:
             logger.error(f"Error creating chunks for case {case_id}: {str(e)}")
             return []
     
+    def _build_semantic_header(self, case_data: Dict[str, any]) -> str:
+        header_parts = []
+
+        case_title = (case_data.get('case_title') or '').strip()
+        if case_title:
+            header_parts.append(f"[TITLE] {case_title}")
+
+        subjects = [s for s in case_data.get('profile_subjects', []) if s]
+        if subjects:
+            header_parts.append(f"[SUBJECTS] {', '.join(subjects[:5])}")
+
+        section_tags = [s for s in case_data.get('profile_sections', []) if s]
+        if section_tags:
+            header_parts.append(f"[SECTIONS] {', '.join(section_tags[:5])}")
+
+        parties = [p for p in case_data.get('profile_parties', []) if p]
+        if parties:
+            header_parts.append(f"[PARTIES] {' vs '.join(parties[:2])}")
+
+        summary = (case_data.get('profile_summary') or '').strip()
+        if summary:
+            header_parts.append(f"[SUMMARY] {summary[:180]}")
+
+        metadata = case_data.get('profile_metadata') or {}
+        headers = metadata.get('section_headers') or []
+        if headers:
+            header_parts.append(f"[HEADERS] {', '.join(headers[:4])}")
+
+        if not header_parts:
+            return ""
+
+        return " | ".join(header_parts)
+
     def create_embeddings(self, chunks: List[DocumentChunk], batch_size: int = 32) -> List[np.ndarray]:
         """Create embeddings for text chunks"""
         if not self.model:
@@ -287,11 +324,11 @@ class VectorIndexingService:
             
             if force:
                 # Process all cases
-                cases_to_process = UnifiedCaseView.objects.all()
+                cases_to_process = UnifiedCaseView.objects.select_related("case__search_profile", "case__court").all()
             else:
                 # Only process cases that don't have chunks
                 existing_case_ids = set(DocumentChunk.objects.values_list('case_id', flat=True))
-                cases_to_process = UnifiedCaseView.objects.exclude(case_id__in=existing_case_ids)
+                cases_to_process = UnifiedCaseView.objects.select_related("case__search_profile", "case__court").exclude(case_id__in=existing_case_ids)
             
             total_cases = cases_to_process.count()
             logger.info(f"Processing {total_cases} cases for vector indexing")
@@ -310,12 +347,20 @@ class VectorIndexingService:
                     logger.info(f"Processing case {i+1}/{total_cases}: {unified_view.case.case_number}")
                     
                     # Prepare comprehensive case data
+                    profile = getattr(unified_view.case, "search_profile", None)
+                    clean_title = profile.clean_case_title if profile and profile.clean_case_title else (unified_view.case.case_title or '')
                     case_data = {
                         'id': unified_view.case.id,
                         'case_number': unified_view.case.case_number or '',
-                        'case_title': unified_view.case.case_title or '',
+                        'case_title': clean_title,
                         'status': unified_view.case.status or '',
                         'bench': unified_view.case.bench or '',
+                        'profile_subjects': profile.subject_tags if profile else [],
+                        'profile_parties': profile.party_tokens if profile else [],
+                        'profile_summary': profile.summary_text if profile else '',
+                        'profile_sections': profile.section_tags if profile else [],
+                        'profile_case_tokens': profile.case_number_tokens if profile else [],
+                        'profile_metadata': profile.metadata if profile and isinstance(profile.metadata, dict) else {},
                         'pdf_content': '',
                         'combined_content': ''
                     }
@@ -351,6 +396,17 @@ class VectorIndexingService:
                                 metadata_content.append(f"{key}: {value}")
                         if metadata_content:
                             content_parts.append(f"Case Metadata: {' | '.join(metadata_content)}")
+
+                    if case_data.get('profile_parties'):
+                        content_parts.append(f"Parties: {' vs '.join(case_data['profile_parties'][:2])}")
+                    if case_data.get('profile_subjects'):
+                        content_parts.append(f"Subjects: {', '.join(case_data['profile_subjects'])}")
+                    if case_data.get('profile_summary'):
+                        content_parts.append(f"Search Summary: {case_data['profile_summary']}")
+                    if case_data.get('profile_sections'):
+                        content_parts.append(f"Sections Mentioned: {', '.join(case_data['profile_sections'])}")
+                    if case_data.get('profile_case_tokens'):
+                        content_parts.append(f"Case Identifiers: {', '.join(case_data['profile_case_tokens'])}")
                     
                     # Add related data from case relationships
                     # Orders data
@@ -403,6 +459,7 @@ class VectorIndexingService:
                     
                     # Combine all content
                     case_data['combined_content'] = ' '.join(content_parts)
+                    case_data['semantic_header'] = self._build_semantic_header(case_data)
                     
                     if not case_data['combined_content'].strip():
                         logger.warning(f"No content found for case {unified_view.case.case_number}")

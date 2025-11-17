@@ -175,6 +175,16 @@ SENTENCE_TRANSFORMERS_HOME = str(MODEL_CACHE_DIR)
 import os
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
 
+# Learned reranker settings
+LEARNED_RERANKER_DIR = BASE_DIR / "models" / "rerankers"
+LEARNED_RERANKER_DIR.mkdir(parents=True, exist_ok=True)
+LEARNED_RERANKER_MODEL_NAME = config("LEARNED_RERANKER_MODEL", default="").strip()
+LEARNED_RERANKER_MODEL_PATH = (
+    (LEARNED_RERANKER_DIR / LEARNED_RERANKER_MODEL_NAME)
+    if LEARNED_RERANKER_MODEL_NAME
+    else None
+)
+
 # Django REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [

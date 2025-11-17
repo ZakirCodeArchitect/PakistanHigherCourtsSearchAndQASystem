@@ -5,11 +5,12 @@ Multi-stage re-ranking with legal domain expertise and learning mechanisms
 
 import logging
 import math
+import re
 from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models import Q, Count, Avg
-from apps.cases.models import Case
+from apps.cases.models import Case, CaseSearchProfile
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,8 @@ class AdvancedReranker:
         # Update with custom config
         if config:
             self.default_config.update(config)
+        
+        self._profile_cache: Dict[int, Optional[Dict[str, Any]]] = {}
         
         # Court hierarchy scoring
         self.court_hierarchy = {
@@ -159,10 +162,25 @@ class AdvancedReranker:
                               query_analysis: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Score results based on legal relevance"""
         query_lower = query.lower()
+        query_compact = re.sub(r'[^a-z0-9]', '', query_lower)
+        query_terms = self._extract_query_terms(query, query_analysis)
         
         for result in results:
             relevance_score = result.get('similarity', result.get('rank', 0.5))
             case_data = result.get('result_data', result)
+            case_profile = case_data.get('case_profile') or result.get('case_profile', {})
+            case_id = (
+                case_data.get('case_id')
+                or case_data.get('id')
+                or result.get('case_id')
+            )
+
+            if not case_profile:
+                fetched_profile = self._get_case_profile(case_id)
+                if fetched_profile:
+                    case_profile = fetched_profile
+                    case_data['case_profile'] = fetched_profile
+                    result['case_profile'] = fetched_profile
             
             # Citation matching boost
             if self._has_citation_match(query, case_data):
@@ -173,6 +191,69 @@ class AdvancedReranker:
             if exact_matches > 0:
                 boost = 1.0 + (exact_matches * 0.2)
                 relevance_score *= min(boost, self.default_config['exact_match_boost'])
+            
+            # Strong identifier matching using normalized case number tokens
+            if case_profile:
+                tokens = case_profile.get('case_number_tokens', [])
+                for token in tokens:
+                    token_compact = re.sub(r'[^a-z0-9]', '', token.lower())
+                    if token_compact and token_compact in query_compact:
+                        relevance_score *= 25.0
+                        result['identifier_match'] = True
+                        break
+                # Also fall back to entire case number
+                if not result.get('identifier_match'):
+                    case_number = (case_data.get('case_number') or '').strip().lower()
+                    case_number_compact = re.sub(r'[^a-z0-9]', '', case_number)
+                    if case_number_compact and (case_number_compact in query_compact or query_compact in case_number_compact):
+                        relevance_score *= 20.0
+                        result['identifier_match'] = True
+            
+            # Party name relevance
+            if case_profile:
+                parties = [p.lower() for p in case_profile.get('party_tokens', []) if p]
+                party_hits = sum(1 for party in parties if party and party in query_lower)
+                if party_hits:
+                    relevance_score *= (1.0 + party_hits * 0.6)
+                    result['party_match_count'] = party_hits
+
+                # Subject tag relevance
+                subjects = [s.lower() for s in case_profile.get('subject_tags', []) if s]
+                metadata = case_profile.get('metadata') or {}
+                subject_labels = [
+                    label.lower() for label in metadata.get('subject_labels', []) if label
+                ]
+                subject_candidates = set(subjects + subject_labels)
+                subject_hits = sum(
+                    1 for subject in subject_candidates if any(term in subject for term in query_terms)
+                )
+                if subject_hits:
+                    relevance_score *= (1.0 + min(subject_hits, 4) * 0.35)
+                    result['subject_match_count'] = subject_hits
+            
+            # Section / statute tags
+            if case_profile:
+                sections = case_profile.get('section_tags', [])
+                for section in sections:
+                    section_norm = section.lower()
+                    section_compact = re.sub(r'\s+', '', section_norm)
+                    if (
+                        section_norm in query_lower
+                        or section_compact in query_compact
+                        or any(term in section_norm for term in query_terms)
+                    ):
+                        relevance_score *= 8.0
+                        result['section_match'] = section
+                        break
+                
+                # Section headers / document structure cues
+                headers = metadata.get('section_headers') or []
+                for header in headers:
+                    header_lower = header.lower()
+                    if any(term in header_lower for term in query_terms):
+                        relevance_score *= 1.3
+                        result['section_header_match'] = header
+                        break
             
             # Legal term relevance
             legal_term_score = self._calculate_legal_term_relevance(query, case_data)
@@ -304,6 +385,19 @@ class AdvancedReranker:
                 relevance * authority * temporal * quality * (1.0 - diversity_penalty)
             )
             
+            if result.get('identifier_match'):
+                # Force identifier matches to dominate ranking
+                final_score *= 100.0
+                final_score += 100.0
+            elif result.get('party_match_count'):
+                final_score *= (1.0 + result['party_match_count'] * 0.5)
+            if result.get('section_match'):
+                final_score *= 3.0
+            if result.get('subject_match_count'):
+                final_score *= (1.0 + min(result['subject_match_count'], 3) * 0.2)
+            if result.get('section_header_match'):
+                final_score *= 1.1
+            
             result['final_rerank_score'] = final_score
             
             # Store component scores for analysis
@@ -367,6 +461,47 @@ class AdvancedReranker:
             case_citations.extend(re.findall(pattern, case_text, re.IGNORECASE))
         
         return bool(set(query_citations).intersection(set(case_citations)))
+
+    def _extract_query_terms(self, query: str, query_analysis: Optional[Dict[str, Any]] = None) -> List[str]:
+        tokens = set(re.findall(r"[a-z0-9]{3,}", query.lower()))
+        if query_analysis:
+            candidate_keys = [
+                'normalized_terms',
+                'canonical_terms',
+                'lemmatized_terms',
+                'expanded_terms',
+                'query_terms',
+            ]
+            for key in candidate_keys:
+                for term in query_analysis.get(key, []) or []:
+                    if isinstance(term, str):
+                        tokens.update(re.findall(r"[a-z0-9]{3,}", term.lower()))
+        return [token for token in tokens if len(token) > 2]
+
+    def _get_case_profile(self, case_id: Optional[int]) -> Optional[Dict[str, Any]]:
+        if not case_id:
+            return None
+        if case_id in self._profile_cache:
+            return self._profile_cache[case_id]
+
+        profile_obj = CaseSearchProfile.objects.filter(case_id=case_id).first()
+        if not profile_obj:
+            self._profile_cache[case_id] = None
+            return None
+
+        serialized = self._serialize_profile(profile_obj)
+        self._profile_cache[case_id] = serialized
+        return serialized
+
+    def _serialize_profile(self, profile: CaseSearchProfile) -> Dict[str, Any]:
+        return {
+            'subject_tags': profile.subject_tags or [],
+            'section_tags': profile.section_tags or [],
+            'party_tokens': profile.party_tokens or [],
+            'summary_text': profile.summary_text or '',
+            'case_number_tokens': profile.case_number_tokens or [],
+            'metadata': profile.metadata or {},
+        }
     
     def _count_exact_matches(self, query: str, case_data: Dict[str, Any]) -> int:
         """Count exact word matches between query and case data"""

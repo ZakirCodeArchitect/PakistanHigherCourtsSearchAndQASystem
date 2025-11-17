@@ -4,6 +4,7 @@ Implements two-stage retrieval with cross-encoder reranking for Question-Answeri
 """
 
 import os
+import re
 import logging
 import numpy as np
 from datetime import datetime
@@ -32,6 +33,7 @@ class QARetrievalService:
         self.pinecone_client = None
         self.pinecone_index = None
         self.embedding_dimension = 384  # all-MiniLM-L6-v2
+        self.case_metadata_cache: Dict[int, Dict[str, Any]] = {}
         
         # QA-specific configuration
         self.config = {
@@ -53,6 +55,44 @@ class QARetrievalService:
         self._initialize_embedding_model()
         self._initialize_cross_encoder()
         self._initialize_pinecone()
+    
+    # -----------------------------
+    # Unified view helpers
+    # -----------------------------
+    def _flatten_meta(self, data: Any, prefix: str = "", out: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Flatten nested dict/list metadata to make robust key lookups."""
+        if out is None:
+            out = {}
+        try:
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    key = f"{prefix}.{k}".strip(".").lower()
+                    self._flatten_meta(v, key, out)
+            elif isinstance(data, list):
+                for idx, v in enumerate(data):
+                    key = f"{prefix}.{idx}".strip(".").lower()
+                    self._flatten_meta(v, key, out)
+            else:
+                out[prefix.lower()] = data
+        except Exception:
+            pass
+        return out
+    
+    def _get_meta_value(self, meta: Dict[str, Any], aliases: List[str]) -> Optional[str]:
+        """Return first value that matches any alias across flattened keys."""
+        if not meta:
+            return None
+        flat = self._flatten_meta(meta)
+        for alias in aliases:
+            alias_l = alias.lower()
+            # direct key
+            if alias_l in flat and flat[alias_l] not in (None, '', []):
+                return str(flat[alias_l])
+            # contains match
+            for k, v in flat.items():
+                if alias_l in k and v not in (None, '', []):
+                    return str(v)
+        return None
     
     def _initialize_embedding_model(self):
         """Initialize sentence transformer for semantic search"""
@@ -175,6 +215,40 @@ class QARetrievalService:
         
         return all_embeddings
     
+    def _entities_to_structured(self, entities: Optional[List[Dict[str, Any]]]) -> Dict[str, Any]:
+        """Convert legal_entities lists into a consolidated metadata dictionary."""
+        structured: Dict[str, Any] = {}
+        if not entities:
+            return structured
+        
+        for entity in entities:
+            if not isinstance(entity, dict):
+                continue
+            entity_type = entity.get('type')
+            value = entity.get('value')
+            if not entity_type or value in (None, '', []):
+                continue
+            key = entity_type
+            processed_value: Any = value
+            if isinstance(processed_value, str):
+                processed_value = processed_value.strip()
+                if not processed_value:
+                    continue
+            
+            if key not in structured:
+                structured[key] = processed_value
+            else:
+                existing = structured[key]
+                if not isinstance(existing, list):
+                    existing = [existing]
+                if isinstance(processed_value, list):
+                    existing.extend(processed_value)
+                else:
+                    existing.append(processed_value)
+                structured[key] = existing
+        
+        return structured
+    
     def retrieve_for_qa(self, 
                        query: str, 
                        top_k: int = 10,
@@ -184,8 +258,9 @@ class QARetrievalService:
                        year_filter: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Two-stage retrieval optimized for QA:
-        1. Initial broad semantic retrieval (top-30)
-        2. Cross-encoder reranking for quality (top-8-12)
+        1. Check for exact case number match first (priority)
+        2. Initial broad semantic retrieval (top-30)
+        3. Cross-encoder reranking for quality (top-8-12)
         
         Args:
             query: User's question
@@ -202,12 +277,44 @@ class QARetrievalService:
             logger.info(f"Starting QA retrieval for query: '{query[:50]}...'")
             start_time = datetime.now()
             
-            # Stage 1: Initial broad semantic retrieval
-            initial_results = self._initial_semantic_retrieval(
-                query, 
-                self.config['initial_retrieval_k'],
-                legal_domain, case_type, court_filter, year_filter
-            )
+            # Stage 0: Check for exact case number match FIRST (before semantic search)
+            case_title_hint = self._extract_case_title_from_question(query)
+            if case_title_hint:
+                logger.info(f"Extracted case title hint: '{case_title_hint}' from query")
+                exact_match_results = self._find_exact_case_match(case_title_hint)
+                if exact_match_results:
+                    logger.info(f"[SUCCESS] Found {len(exact_match_results)} exact case match(es) for: {case_title_hint}")
+                    # If exact match found, use ONLY exact matches (don't mix with semantic search)
+                    # This ensures we return the correct case, not similar ones
+                    initial_results = exact_match_results
+                    # Optionally add semantic search results for additional context, but keep exact matches first
+                    # semantic_results = self._initial_semantic_retrieval(
+                    #     query, self.config['initial_retrieval_k'],
+                    #     legal_domain, case_type, court_filter, year_filter
+                    # )
+                    # # Prepend exact matches, remove duplicates
+                    # seen_ids = {r.get('metadata', {}).get('case_id') or r.get('case_id') for r in exact_match_results}
+                    # for result in semantic_results:
+                    #     case_id = result.get('metadata', {}).get('case_id') or result.get('case_id')
+                    #     if case_id not in seen_ids:
+                    #         initial_results.append(result)
+                    #         seen_ids.add(case_id)
+                else:
+                    logger.warning(f"❌ No exact case match found for: {case_title_hint}, falling back to semantic search")
+                    # No exact match, proceed with normal semantic search
+                    initial_results = self._initial_semantic_retrieval(
+                        query, 
+                        self.config['initial_retrieval_k'],
+                        legal_domain, case_type, court_filter, year_filter
+                    )
+            else:
+                logger.info("No case title detected in query, using semantic search only")
+                # No case title detected, proceed with normal semantic search
+                initial_results = self._initial_semantic_retrieval(
+                    query, 
+                    self.config['initial_retrieval_k'],
+                    legal_domain, case_type, court_filter, year_filter
+                )
             
             if not initial_results:
                 logger.warning("No results from initial semantic retrieval")
@@ -228,7 +335,12 @@ class QARetrievalService:
             
             # Stage 3: Apply diversity control (MMR)
             final_results = self._apply_diversity_control(reranked_results, top_k)
-            
+
+            # Stage 4: Prioritize results that match detected case title
+            case_title_hint = self._extract_case_title_from_question(query)
+            if case_title_hint:
+                final_results = self._filter_results_by_case_title(final_results, case_title_hint)
+
             # Add QA-specific metadata
             for i, result in enumerate(final_results):
                 result['qa_rank'] = i + 1
@@ -298,16 +410,47 @@ class QARetrievalService:
             results = []
             for match in search_results.matches:
                 metadata = match.metadata
+                result_text = metadata.get('text') or metadata.get('content') or ''
+
+                structured_data = {}
+                for key, value in metadata.items():
+                    if key.startswith('entity_') and value not in (None, '', []):
+                        structured_data[key.replace('entity_', '')] = value
+ 
+                case_id = metadata.get('case_id')
+                if (not structured_data) and case_id is not None:
+                    enriched = self._get_case_metadata_structured(case_id, query_embedding)
+                    enriched_meta = enriched.get('metadata') if enriched else {}
+                    enriched_structured = enriched.get('structured_data') if enriched else {}
+
+                    if enriched_meta:
+                        for meta_key, meta_value in enriched_meta.items():
+                            if meta_key not in metadata and meta_value not in (None, '', []):
+                                metadata[meta_key] = meta_value
+
+                        if enriched_structured:
+                            structured_data = enriched_structured or structured_data
+
+                    if enriched_structured:
+                        structured_summary = self._format_structured_snippet(enriched_structured)
+                        if structured_summary:
+                            metadata['structured_summary'] = structured_summary
+                            if result_text:
+                                result_text = f"{structured_summary}\n\n{result_text}"
+                            else:
+                                result_text = structured_summary
+
                 result = {
                     'id': match.id,
                     'score': match.score,
-                    'text': metadata.get('text', ''),
+                    'text': result_text,
                     'metadata': metadata,
                     'retrieval_stage': 'initial_semantic',
                     'source': 'Pinecone',
                     'file_name': metadata.get('file_name', 'Unknown'),
                     'case_title': metadata.get('case_title', 'Unknown'),
-                    'case_number': metadata.get('case_number', 'Unknown')
+                    'case_number': metadata.get('case_number', 'Unknown'),
+                    'structured_data': structured_data
                 }
                 results.append(result)
             
@@ -316,7 +459,56 @@ class QARetrievalService:
         except Exception as e:
             logger.error(f"Error in initial semantic retrieval: {str(e)}")
             return self._fallback_retrieval(query, top_k)
-    
+
+    def _get_case_metadata_structured(self, case_id: Any, query_embedding: np.ndarray) -> Dict[str, Any]:
+        """Fetch cached structured metadata for a case from Pinecone when missing."""
+        try:
+            if not self.pinecone_index or query_embedding.size == 0:
+                return {}
+
+            try:
+                numeric_case_id = int(float(case_id))
+            except (TypeError, ValueError):
+                return {}
+
+            if numeric_case_id in self.case_metadata_cache:
+                return self.case_metadata_cache[numeric_case_id]
+
+            filter_payload = {
+                'case_id': {'$eq': numeric_case_id},
+                'source_type': {'$eq': 'case_metadata'}
+            }
+
+            response = self.pinecone_index.query(
+                vector=query_embedding.tolist(),
+                top_k=1,
+                include_metadata=True,
+                filter=filter_payload
+            )
+
+            matches = getattr(response, 'matches', [])
+            if not matches:
+                self.case_metadata_cache[numeric_case_id] = {}
+                return {}
+
+            metadata = matches[0].metadata or {}
+            structured_data = {
+                key.replace('entity_', ''): value
+                for key, value in metadata.items()
+                if key.startswith('entity_') and value not in (None, '', [])
+            }
+
+            enriched = {
+                'metadata': metadata,
+                'structured_data': structured_data
+            }
+            self.case_metadata_cache[numeric_case_id] = enriched
+            return enriched
+
+        except Exception as ex:
+            logger.warning(f"Failed to enrich case metadata for case {case_id}: {ex}")
+            return {}
+
     def _cross_encoder_reranking(self, 
                                query: str, 
                                initial_results: List[Dict[str, Any]], 
@@ -381,6 +573,461 @@ class QARetrievalService:
         except Exception as e:
             logger.error(f"Error in cross-encoder reranking: {str(e)}")
             return initial_results[:top_k]
+
+    # ------------------------------------------------------------------
+    # Result post-processing helpers
+    # ------------------------------------------------------------------
+
+    def _find_exact_case_match(self, case_title_hint: str) -> List[Dict[str, Any]]:
+        """
+        Find exact case number match from database.
+        This is called BEFORE semantic search to prioritize exact matches.
+        
+        Args:
+            case_title_hint: Extracted case title/number from query (e.g., "T.A. 2/2023 Civil (SB)")
+            
+        Returns:
+            List of results matching the exact case number, formatted for RAG pipeline
+        """
+        try:
+            from apps.cases.models import Case
+            
+            hint_clean = case_title_hint.strip()
+            exact_cases = None
+            
+            # Strategy 1: Try exact case-insensitive match
+            exact_cases = Case.objects.filter(case_number__iexact=hint_clean)
+            if exact_cases.exists():
+                logger.info(f"Found exact match (iexact) for: {hint_clean}")
+            else:
+                # Strategy 2: Try normalized match (remove extra spaces, normalize punctuation)
+                # Normalize: remove extra spaces, normalize dots and slashes
+                normalized_hint = re.sub(r'\s+', ' ', hint_clean.upper())
+                normalized_hint = re.sub(r'\.\s*', '.', normalized_hint)  # "T. A." -> "T.A."
+                normalized_hint = re.sub(r'\s*/\s*', '/', normalized_hint)  # "2 / 2023" -> "2/2023"
+                
+                # Try contains with normalized version
+                exact_cases = Case.objects.filter(case_number__icontains=normalized_hint)
+                if exact_cases.exists():
+                    logger.info(f"Found match (normalized contains) for: {hint_clean} -> {normalized_hint}")
+                else:
+                    # Strategy 3: Try extracting just the case number part (e.g., "T.A. 2/2023" from "T.A. 2/2023 Civil (SB)")
+                    # Extract pattern like "T.A. 2/2023" or "TA 2/2023"
+                    case_num_pattern = re.search(r'([A-Z]+\.?\s*\d+/\d+)', hint_clean.upper())
+                    if case_num_pattern:
+                        case_num_only = case_num_pattern.group(1)
+                        case_num_only = re.sub(r'\s+', ' ', case_num_only)  # Normalize spaces
+                        exact_cases = Case.objects.filter(case_number__icontains=case_num_only)
+                        if exact_cases.exists():
+                            logger.info(f"Found match (case number pattern) for: {hint_clean} -> {case_num_only}")
+            
+            # Strategy 4: If still no match, try matching against case_title field
+            if not exact_cases or not exact_cases.exists():
+                exact_cases = Case.objects.filter(case_title__icontains=hint_clean)
+                if exact_cases.exists():
+                    logger.info(f"Found match (case_title contains) for: {hint_clean}")
+            
+            if not exact_cases or not exact_cases.exists():
+                logger.warning(f"No exact case match found for: {hint_clean} (tried exact, normalized, pattern, and case_title)")
+                return []
+            
+            # Convert to RAG result format
+            results = []
+            # Prefer UnifiedCaseView if available for richer fields
+            unified_model = None
+            try:
+                from apps.cases.models import UnifiedCaseView  # type: ignore
+                unified_model = UnifiedCaseView
+            except Exception:
+                unified_model = None
+
+            if unified_model:
+                # Map Case ids to unified records when possible; else fallback to Case/CaseDetail
+                for case in exact_cases[:5]:
+                    try:
+                        u = unified_model.objects.filter(case_id=case.id).first()
+                    except Exception:
+                        u = None
+                    if u:
+                        meta = getattr(u, 'case_metadata', {}) or {}
+                        parts = [f"Case Number: {getattr(u,'case_number',case.case_number)}"]
+                        title = self._get_meta_value(meta, ['case_title']) or getattr(u, 'case_title', None) or case.case_title
+                        court_name = self._get_meta_value(meta, ['court','court_name']) or getattr(u, 'court', None) or (case.court.name if case.court else None)
+                        if title: parts.append(f"Case Title: {title}")
+                        if court_name: parts.append(f"Court: {court_name}")
+                        status = self._get_meta_value(meta, ['status','case_status']) or getattr(u, 'status', None) or case.status
+                        if status: parts.append(f"Status: {status}")
+                        bench = self._get_meta_value(meta, ['bench','before_bench']) or getattr(u, 'bench', None) or case.bench
+                        if bench: parts.append(f"Bench: {bench}")
+                        sr = self._get_meta_value(meta, ['sr_number','sr no','sr'])
+                        if sr: parts.append(f"SR Number: {sr}")
+                        inst = self._get_meta_value(meta, ['institution_date','institution'])
+                        if inst: parts.append(f"Institution Date: {inst}")
+                        hearing = self._get_meta_value(meta, ['hearing_date','next_hearing','last_hearing']) or getattr(u, 'hearing_date', None)
+                        if hearing: parts.append(f"Hearing Date: {hearing}")
+                        short_order = self._get_meta_value(meta, ['short_order','court_order','order']) or getattr(u, 'short_order', None)
+                        if short_order: parts.append(f"Short Order: {short_order}")
+                        desc = self._get_meta_value(meta, ['case_description','description','summary']) or getattr(u,'case_description',None)
+                        if desc: parts.append(f"Case Description: {desc}")
+                        fir_no = self._get_meta_value(meta, ['fir_number','fir no'])
+                        fir_date = self._get_meta_value(meta, ['fir_date','date of fir'])
+                        ps = self._get_meta_value(meta, ['police_station','p.s.','police station'])
+                        sections = self._get_meta_value(meta, ['sections','under section','under sections'])
+                        if fir_no or fir_date or ps or sections:
+                            fir_line = []
+                            if fir_no: fir_line.append(f"FIR No. {fir_no}")
+                            if fir_date: fir_line.append(str(fir_date))
+                            if ps: fir_line.append(str(ps))
+                            if sections: fir_line.append(f"Under Sections {sections}")
+                            parts.append("; ".join(fir_line))
+                        pet = self._get_meta_value(meta, ['advocates_petitioner','petitioners advocates','petitioner advocates',"petitioner's advocates"])
+                        res = self._get_meta_value(meta, ['advocates_respondent','respondents advocates','respondent advocates',"respondent's advocates"])
+                        if pet: parts.append(f"Petitioner's Advocates: {pet}")
+                        if res: parts.append(f"Respondent's Advocates: {res}")
+                        text = "\n".join(parts)
+                        results.append({
+                            'id': str(case.id),
+                            'case_id': case.id,
+                            'text': text,
+                            'metadata': {
+                                'case_id': case.id,
+                                'case_number': getattr(u,'case_number',case.case_number),
+                                'case_title': title,
+                                'court': court_name,
+                                'status': status,
+                                'match_type': 'exact_case_number',
+                                'advocates_petitioner': pet,
+                                'advocates_respondent': res,
+                                'case_description': desc,
+                                'case_stage': self._get_meta_value(meta, ['case_stage','stage']),
+                                'short_order': short_order,
+                                'bench': bench,
+                                'sr_number': sr,
+                                'institution_date': inst,
+                                'hearing_date': hearing,
+                                'fir_number': fir_no,
+                                'fir_date': fir_date,
+                                'police_station': ps,
+                                'under_section': sections,
+                            },
+                            'score': 1.0,
+                        })
+                    else:
+                        # Fallback to Case/CaseDetail for this record
+                        results.extend(self._build_case_result_from_case(case))
+            else:
+                # Unified view not available; use Case/CaseDetail
+                exact_cases = exact_cases.select_related('case_detail', 'court')[:5]
+                for case in exact_cases:
+                    results.extend(self._build_case_result_from_case(case))
+            
+            logger.info(f"Found {len(results)} exact case match(es) for: {case_title_hint}")
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error finding exact case match: {str(e)}")
+            return []
+    
+    def get_case_by_id(self, case_id: int) -> List[Dict[str, Any]]:
+        """
+        Fetch a single case by ID and format as retrieval result.
+        Used to lock follow-up answers to the active case context.
+        """
+        try:
+            from apps.cases.models import Case, CaseDetail
+            case = Case.objects.select_related('court').filter(id=case_id).first()
+            if not case:
+                return []
+            # Prefer UnifiedCaseView if available
+            unified_model = None
+            try:
+                from apps.cases.models import UnifiedCaseView  # type: ignore
+                unified_model = UnifiedCaseView
+            except Exception:
+                unified_model = None
+            if unified_model:
+                try:
+                    u = unified_model.objects.filter(case_id=case.id).first()
+                except Exception:
+                    u = None
+                if u:
+                    meta = getattr(u, 'case_metadata', {}) or {}
+                    parts = [f"Case Number: {getattr(u,'case_number',case.case_number)}"]
+                    title = self._get_meta_value(meta, ['case_title']) or getattr(u, 'case_title', None) or case.case_title
+                    court_name = self._get_meta_value(meta, ['court','court_name']) or getattr(u, 'court', None) or (case.court.name if case.court else None)
+                    if title: parts.append(f"Case Title: {title}")
+                    if court_name: parts.append(f"Court: {court_name}")
+                    status = self._get_meta_value(meta, ['status','case_status']) or getattr(u, 'status', None) or case.status
+                    if status: parts.append(f"Status: {status}")
+                    bench = self._get_meta_value(meta, ['bench','before_bench']) or getattr(u, 'bench', None) or case.bench
+                    if bench: parts.append(f"Bench: {bench}")
+                    sr = self._get_meta_value(meta, ['sr_number','sr no','sr'])
+                    if sr: parts.append(f"SR Number: {sr}")
+                    inst = self._get_meta_value(meta, ['institution_date','institution'])
+                    if inst: parts.append(f"Institution Date: {inst}")
+                    hearing = self._get_meta_value(meta, ['hearing_date','next_hearing','last_hearing']) or getattr(u,'hearing_date',None)
+                    if hearing: parts.append(f"Hearing Date: {hearing}")
+                    short_order = self._get_meta_value(meta, ['short_order','court_order','order']) or getattr(u,'short_order',None)
+                    if short_order: parts.append(f"Short Order: {short_order}")
+                    desc = self._get_meta_value(meta, ['case_description','description','summary'])
+                    if desc: parts.append(f"Case Description: {desc}")
+                    fir_no = self._get_meta_value(meta, ['fir_number','fir no'])
+                    fir_date = self._get_meta_value(meta, ['fir_date','date of fir'])
+                    ps = self._get_meta_value(meta, ['police_station','p.s.','police station'])
+                    sections = self._get_meta_value(meta, ['sections','under section','under sections'])
+                    if fir_no or fir_date or ps or sections:
+                        fir_line = []
+                        if fir_no: fir_line.append(f"FIR No. {fir_no}")
+                        if fir_date: fir_line.append(str(fir_date))
+                        if ps: fir_line.append(str(ps))
+                        if sections: fir_line.append(f"Under Sections {sections}")
+                        parts.append("; ".join(fir_line))
+                    pet = self._get_meta_value(meta, ['advocates_petitioner','petitioners advocates','petitioner advocates',"petitioner's advocates"])
+                    res = self._get_meta_value(meta, ['advocates_respondent','respondents advocates','respondent advocates',"respondent's advocates"])
+                    if pet: parts.append(f"Petitioner's Advocates: {pet}")
+                    if res: parts.append(f"Respondent's Advocates: {res}")
+                    text = "\n".join(parts)
+                    return [{
+                        'id': str(case.id),
+                        'case_id': case.id,
+                        'text': text,
+                        'metadata': {
+                            'case_id': case.id,
+                            'case_number': getattr(u,'case_number',case.case_number),
+                            'case_title': title,
+                            'court': court_name,
+                            'status': status,
+                            'match_type': 'by_case_id',
+                            'advocates_petitioner': pet,
+                            'advocates_respondent': res,
+                            'case_description': desc,
+                            'case_stage': self._get_meta_value(meta, ['case_stage','stage']),
+                            'short_order': short_order,
+                            'bench': bench,
+                            'sr_number': sr,
+                            'institution_date': inst,
+                            'hearing_date': hearing,
+                            'fir_number': fir_no,
+                            'fir_date': fir_date,
+                            'police_station': ps,
+                            'under_section': sections,
+                        },
+                        'score': 1.0,
+                        'qa_rank': 1,
+                        'qa_relevance_score': 1.0,
+                        'retrieval_method': 'active_case_lock',
+                    }]
+            # Try fetch details
+            try:
+                case_detail = CaseDetail.objects.get(case_id=case.id)
+            except CaseDetail.DoesNotExist:
+                case_detail = None
+
+            parts = [f"Case Number: {case.case_number}"]
+            if case.case_title:
+                parts.append(f"Case Title: {case.case_title}")
+            if case.court:
+                parts.append(f"Court: {case.court.name}")
+            if case.status:
+                parts.append(f"Status: {case.status}")
+            if case_detail:
+                if case_detail.advocates_petitioner:
+                    parts.append(f"Petitioner's Advocates: {case_detail.advocates_petitioner}")
+                if case_detail.advocates_respondent:
+                    parts.append(f"Respondent's Advocates: {case_detail.advocates_respondent}")
+                if case_detail.case_description:
+                    parts.append(f"Case Description: {case_detail.case_description}")
+                if case_detail.case_stage:
+                    parts.append(f"Case Stage: {case_detail.case_stage}")
+                if case_detail.short_order:
+                    parts.append(f"Short Order: {case_detail.short_order}")
+                if case_detail.before_bench:
+                    parts.append(f"Bench: {case_detail.before_bench}")
+
+            text = "\n".join(parts)
+            return [{
+                'id': str(case.id),
+                'case_id': case.id,
+                'text': text,
+                'metadata': {
+                    'case_id': case.id,
+                    'case_number': case.case_number,
+                    'case_title': case.case_title,
+                    'court': case.court.name if case.court else None,
+                    'status': case.status,
+                    'match_type': 'by_case_id',
+                    'advocates_petitioner': case_detail.advocates_petitioner if case_detail else None,
+                    'advocates_respondent': case_detail.advocates_respondent if case_detail else None,
+                    'case_description': case_detail.case_description if case_detail else None,
+                    'case_stage': case_detail.case_stage if case_detail else None,
+                    'short_order': case_detail.short_order if case_detail else None,
+                    'bench': case_detail.before_bench if case_detail else None,
+                },
+                'score': 1.0,
+                'qa_rank': 1,
+                'qa_relevance_score': 1.0,
+                'retrieval_method': 'active_case_lock',
+            }]
+        except Exception as e:
+            logger.error(f"Error fetching case by id {case_id}: {e}")
+            return []
+
+    def _build_case_result_from_case(self, case) -> List[Dict[str, Any]]:
+        """Fallback builder using Case and CaseDetail when UnifiedCaseView is not available."""
+        try:
+            from apps.cases.models import CaseDetail
+        except Exception:
+            CaseDetail = None  # type: ignore
+        case_detail = None
+        if CaseDetail:
+            try:
+                case_detail = CaseDetail.objects.get(case_id=case.id)
+            except Exception:
+                case_detail = None
+
+        parts = [f"Case Number: {case.case_number}"]
+        if case.case_title:
+            parts.append(f"Case Title: {case.case_title}")
+        if getattr(case, 'court', None):
+            parts.append(f"Court: {case.court.name}")
+        if getattr(case, 'status', None):
+            parts.append(f"Status: {case.status}")
+        if case_detail:
+            if case_detail.advocates_petitioner:
+                parts.append(f"Petitioner's Advocates: {case_detail.advocates_petitioner}")
+            if case_detail.advocates_respondent:
+                parts.append(f"Respondent's Advocates: {case_detail.advocates_respondent}")
+            if case_detail.case_description:
+                parts.append(f"Case Description: {case_detail.case_description}")
+            if case_detail.case_stage:
+                parts.append(f"Case Stage: {case_detail.case_stage}")
+            if case_detail.short_order:
+                parts.append(f"Short Order: {case_detail.short_order}")
+            if case_detail.before_bench:
+                parts.append(f"Bench: {case_detail.before_bench}")
+        text = "\n".join(parts)
+        return [{
+            'id': str(case.id),
+            'case_id': case.id,
+            'text': text,
+            'metadata': {
+                'case_id': case.id,
+                'case_number': case.case_number,
+                'case_title': case.case_title,
+                'court': case.court.name if getattr(case, 'court', None) else None,
+                'status': getattr(case, 'status', None),
+                'match_type': 'exact_case_number',
+                'advocates_petitioner': case_detail.advocates_petitioner if case_detail else None,
+                'advocates_respondent': case_detail.advocates_respondent if case_detail else None,
+                'case_description': case_detail.case_description if case_detail else None,
+                'case_stage': case_detail.case_stage if case_detail else None,
+                'short_order': case_detail.short_order if case_detail else None,
+                'bench': case_detail.before_bench if case_detail else getattr(case, 'bench', None),
+            },
+            'score': 1.0,
+        }]
+    
+    def _extract_case_title_from_question(self, question: str) -> Optional[str]:
+        if not question:
+            return None
+
+        lowered = question.lower()
+        # 1) Heuristic markers common in our UI phrasing
+        patterns = [
+            (" recorded for ", None),
+            (" linked to ", None),
+            (" sections was ", " filed"),
+            (" heard ", None),
+            (" case status for ", None),
+            (" short order in ", None),
+            (" advocates involved in ", None),  # Fixed: was "advocates in", now handles "involved in"
+            (" advocates in ", None),  # Keep for backward compatibility
+            (" petitioner's advocates in ", None),  # Handle "petitioner's advocates in"
+            (" respondent's advocates in ", None),  # Handle "respondent's advocates in"
+            (" fir number for ", None),
+            (" fir date for ", None),
+            (" police station is linked to ", None),
+            (" orders recorded for ", None),
+            (" under which sections was ", " filed"),
+            # Newly added generic markers the user uses:
+            (" details for this case:", None),
+            (" details for this case ", None),
+            (" details for ", None),
+            (" about case ", None),
+            (" regarding case ", None),
+        ]
+
+        for marker, end_marker in patterns:
+            idx = lowered.find(marker)
+            if idx == -1:
+                continue
+
+            start = idx + len(marker)
+            end = len(question)
+            if end_marker:
+                end_idx = lowered.find(end_marker, start)
+                if end_idx != -1:
+                    end = end_idx
+
+            case_title = question[start:end].strip().strip('"\' ?.')
+            if case_title:
+                return case_title
+
+        # 2) Regex for case numbers like "Crl. Misc. 2/2025 Bail After Arrest (SB)"
+        try:
+            num_match = re.search(r'([A-Za-z. ]+?\s+\d+/\d+\s+[A-Za-z][A-Za-z ]*(?:\s*\([A-Z]+\))?)', question, flags=re.IGNORECASE)
+            if num_match:
+                candidate = num_match.group(1).strip()
+                return candidate
+        except Exception:
+            pass
+
+        # 3) Regex for titles like "Rimsa Tahir vs Pakistan Institute of Medical Sciences" (v., vs, versus)
+        try:
+            title_match = re.search(r'([A-Za-z][A-Za-z .]+?\s+(?:v\.|vs|versus)\s+[A-Za-z][A-Za-z .]+)', question, flags=re.IGNORECASE)
+            if title_match:
+                return title_match.group(1).strip()
+        except Exception:
+            pass
+
+        return None
+
+    def _filter_results_by_case_title(self, results: List[Dict[str, Any]], case_title_hint: str) -> List[Dict[str, Any]]:
+        if not results or not case_title_hint:
+            return results
+
+        normalized_hint = self._normalize_case_title(case_title_hint)
+        matched: List[Dict[str, Any]] = []
+        deduped: List[Dict[str, Any]] = []
+        seen_keys = set()
+
+        for result in results:
+            metadata = result.get('metadata', {})
+            case_id = metadata.get('case_id') or result.get('case_id')
+            key = None
+            try:
+                if case_id is not None:
+                    key = int(float(case_id))
+            except (TypeError, ValueError):
+                key = None
+
+            if key is None:
+                key = result.get('id')
+
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            deduped.append(result)
+
+            candidate_title = result.get('case_title') or metadata.get('case_title')
+            if candidate_title and self._normalize_case_title(candidate_title) == normalized_hint:
+                matched.append(result)
+
+        return matched if matched else deduped
+
+    def _normalize_case_title(self, title: str) -> str:
+        cleaned = re.sub(r'[^a-z0-9]+', ' ', title.lower()).strip()
+        return cleaned
     
     def _apply_diversity_control(self, 
                                results: List[Dict[str, Any]], 
@@ -535,7 +1182,8 @@ class QARetrievalService:
                             'citations': doc.citations,
                             'content_quality_score': doc.content_quality_score
                         },
-                        'retrieval_stage': 'fallback_qa_kb'
+                        'retrieval_stage': 'fallback_qa_kb',
+                        'structured_data': self._entities_to_structured(doc.legal_entities)
                     }
                     results.append(result)
             else:
@@ -555,7 +1203,8 @@ class QARetrievalService:
                             'citations': doc.citations,
                             'content_quality_score': doc.content_quality_score
                         },
-                        'retrieval_stage': 'fallback_qa_kb'
+                        'retrieval_stage': 'fallback_qa_kb',
+                        'structured_data': self._entities_to_structured(doc.legal_entities)
                     }
                     results.append(result)
             
@@ -759,3 +1408,47 @@ class QARetrievalService:
             'config': self.config,
             'retrieval_method': 'two_stage_qa_retrieval'
         }
+
+    def _format_structured_snippet(self, structured_data: Dict[str, Any]) -> str:
+        """Convert structured metadata into a concise natural-language snippet."""
+        if not structured_data:
+            return ""
+
+        parts: List[str] = []
+
+        def _join(value: Any) -> str:
+            if value is None:
+                return ''
+            if isinstance(value, str):
+                return value
+            if isinstance(value, list):
+                return ", ".join([_join(item) for item in value if item])
+            if isinstance(value, dict):
+                return ", ".join([f"{k.replace('_', ' ').title()}: {_join(v)}" for k, v in value.items() if v])
+            return str(value)
+
+        if structured_data.get('advocates_petitioner'):
+            parts.append(f"Petitioner Advocates: {_join(structured_data['advocates_petitioner'])}")
+        if structured_data.get('advocates_respondent'):
+            parts.append(f"Respondent Advocates: {_join(structured_data['advocates_respondent'])}")
+        if structured_data.get('bench'):
+            parts.append(f"Bench: {_join(structured_data['bench'])}")
+        if structured_data.get('court'):
+            parts.append(f"Court: {_join(structured_data['court'])}")
+        if structured_data.get('status'):
+            parts.append(f"Case Status: {_join(structured_data['status'])}")
+        if structured_data.get('short_order'):
+            parts.append(f"Short Order: {_join(structured_data['short_order'])}")
+        if structured_data.get('fir_number'):
+            parts.append(f"FIR Number: {_join(structured_data['fir_number'])}")
+
+        if not parts:
+            # Fallback to summarizing any other keys
+            for key, value in structured_data.items():
+                if key in {'advocates_petitioner', 'advocates_respondent', 'bench', 'court', 'status', 'short_order', 'fir_number'}:
+                    continue
+                rendered = _join(value)
+                if rendered:
+                    parts.append(f"{key.replace('_', ' ').title()}: {rendered}")
+
+        return " | ".join(parts)

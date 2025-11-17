@@ -6,9 +6,21 @@ import logging
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
+from django.apps import apps
+
+from pathlib import Path
+import sys
+
+# Ensure backend/search_module is on sys.path so we can import Case models
+search_module_dir = Path(__file__).resolve().parents[5] / "search_module"
+project_root = search_module_dir.parent.parent  # backend/search_module -> backend
+
+for path in (project_root, search_module_dir):
+    path_str = str(path)
+    if path_str not in sys.path:
+        sys.path.append(path_str)
 
 from qa_app.services.qa_knowledge_base import QAKnowledgeBaseService
-from apps.cases.models import Case
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +65,8 @@ class Command(BaseCommand):
         if options['verbose']:
             logging.basicConfig(level=logging.DEBUG)
             self.stdout.write(self.style.SUCCESS('Verbose logging enabled'))
+        
+        self.case_model = apps.get_model('cases', 'Case')
         
         # Initialize QA service
         qa_kb_service = QAKnowledgeBaseService()
@@ -169,7 +183,7 @@ class Command(BaseCommand):
         self.stdout.write('Processing all cases for QA...')
         
         # Get all case IDs
-        case_ids = list(Case.objects.values_list('id', flat=True))
+        case_ids = list(self.case_model.objects.values_list('id', flat=True))
         total_cases = len(case_ids)
         
         self.stdout.write(f'Found {total_cases} cases to process for QA')

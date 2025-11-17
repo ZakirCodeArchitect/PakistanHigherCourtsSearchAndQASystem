@@ -3,12 +3,17 @@
 {% block title %}Search Laws - Law Information Resource{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Search Header -->
+<div class="container py-4">
+    <!-- Modern Search Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h1><i class="fas fa-search me-2"></i>Search Laws</h1>
+                <div>
+                    <h1 style="color: var(--text-primary);">
+                        <i class="fas fa-search me-2" style="color: var(--primary-orange);"></i>Search Laws
+                    </h1>
+                    <p style="color: var(--text-primary);" class="mb-0">Find relevant legal information quickly and efficiently</p>
+                </div>
                 <a href="{% url 'law_information:home' %}" class="btn btn-outline-primary">
                     <i class="fas fa-home me-1"></i>Home
                 </a>
@@ -16,13 +21,13 @@
         </div>
     </div>
     
-    <!-- Search Form -->
+    <!-- Modern Search Form -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <div class="law-card">
                 <div class="card-body">
                     <form method="GET" action="{% url 'law_information:search' %}">
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-8">
                                 <div class="input-group">
                                     <input 
@@ -31,14 +36,16 @@
                                         name="q" 
                                         value="{{ query }}"
                                         placeholder="Search for laws (e.g., 'theft punishment', 'hit and run')"
+                                        style="height: 50px; font-size: 1.1rem;"
+                                        id="searchInput"
                                     >
-                                    <button class="btn btn-primary" type="submit" id="search-btn">
+                                    <button class="btn btn-primary" type="submit" id="search-btn" style="height: 50px; padding: 0 2rem;">
                                         <i class="fas fa-search me-2"></i>Search
                                     </button>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <select name="type" class="form-select">
+                                <select name="type" class="form-select" style="height: 50px; font-size: 1.1rem;" id="searchType">
                                     <option value="all" {% if search_type == 'all' %}selected{% endif %}>All Fields</option>
                                     <option value="title" {% if search_type == 'title' %}selected{% endif %}>Title Only</option>
                                     <option value="sections" {% if search_type == 'sections' %}selected{% endif %}>Sections</option>
@@ -59,17 +66,19 @@
         <div class="col-lg-8">
             {% if query %}
                 <!-- Results Header -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3>
+                <div class="results-header mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 style="color: var(--text-primary);">
+                            {% if total_results > 0 %}
+                                {{ total_results }} result{{ total_results|pluralize }} for "{{ query }}"
+                            {% else %}
+                                No results found for "{{ query }}"
+                            {% endif %}
+                        </h3>
                         {% if total_results > 0 %}
-                            {{ total_results }} result{{ total_results|pluralize }} for "{{ query }}"
-                        {% else %}
-                            No results found for "{{ query }}"
+                            <small style="color: var(--text-muted);">Search type: {{ search_type|title }}</small>
                         {% endif %}
-                    </h3>
-                    {% if total_results > 0 %}
-                        <small class="text-muted">Search type: {{ search_type|title }}</small>
-                    {% endif %}
+                    </div>
                 </div>
                 
                 <!-- GPT Enhanced Search Results -->
@@ -77,81 +86,58 @@
                     <!-- GPT results will be loaded here via JavaScript -->
                 </div>
                 
-                <!-- Fallback GPT Results Container (in case main one fails) -->
+                <!-- Fallback GPT Results Container -->
                 <div id="gpt-results-fallback" class="mb-4" style="display: none;">
                     <!-- Fallback container for GPT results -->
                 </div>
                 
-                <!-- Results -->
+                <!-- Modern Results -->
                 {% if laws %}
                     {% for law in laws %}
-                        <div class="law-card card mb-3">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-gavel me-2"></i>
-                                    {{ law.title }}
-                                </h5>
+                        <div class="search-law-card">
+                            <div class="search-law-header">
+                                <div class="search-law-icon">
+                                    <i class="fas fa-gavel"></i>
+                                </div>
+                                <div class="search-law-info">
+                                    <h5 class="search-law-title">{{ law.title }}</h5>
+                                    <p class="search-law-jurisdiction">{{ law.jurisdiction }}</p>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p class="mb-2">
-                                            <strong><i class="fas fa-list me-1"></i>Sections:</strong> 
-                                            {{ law.get_sections_display }}
-                                        </p>
-                                        <p class="mb-2">
-                                            <strong><i class="fas fa-building me-1"></i>Jurisdiction:</strong> 
-                                            {{ law.jurisdiction }}
-                                        </p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-2">
-                                            <strong><i class="fas fa-exclamation-triangle me-1"></i>Punishment:</strong>
-                                        </p>
-                                        <p class="text-muted small">
-                                            {{ law.punishment_summary|truncatewords:20 }}
-                                        </p>
-                                    </div>
+                            
+                            <div class="search-law-body">
+                                <div class="search-law-punishment">
+                                    <strong>Punishment:</strong>
+                                    <span>{{ law.punishment_summary|truncatewords:15 }}</span>
                                 </div>
                                 
-                                <!-- Tags -->
                                 {% if law.get_tags_display %}
-                                    <div class="mb-3">
-                                        {% for tag in law.get_tags_display %}
-                                            <span class="tag-badge">{{ tag }}</span>
+                                    <div class="search-law-tags">
+                                        {% for tag in law.get_tags_display|slice:":3" %}
+                                            <span class="search-law-tag">{{ tag }}</span>
                                         {% endfor %}
-                                    </div>
-                                {% endif %}
-                                
-                                <!-- Rights Summary -->
-                                {% if law.rights_summary %}
-                                    <div class="mb-3">
-                                        <strong><i class="fas fa-shield-alt me-1"></i>Key Rights:</strong>
-                                        <ul class="mb-0 mt-1">
-                                            {% for right in law.get_rights_list|slice:":3" %}
-                                                <li class="small">{{ right }}</li>
-                                            {% endfor %}
-                                            {% if law.get_rights_list|length > 3 %}
-                                                <li class="small text-muted">... and more</li>
-                                            {% endif %}
-                                        </ul>
+                                        {% if law.get_tags_display|length > 3 %}
+                                            <span class="search-law-tag-more">+{{ law.get_tags_display|length|add:"-3" }}</span>
+                                        {% endif %}
                                     </div>
                                 {% endif %}
                             </div>
-                            <div class="card-footer bg-transparent">
-                                <a href="{% url 'law_information:law_detail' law.slug %}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-info-circle me-1"></i>View Full Details
+                            
+                            <div class="search-law-footer">
+                                <a href="{% url 'law_information:law_detail' law.slug %}" class="search-law-view-btn">
+                                    <span>View Full Details</span>
+                                    <i class="fas fa-arrow-right"></i>
                                 </a>
-                                <small class="text-muted ms-3">
-                                    <i class="fas fa-clock me-1"></i>Updated {{ law.updated_at|date:"M d, Y" }}
+                                <small class="search-law-date">
+                                    <i class="fas fa-clock"></i>Updated {{ law.updated_at|date:"M d, Y" }}
                                 </small>
                             </div>
                         </div>
                     {% endfor %}
                     
-                    <!-- Pagination -->
+                    <!-- Modern Pagination -->
                     {% if laws.has_other_pages %}
-                        <nav aria-label="Search results pagination">
+                        <nav aria-label="Search results pagination" class="mt-4">
                             <ul class="pagination justify-content-center">
                                 {% if laws.has_previous %}
                                     <li class="page-item">
@@ -187,14 +173,14 @@
                 {% else %}
                     <!-- No Results -->
                     <div class="text-center py-5">
-                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <h4 class="text-muted">No laws found</h4>
-                        <p class="text-muted">
+                        <i class="fas fa-search fa-3x mb-3" style="color: var(--primary-orange);"></i>
+                        <h4 style="color: var(--text-primary);">No laws found</h4>
+                        <p style="color: var(--text-primary);">
                             Try different keywords or search in different fields.
                         </p>
-                        <div class="mt-4">
-                            <h5>Search Tips:</h5>
-                            <ul class="list-unstyled text-muted">
+                        <div class="search-tips mt-4">
+                            <h5 class="text-primary">Search Tips:</h5>
+                            <ul class="list-unstyled" style="color: var(--text-primary);">
                                 <li><i class="fas fa-lightbulb me-2"></i>Try broader terms (e.g., "theft" instead of "theft under PPC 379")</li>
                                 <li><i class="fas fa-lightbulb me-2"></i>Search by tags or jurisdiction</li>
                                 <li><i class="fas fa-lightbulb me-2"></i>Check spelling and try synonyms</li>
@@ -205,107 +191,388 @@
             {% else %}
                 <!-- No Search Query -->
                 <div class="text-center py-5">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">Search for Laws</h4>
-                    <p class="text-muted">
-                        Enter your search terms above to find relevant legal information.
-                    </p>
+                        <i class="fas fa-search fa-3x mb-3" style="color: var(--primary-orange);"></i>
+                        <h4 style="color: var(--text-primary);">Search for Laws</h4>
+                        <p style="color: var(--text-primary);">
+                            Enter your search terms above to find relevant legal information.
+                        </p>
                 </div>
             {% endif %}
         </div>
         
-        <!-- Sidebar -->
+        <!-- Simplified Sidebar -->
         <div class="col-lg-4">
-            <!-- Featured Laws -->
-            {% if featured_laws %}
-                <div class="sidebar">
-                    <h4><i class="fas fa-star me-2"></i>Featured Laws</h4>
-                    <div class="list-group list-group-flush">
-                        {% for law in featured_laws %}
-                            <a href="{% url 'law_information:law_detail' law.slug %}" 
-                               class="list-group-item list-group-item-action border-0 px-0">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ law.title }}</h6>
-                                    <small class="text-muted">
-                                        <i class="fas fa-star text-warning"></i>
-                                    </small>
-                                </div>
-                                <p class="mb-1 text-muted">{{ law.jurisdiction }}</p>
-                            </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-            
-            <!-- Popular Tags -->
+            <!-- Popular Categories -->
             {% if popular_tags %}
                 <div class="sidebar">
                     <h4><i class="fas fa-tags me-2"></i>Popular Categories</h4>
-                    <div class="mb-3">
-                        {% for tag, count in popular_tags %}
+                    <div class="categories-grid">
+                        {% for tag, count in popular_tags|slice:":8" %}
                             <a href="?q={{ tag|urlencode }}&type=tags" 
-                               class="tag-badge text-decoration-none">
-                                {{ tag }} ({{ count }})
+                               class="tag-badge text-decoration-none category-tag" 
+                               data-tag="{{ tag }}">
+                                {{ tag }} <span class="badge bg-secondary ms-1">{{ count }}</span>
                             </a>
                         {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <small style="color: var(--text-primary);">Click any category to search</small>
                     </div>
                 </div>
             {% endif %}
             
-            <!-- Search Tips -->
+            <!-- Quick Search Tips -->
             <div class="sidebar">
-                <h4><i class="fas fa-lightbulb me-2"></i>Search Tips</h4>
-                <ul class="list-unstyled small">
-                    <li class="mb-2">
+                <h4><i class="fas fa-lightbulb me-2"></i>Quick Tips</h4>
+                <div class="search-tips-list">
+                    <div class="tip-item">
                         <i class="fas fa-check text-success me-2"></i>
-                        Use specific terms like "theft", "murder", "fraud"
-                    </li>
-                    <li class="mb-2">
+                        <span>Use specific terms like "theft", "murder"</span>
+                    </div>
+                    <div class="tip-item">
                         <i class="fas fa-check text-success me-2"></i>
-                        Search by legal sections (e.g., "PPC 379")
-                    </li>
-                    <li class="mb-2">
+                        <span>Try legal sections (e.g., "PPC 379")</span>
+                    </div>
+                    <div class="tip-item">
                         <i class="fas fa-check text-success me-2"></i>
-                        Try jurisdiction names (e.g., "Sessions Court")
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Use tags for broader categories
-                    </li>
-                </ul>
+                        <span>Search by court names</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
+
+<style>
+.law-info-item {
+    padding: 0.5rem 0;
+}
+
+.tags-section {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.rights-section {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.featured-law-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.featured-law-item:last-child {
+    border-bottom: none;
+}
+
+.featured-law-item:hover {
+    background: var(--dark-bg-tertiary);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.featured-law-item a:hover {
+    text-decoration: none !important;
+}
+
+.categories-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tip-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tip-item:last-child {
+    border-bottom: none;
+}
+
+.search-tips-list {
+    margin-top: 1rem;
+}
+
+.results-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+/* Enhanced Category Styling */
+.category-tag {
+    transition: all 0.3s ease;
+}
+
+.category-tag:hover {
+    background: var(--primary-orange);
+    color: var(--text-primary);
+    border-color: var(--primary-orange);
+    transform: translateY(-1px);
+}
+
+/* Professional Search Result Cards */
+.search-law-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-law-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-orange), #ffa500);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.search-law-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(255, 140, 0, 0.15);
+    border-color: rgba(255, 140, 0, 0.2);
+}
+
+.search-law-card:hover::before {
+    opacity: 1;
+}
+
+.search-law-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.search-law-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-orange), #ffa500);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.search-law-icon i {
+    color: white;
+    font-size: 20px;
+}
+
+.search-law-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-law-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.search-law-jurisdiction {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 500;
+}
+
+.search-law-body {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+.search-law-punishment {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-orange);
+}
+
+.search-law-punishment strong {
+    color: var(--primary-orange);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.search-law-punishment span {
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.search-law-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-law-tag {
+    background: #f8f9fa;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.search-law-tag:hover {
+    background: var(--primary-orange);
+    color: white;
+    border-color: var(--primary-orange);
+}
+
+.search-law-tag-more {
+    background: #e5e7eb;
+    color: #6b7280;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.search-law-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.search-law-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-orange);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    padding: 8px 0;
+}
+
+.search-law-view-btn:hover {
+    color: var(--primary-orange-dark);
+    transform: translateX(4px);
+}
+
+.search-law-view-btn i {
+    transition: transform 0.3s ease;
+}
+
+.search-law-view-btn:hover i {
+    transform: translateX(4px);
+}
+
+.search-law-date {
+    color: #9ca3af;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.search-law-date i {
+    font-size: 11px;
+}
+
+@media (max-width: 768px) {
+    .law-card {
+        margin-bottom: 1rem;
+    }
+    
+    .sidebar {
+        margin-bottom: 1rem;
+    }
+    
+    .search-law-card {
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .search-law-header {
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .search-law-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .search-law-icon i {
+        font-size: 16px;
+    }
+    
+    .search-law-title {
+        font-size: 16px;
+    }
+    
+    .search-law-jurisdiction {
+        font-size: 13px;
+    }
+    
+    .search-law-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+</style>
 
 {% block extra_head %}
 <style>
 .ai-explanation {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2c3e50;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-secondary);
     text-align: justify;
     line-height: 1.6;
 }
 
 .law-card {
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     transition: transform 0.2s ease-in-out;
 }
 
 .law-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3) !important;
 }
 
 .card-header.bg-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3) !important;
-    border-radius: 10px 10px 0 0 !important;
+    background: linear-gradient(135deg, var(--primary-orange), var(--primary-orange-dark)) !important;
+    border-radius: 12px 12px 0 0 !important;
 }
 
 .alert-info {
-    border-left: 4px solid #007bff;
+    border-left: 4px solid var(--primary-orange);
     border-radius: 8px;
 }
 
@@ -315,7 +582,7 @@
 }
 
 .search-terms-container {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    background: var(--dark-bg-tertiary);
     border-radius: 6px;
     padding: 0.75rem;
 }
@@ -512,7 +779,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="visually-hidden">Loading...</span>
                 </div>
                 <p class="mt-2">🤖 AI is processing your query...</p>
-                <small class="text-muted">This may take a few seconds...</small>
+                <small style="color: var(--text-muted);">This may take a few seconds...</small>
             </div>
         `;
         
@@ -597,25 +864,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="col-md-6">
                                     <p class="mb-2">
                                         <strong><i class="fas fa-list me-1 text-primary"></i>Sections:</strong> 
-                                        <span class="text-muted">${result.sections ? result.sections.join(', ') : 'N/A'}</span>
+                                        <span style="color: var(--text-muted);">${result.sections ? result.sections.join(', ') : 'N/A'}</span>
                                     </p>
                                     <p class="mb-2">
                                         <strong><i class="fas fa-building me-1 text-primary"></i>Jurisdiction:</strong> 
-                                        <span class="text-muted">${result.jurisdiction}</span>
+                                        <span style="color: var(--text-muted);">${result.jurisdiction}</span>
                                     </p>
                                 </div>
                                 <div class="col-md-6">
                                     <p class="mb-2">
                                         <strong><i class="fas fa-exclamation-triangle me-1 text-primary"></i>Punishment:</strong>
                                     </p>
-                                    <p class="text-muted small">
+                                    <p style="color: var(--text-muted);" class="small">
                                         ${result.punishment_summary ? result.punishment_summary.substring(0, 150) + '...' : 'N/A'}
                                     </p>
                                 </div>
                             </div>
                             
                             <!-- GPT Explanation -->
-                            <div class="alert alert-info mt-3 border-0" style="background-color: #e3f2fd;">
+                            <div class="alert alert-info mt-3 border-0" style="background-color: rgba(255, 140, 0, 0.1);">
                                 <h6 class="mb-3">
                                     <i class="fas fa-robot me-2 text-primary"></i>
                                     <strong>AI Explanation:</strong>
@@ -627,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             <!-- Search Terms Used -->
                             <div class="mt-3 search-terms-container">
-                                <small class="text-muted">
+                                <small style="color: var(--text-muted);">
                                     <strong><i class="fas fa-search me-1"></i>Search Terms Used:</strong> 
                                     <span class="badge bg-secondary me-1">${result.search_terms_used.join('</span> <span class="badge bg-secondary me-1">')}</span>
                                 </small>
@@ -637,7 +904,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <a href="/${result.slug}/" class="btn btn-primary btn-sm">
                                 <i class="fas fa-info-circle me-1"></i>View Full Details
                             </a>
-                            <small class="text-muted ms-3">
+                            <small style="color: var(--text-muted);" class="ms-3">
                                 <i class="fas fa-star me-1 text-warning"></i>Result ${index + 1} of ${data.results.length}
                             </small>
                         </div>
@@ -657,4 +924,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endblock %}
+
 {% endblock %}
