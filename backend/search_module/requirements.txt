@@ -55,3 +55,8 @@ Pillow>=11.3.0  # Image processing for OCR
 # 🔧 DEVELOPMENT DEPENDENCIES
 # ========================================
 python-decouple>=3.8
+
+# ========================================
+# 🔍 LEXICAL SEARCH DEPENDENCIES
+# ========================================
+rank-bm25>=0.2.2  # BM25 algorithm for lexical search

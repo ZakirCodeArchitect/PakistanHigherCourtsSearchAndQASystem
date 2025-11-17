@@ -20,11 +20,25 @@ from .enhanced_metadata_service import EnhancedMetadataService
 
 logger = logging.getLogger(__name__)
 
+# Import BM25 service
+try:
+    from .bm25_indexing import BM25IndexingService
+    BM25_AVAILABLE = True
+except ImportError:
+    BM25IndexingService = None
+    BM25_AVAILABLE = False
+
 
 class KeywordIndexingService:
     """Service for creating and managing keyword indexes"""
     
-    def __init__(self):
+    def __init__(self, use_bm25: bool = True):
+        """
+        Initialize keyword indexing service
+        
+        Args:
+            use_bm25: Whether to use BM25 for search (default: True)
+        """
         self.legal_abbreviations = {
             'Cr.P.C.': 'CrPC',
             'CrPC': 'CrPC',
@@ -42,6 +56,21 @@ class KeywordIndexingService:
         
         # TIER 1 INTEGRATION: Initialize enhanced metadata service
         self.enhanced_metadata_service = EnhancedMetadataService()
+        
+        # Initialize BM25 service if available and enabled
+        self.use_bm25 = use_bm25 and BM25_AVAILABLE
+        self.bm25_service = None
+        if self.use_bm25 and BM25IndexingService:
+            try:
+                self.bm25_service = BM25IndexingService()
+                logger.info("BM25 indexing service initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize BM25 service: {str(e)}. Falling back to icontains.")
+                self.use_bm25 = False
+        else:
+            if use_bm25 and not BM25_AVAILABLE:
+                logger.warning("BM25 not available. Install rank-bm25. Falling back to icontains.")
+            self.use_bm25 = False
     
     def normalize_text(self, text: str) -> str:
         """Normalize text for indexing"""
@@ -436,12 +465,13 @@ class KeywordIndexingService:
             return stats
     
     def build_keyword_index(self, force: bool = False) -> Dict[str, any]:
-        """Build keyword index using PostgreSQL full-text search"""
+        """Build keyword index using PostgreSQL full-text search and BM25"""
         start_time = time.time()
         stats = {
             'cases_processed': 0,
             'metadata_created': 0,
             'facet_indexes_built': 0,
+            'bm25_index_built': False,
             'index_built': False,
             'errors': []
         }
@@ -562,6 +592,22 @@ class KeywordIndexingService:
             
             stats['index_built'] = True
             
+            # Build BM25 index if available
+            if self.use_bm25 and self.bm25_service:
+                try:
+                    logger.info("Building BM25 index...")
+                    bm25_stats = self.bm25_service.build_index(force=force)
+                    if bm25_stats.get('index_built'):
+                        stats['bm25_index_built'] = True
+                        logger.info(f"BM25 index built: {bm25_stats.get('total_documents', 0)} documents, "
+                                   f"{bm25_stats.get('total_fields', 0)} fields")
+                    else:
+                        stats['errors'].extend(bm25_stats.get('errors', []))
+                except Exception as e:
+                    error_msg = f"Error building BM25 index: {str(e)}"
+                    logger.error(error_msg)
+                    stats['errors'].append(error_msg)
+            
             # Log processing time
             processing_time = time.time() - start_time
             stats['processing_time'] = processing_time
@@ -581,7 +627,9 @@ class KeywordIndexingService:
                 completed_at=timezone.now()
             )
             
-            logger.info(f"Keyword indexing completed: {stats['cases_processed']} cases, {stats['facet_indexes_built']} facet indexes")
+            logger.info(f"Keyword indexing completed: {stats['cases_processed']} cases, "
+                       f"{stats['facet_indexes_built']} facet indexes, "
+                       f"BM25: {'built' if stats.get('bm25_index_built') else 'skipped'}")
             return stats
             
         except Exception as e:
@@ -662,20 +710,48 @@ class KeywordIndexingService:
         return ranked_results[:top_k]
     
     def search(self, query: str, filters: Dict[str, any] = None, top_k: int = 10) -> List[Dict[str, any]]:
-        """Search using keyword indexing"""
+        """Search using keyword indexing with BM25 (if available) or icontains fallback"""
+        try:
+            # Try BM25 search first if enabled
+            if self.use_bm25 and self.bm25_service:
+                try:
+                    bm25_results = self.bm25_service.search(query, filters=filters, top_k=top_k)
+                    if bm25_results:
+                        # Convert BM25 results to expected format
+                        formatted_results = []
+                        for result in bm25_results:
+                            formatted_results.append({
+                                'case_id': result['case_id'],
+                                'case_number': result.get('case_number', ''),
+                                'case_title': result.get('case_title', ''),
+                                'parties': result.get('parties', ''),
+                                'court': result.get('court', ''),
+                                'status': result.get('status', ''),
+                                'institution_date': result.get('institution_date'),
+                                'hearing_date': result.get('hearing_date'),
+                                'disposal_date': result.get('disposal_date'),
+                                'rank': result.get('bm25_score', result.get('rank', 0)),
+                                'bm25_score': result.get('bm25_score', 0),
+                                'field_scores': result.get('field_scores', {})
+                            })
+                        
+                        logger.info(f"BM25 search returned {len(formatted_results)} results")
+                        return formatted_results
+                except Exception as e:
+                    logger.warning(f"BM25 search failed: {str(e)}. Falling back to icontains.")
+            
+            # Fallback to icontains search (original implementation)
+            return self._search_icontains(query, filters, top_k)
+            
+        except Exception as e:
+            logger.error(f"Error in keyword search: {str(e)}")
+            return []
+    
+    def _search_icontains(self, query: str, filters: Dict[str, any] = None, top_k: int = 10) -> List[Dict[str, any]]:
+        """Fallback search using icontains (original implementation)"""
         try:
             # Normalize query
             normalized_query = self.normalize_text(query)
-            
-            # Build search query
-            search_vector = (
-                SearchVector('case_number_normalized', weight='A') +
-                SearchVector('case_title_normalized', weight='B') +
-                SearchVector('parties_normalized', weight='C') +
-                SearchVector('court_normalized', weight='D')
-            )
-            
-            search_query = SearchQuery(normalized_query, config='english')
             
             # Apply filters
             queryset = SearchMetadata.objects.filter(is_indexed=True)
@@ -690,15 +766,13 @@ class KeywordIndexingService:
                 if 'date_to' in filters:
                     queryset = queryset.filter(institution_date__lte=filters['date_to'])
             
-            # FIXED: Disable broken PostgreSQL full-text search and use reliable icontains search
-            # PostgreSQL full-text search is returning incorrect results (same results for all queries)
-            # Use simple icontains search which works correctly
+            # Use simple icontains search
             results = queryset.filter(
                 Q(case_number_normalized__icontains=normalized_query) |
                 Q(case_title_normalized__icontains=normalized_query) |
                 Q(parties_normalized__icontains=normalized_query) |
                 Q(court_normalized__icontains=normalized_query) |
-                Q(status_normalized__icontains=normalized_query)  # FIXED: Added status field search
+                Q(status_normalized__icontains=normalized_query)
             )[:top_k * 2]  # Get more results for better scoring
             
             # Add a dummy rank field for compatibility

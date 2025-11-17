@@ -1,0 +1,967 @@
+{
+  "timestamp": "2025-11-17T21:08:13.943668",
+  "num_queries": 47,
+  "metrics": {
+    "total_queries": 47,
+    "total_results": 344,
+    "queries_with_results": 44,
+    "queries_without_results": 3,
+    "coverage_percentage": 93.62,
+    "average_results_per_query": 7.32,
+    "average_execution_time_ms": 18.57,
+    "total_execution_time_ms": 872.77,
+    "result_statistics": {
+      "max_results": 40,
+      "min_results": 0,
+      "median_results": 1
+    },
+    "time_statistics": {
+      "max_time_ms": 145.58,
+      "min_time_ms": 3.96,
+      "median_time_ms": 8.24
+    },
+    "query_statistics": {
+      "average_query_length_words": 4.74
+    }
+  },
+  "query_results": [
+    {
+      "query": "DR REHIANA ALI VS CH RIAZ AHMED",
+      "num_results": 1,
+      "execution_time_ms": 11.43,
+      "results": [
+        {
+          "case_id": 14,
+          "case_number": "p.s.l.a. 3/2025 other (sb)",
+          "case_title": "dr rehiana ali vs ch riaz ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Sarfaraz Yousaf VS Muhammad Farhan",
+      "num_results": 1,
+      "execution_time_ms": 5.73,
+      "results": [
+        {
+          "case_id": 10,
+          "case_number": "cm ind. 3/2025 writ (sb)",
+          "case_title": "sarfaraz yousaf vs muhammad farhan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "FIR No. 11-2023 dated 04.12.2023 Offence u/s 406, 420, 468, 471, 34 PPC r/w 5(2) PCA, PS FIA, Composite Circle Gilgit.",
+      "num_results": 20,
+      "execution_time_ms": 145.58,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 64,
+          "case_number": "inst no. 3/2025 (sb)",
+          "case_title": "maria saboor vs abdul saboor and 3 others",
+          "rank": 1.0
+        },
+        {
+          "case_id": 4,
+          "case_number": "inst no. 2/2025 objection (sb)",
+          "case_title": "cir vs pak datacom",
+          "rank": 1.0
+        },
+        {
+          "case_id": 139,
+          "case_number": "inst no. 2/2023 diary (sb)",
+          "case_title": "rimsa tahir vs pakistan institute of medical sciences",
+          "rank": 1.0
+        },
+        {
+          "case_id": 208,
+          "case_number": "inst no. 1/2023 diary (sb)",
+          "case_title": "sultan shair afghan vs manzoor ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR REHIANA ALI",
+      "num_results": 1,
+      "execution_time_ms": 10.28,
+      "results": [
+        {
+          "case_id": 14,
+          "case_number": "p.s.l.a. 3/2025 other (sb)",
+          "case_title": "dr rehiana ali vs ch riaz ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Tanzeela",
+      "num_results": 1,
+      "execution_time_ms": 12.54,
+      "results": [
+        {
+          "case_id": 26,
+          "case_number": "cm ind. 1/2025 civil (sb)",
+          "case_title": "awais ahmed satti vs shfqat naeem janjua",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR. HAFEEZ ULLAH",
+      "num_results": 2,
+      "execution_time_ms": 8.78,
+      "results": [
+        {
+          "case_id": 13,
+          "case_number": "office objection 3/2025 (sb)",
+          "case_title": "dr. hafeez ullah khan vs fop",
+          "rank": 1.0
+        },
+        {
+          "case_id": 581,
+          "case_number": "i.c.a. 1/2017 writ (db)",
+          "case_title": "dr. hafeez ullah khan vs chairman pakistan science foundation,",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "The District & Session Judge, East Islamabad.",
+      "num_results": 3,
+      "execution_time_ms": 7.63,
+      "results": [
+        {
+          "case_id": 290,
+          "case_number": "t.a. 1/2023 civil (sb)",
+          "case_title": "syed tahreen fatima vs jawad iqbal dad and another",
+          "rank": 1.0
+        },
+        {
+          "case_id": 17,
+          "case_number": "t.a. 3/2025 civil (sb)",
+          "case_title": "mehwish vs rashida shaheen bibi,",
+          "rank": 1.0
+        },
+        {
+          "case_id": 35,
+          "case_number": "t.a. 2/2025 civil (sb)",
+          "case_title": "zaryab qayyum vs muhammad usman safdar",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Sarfaraz Yousaf VS",
+      "num_results": 1,
+      "execution_time_ms": 7.86,
+      "results": [
+        {
+          "case_id": 10,
+          "case_number": "cm ind. 3/2025 writ (sb)",
+          "case_title": "sarfaraz yousaf vs muhammad farhan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Muhammad Imran VS",
+      "num_results": 3,
+      "execution_time_ms": 6.08,
+      "results": [
+        {
+          "case_id": 11,
+          "case_number": "jail appeal 3/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "muhammad imran vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 239,
+          "case_number": "c.m. a 5/2025 (sb)",
+          "case_title": "muhammad imran vs fop",
+          "rank": 1.0
+        },
+        {
+          "case_id": 81,
+          "case_number": "j.s.a 2/2024 (sb)",
+          "case_title": "malik muhammad imran vs ihc through registrar,",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Appellate Inland Revenue,",
+      "num_results": 1,
+      "execution_time_ms": 5.6,
+      "results": [
+        {
+          "case_id": 22,
+          "case_number": "fera 2/2025 (db)",
+          "case_title": "m/s askari general insurance company vs commisisoner inland revenue",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Appellate",
+      "num_results": 27,
+      "execution_time_ms": 9.5,
+      "results": [
+        {
+          "case_id": 45,
+          "case_number": "s.t.r. 2/2025 (db)",
+          "case_title": "m/s pak telecom mobile vs cir,",
+          "rank": 1.0
+        },
+        {
+          "case_id": 142,
+          "case_number": "cust. ref. 2/2023 (db)",
+          "case_title": "m/s butt machinery vs customs appellate tribunal",
+          "rank": 1.0
+        },
+        {
+          "case_id": 101,
+          "case_number": "crl. revision. 3/2024 against interim order (sb)",
+          "case_title": "khatoon bibi vs excise taxation/appellate tribunal ict",
+          "rank": 1.0
+        },
+        {
+          "case_id": 316,
+          "case_number": "cust. ref. 1/2022 (db)",
+          "case_title": "collector of custom mcc, islamabad vs custom appellate tribunal islamabad",
+          "rank": 1.0
+        },
+        {
+          "case_id": 351,
+          "case_number": "fera 1/2021 (db)",
+          "case_title": "m/s linkdotnet telecom ltd vs appellate tribunal inlad revenue",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "FIR No. 120/2023 dated 18.02.2023 U/s 9(1)6B CNSA P.S. Tarnol, Islamabad",
+      "num_results": 20,
+      "execution_time_ms": 85.6,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 64,
+          "case_number": "inst no. 3/2025 (sb)",
+          "case_title": "maria saboor vs abdul saboor and 3 others",
+          "rank": 1.0
+        },
+        {
+          "case_id": 4,
+          "case_number": "inst no. 2/2025 objection (sb)",
+          "case_title": "cir vs pak datacom",
+          "rank": 1.0
+        },
+        {
+          "case_id": 139,
+          "case_number": "inst no. 2/2023 diary (sb)",
+          "case_title": "rimsa tahir vs pakistan institute of medical sciences",
+          "rank": 1.0
+        },
+        {
+          "case_id": 208,
+          "case_number": "inst no. 1/2023 diary (sb)",
+          "case_title": "sultan shair afghan vs manzoor ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Tanzeela Naeem W/o Shafqat Naeem Janjua",
+      "num_results": 1,
+      "execution_time_ms": 7.23,
+      "results": [
+        {
+          "case_id": 26,
+          "case_number": "cm ind. 1/2025 civil (sb)",
+          "case_title": "awais ahmed satti vs shfqat naeem janjua",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "P.S.L.A.",
+      "num_results": 25,
+      "execution_time_ms": 10.43,
+      "results": [
+        {
+          "case_id": 14,
+          "case_number": "p.s.l.a. 3/2025 other (sb)",
+          "case_title": "dr rehiana ali vs ch riaz ahmed",
+          "rank": 1.0
+        },
+        {
+          "case_id": 6,
+          "case_number": "p.s.l.a. 2/2025 other (sb)",
+          "case_title": "iftikhar ahmed vs nazeer hussain chohan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 41,
+          "case_number": "p.s.l.a. 1/2025 other (sb)",
+          "case_title": "babar jameel vs dr. durdana kazmi",
+          "rank": 1.0
+        },
+        {
+          "case_id": 94,
+          "case_number": "p.s.l.a. 3/2024 other (sb)",
+          "case_title": "malik abdul majeed bilal vs zubair farooq khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 124,
+          "case_number": "p.s.l.a. 2/2024 other (sb)",
+          "case_title": "muhammad naeem shafi vs raja muhammad jan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Commissioner",
+      "num_results": 40,
+      "execution_time_ms": 12.63,
+      "results": [
+        {
+          "case_id": 20,
+          "case_number": "fera 3/2025 (db)",
+          "case_title": "commissioner inland revenue vs serene air pvt ltd",
+          "rank": 1.0
+        },
+        {
+          "case_id": 287,
+          "case_number": "fera 4/2024 (db)",
+          "case_title": "commissioner inland revenue islamabad vs m/s serene air (pvt.) ltd.",
+          "rank": 1.0
+        },
+        {
+          "case_id": 65,
+          "case_number": "i.t.r. 3/2025 (db)",
+          "case_title": "commissioner inland revenue vs hussan ara hoti",
+          "rank": 1.0
+        },
+        {
+          "case_id": 45,
+          "case_number": "s.t.r. 2/2025 (db)",
+          "case_title": "m/s pak telecom mobile vs cir,",
+          "rank": 1.0
+        },
+        {
+          "case_id": 79,
+          "case_number": "fera 3/2024 (db)",
+          "case_title": "commissioner inland revenue, islamabad vs m/s pakistan mobile communication ltd.",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Commissioner Inland Revenue (Zone-II),",
+      "num_results": 1,
+      "execution_time_ms": 6.02,
+      "results": [
+        {
+          "case_id": 22,
+          "case_number": "fera 2/2025 (db)",
+          "case_title": "m/s askari general insurance company vs commisisoner inland revenue",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "commercial",
+      "num_results": 4,
+      "execution_time_ms": 8.24,
+      "results": [
+        {
+          "case_id": 787,
+          "case_number": "r.a. 1/2010 commercial (sb)",
+          "case_title": "chairman pta vs muhammad asim khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 663,
+          "case_number": "r.a. 1/2015 commercial (sb)",
+          "case_title": "amjad iqbal rana vs addl. secretary m/o finance",
+          "rank": 1.0
+        },
+        {
+          "case_id": 712,
+          "case_number": "w.p. 1/2014 trade & comm. commercial (sb)",
+          "case_title": "eltek pakistan pvt. ltd. vs sngpl & another",
+          "rank": 1.0
+        },
+        {
+          "case_id": 796,
+          "case_number": "c.o.s. 1/2010 recovery (sb)",
+          "case_title": "askari commercial bank limited vs s.a brothers and others",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Office",
+      "num_results": 23,
+      "execution_time_ms": 8.58,
+      "results": [
+        {
+          "case_id": 13,
+          "case_number": "office objection 3/2025 (sb)",
+          "case_title": "dr. hafeez ullah khan vs fop",
+          "rank": 1.0
+        },
+        {
+          "case_id": 59,
+          "case_number": "office objection 2/2025 (db)",
+          "case_title": "netflix pte ltd. vs cir",
+          "rank": 1.0
+        },
+        {
+          "case_id": 191,
+          "case_number": "office objection 1/2024 (sb)",
+          "case_title": "mst. shehla vs ali raza",
+          "rank": 1.0
+        },
+        {
+          "case_id": 93,
+          "case_number": "t.a. 2/2024 civil (sb)",
+          "case_title": "abida perveen vs khalil ahmad khokhar",
+          "rank": 1.0
+        },
+        {
+          "case_id": 118,
+          "case_number": "w.p. 2/2024 service other (sb)",
+          "case_title": "muhammad ismail vs estate office management",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR. HAFEEZ ULLAH KHAN VS",
+      "num_results": 2,
+      "execution_time_ms": 9.24,
+      "results": [
+        {
+          "case_id": 13,
+          "case_number": "office objection 3/2025 (sb)",
+          "case_title": "dr. hafeez ullah khan vs fop",
+          "rank": 1.0
+        },
+        {
+          "case_id": 581,
+          "case_number": "i.c.a. 1/2017 writ (db)",
+          "case_title": "dr. hafeez ullah khan vs chairman pakistan science foundation,",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Inst No. 1/2025 Objection (SB)",
+      "num_results": 1,
+      "execution_time_ms": 6.38,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Muhammad Imran VS The State",
+      "num_results": 1,
+      "execution_time_ms": 8.06,
+      "results": [
+        {
+          "case_id": 11,
+          "case_number": "jail appeal 3/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "muhammad imran vs the state",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Office Objection 3/2025 (SB)",
+      "num_results": 1,
+      "execution_time_ms": 8.33,
+      "results": [
+        {
+          "case_id": 13,
+          "case_number": "office objection 3/2025 (sb)",
+          "case_title": "dr. hafeez ullah khan vs fop",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "FIR No. 422/2024 dated 03.11.2024 U/s 324, 337-F(vi), 148, 149, 34 PPC P.S. Bani Gala, Islamabad",
+      "num_results": 20,
+      "execution_time_ms": 88.52,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 64,
+          "case_number": "inst no. 3/2025 (sb)",
+          "case_title": "maria saboor vs abdul saboor and 3 others",
+          "rank": 1.0
+        },
+        {
+          "case_id": 4,
+          "case_number": "inst no. 2/2025 objection (sb)",
+          "case_title": "cir vs pak datacom",
+          "rank": 1.0
+        },
+        {
+          "case_id": 139,
+          "case_number": "inst no. 2/2023 diary (sb)",
+          "case_title": "rimsa tahir vs pakistan institute of medical sciences",
+          "rank": 1.0
+        },
+        {
+          "case_id": 208,
+          "case_number": "inst no. 1/2023 diary (sb)",
+          "case_title": "sultan shair afghan vs manzoor ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Inst",
+      "num_results": 40,
+      "execution_time_ms": 4.77,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 11,
+          "case_number": "jail appeal 3/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "muhammad imran vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 29,
+          "case_number": "r.s.a. 3/2025 against judgement & decree (sb)",
+          "case_title": "raja tahir ayyub etc vs mst almas ikram kayani",
+          "rank": 1.0
+        },
+        {
+          "case_id": 25,
+          "case_number": "r.s.a. 2/2025 against judgement & decree (sb)",
+          "case_title": "touseef mehmood vs mehmood iqbal",
+          "rank": 1.0
+        },
+        {
+          "case_id": 2,
+          "case_number": "jail appeal 2/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "waqas vs the state",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "MALIK REHNAZ VS",
+      "num_results": 1,
+      "execution_time_ms": 7.79,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "SECP VS Live Stock Diary",
+      "num_results": 1,
+      "execution_time_ms": 10.21,
+      "results": [
+        {
+          "case_id": 15,
+          "case_number": "secp appeal 3/2025 rec. apl. (sb)",
+          "case_title": "secp vs live stock diary development board",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "FIR No. 182/2020 dated 08.07.2020 U/s 324, 427, 148, 149, 109 PPC P.S. Shahzad Town, Islamabad",
+      "num_results": 20,
+      "execution_time_ms": 112.64,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 64,
+          "case_number": "inst no. 3/2025 (sb)",
+          "case_title": "maria saboor vs abdul saboor and 3 others",
+          "rank": 1.0
+        },
+        {
+          "case_id": 4,
+          "case_number": "inst no. 2/2025 objection (sb)",
+          "case_title": "cir vs pak datacom",
+          "rank": 1.0
+        },
+        {
+          "case_id": 139,
+          "case_number": "inst no. 2/2023 diary (sb)",
+          "case_title": "rimsa tahir vs pakistan institute of medical sciences",
+          "rank": 1.0
+        },
+        {
+          "case_id": 208,
+          "case_number": "inst no. 1/2023 diary (sb)",
+          "case_title": "sultan shair afghan vs manzoor ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "MALIK REHNAZ VS MUMTAZ KHAN",
+      "num_results": 1,
+      "execution_time_ms": 6.75,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Hashim",
+      "num_results": 1,
+      "execution_time_ms": 7.66,
+      "results": [
+        {
+          "case_id": 26,
+          "case_number": "cm ind. 1/2025 civil (sb)",
+          "case_title": "awais ahmed satti vs shfqat naeem janjua",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR REHIANA ALI VS CH",
+      "num_results": 1,
+      "execution_time_ms": 6.77,
+      "results": [
+        {
+          "case_id": 14,
+          "case_number": "p.s.l.a. 3/2025 other (sb)",
+          "case_title": "dr rehiana ali vs ch riaz ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Hashim Naeem Raja S/o Shafqat Naeem Janjua",
+      "num_results": 1,
+      "execution_time_ms": 5.85,
+      "results": [
+        {
+          "case_id": 26,
+          "case_number": "cm ind. 1/2025 civil (sb)",
+          "case_title": "awais ahmed satti vs shfqat naeem janjua",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "environmental",
+      "num_results": 0,
+      "execution_time_ms": 14.64,
+      "results": []
+    },
+    {
+      "query": "Jail Appeal 3/2025 Against Conviction (PP) Above 7 years (DB)",
+      "num_results": 1,
+      "execution_time_ms": 7.51,
+      "results": [
+        {
+          "case_id": 11,
+          "case_number": "jail appeal 3/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "muhammad imran vs the state",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "FIR No. 1712/2024 dated 08.11.2024 U/s 9(1)6C CNSA P.S. Khanna, Islamabad",
+      "num_results": 20,
+      "execution_time_ms": 75.25,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        },
+        {
+          "case_id": 64,
+          "case_number": "inst no. 3/2025 (sb)",
+          "case_title": "maria saboor vs abdul saboor and 3 others",
+          "rank": 1.0
+        },
+        {
+          "case_id": 4,
+          "case_number": "inst no. 2/2025 objection (sb)",
+          "case_title": "cir vs pak datacom",
+          "rank": 1.0
+        },
+        {
+          "case_id": 139,
+          "case_number": "inst no. 2/2023 diary (sb)",
+          "case_title": "rimsa tahir vs pakistan institute of medical sciences",
+          "rank": 1.0
+        },
+        {
+          "case_id": 208,
+          "case_number": "inst no. 1/2023 diary (sb)",
+          "case_title": "sultan shair afghan vs manzoor ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR. HAFEEZ ULLAH KHAN VS FOP",
+      "num_results": 1,
+      "execution_time_ms": 10.87,
+      "results": [
+        {
+          "case_id": 13,
+          "case_number": "office objection 3/2025 (sb)",
+          "case_title": "dr. hafeez ullah khan vs fop",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "The Registrar Appellate Tribunal Inland Revenue",
+      "num_results": 1,
+      "execution_time_ms": 8.29,
+      "results": [
+        {
+          "case_id": 22,
+          "case_number": "fera 2/2025 (db)",
+          "case_title": "m/s askari general insurance company vs commisisoner inland revenue",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "SECP VS Live",
+      "num_results": 1,
+      "execution_time_ms": 10.84,
+      "results": [
+        {
+          "case_id": 15,
+          "case_number": "secp appeal 3/2025 rec. apl. (sb)",
+          "case_title": "secp vs live stock diary development board",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "Jail",
+      "num_results": 7,
+      "execution_time_ms": 6.6,
+      "results": [
+        {
+          "case_id": 11,
+          "case_number": "jail appeal 3/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "muhammad imran vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 2,
+          "case_number": "jail appeal 2/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "waqas vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 221,
+          "case_number": "jail appeal 5/2025 against conviction (pp) death sentence (db)",
+          "case_title": "rehmat ullah vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 255,
+          "case_number": "jail revision. 4/2025 (sb)",
+          "case_title": "muhammad dad vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 155,
+          "case_number": "jail appeal 1/2025 against conviction (pp) death sentence (db)",
+          "case_title": "nazakat ali vs the state",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "constitutional",
+      "num_results": 0,
+      "execution_time_ms": 23.3,
+      "results": []
+    },
+    {
+      "query": "App",
+      "num_results": 40,
+      "execution_time_ms": 5.71,
+      "results": [
+        {
+          "case_id": 11,
+          "case_number": "jail appeal 3/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "muhammad imran vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 15,
+          "case_number": "secp appeal 3/2025 rec. apl. (sb)",
+          "case_title": "secp vs live stock diary development board",
+          "rank": 1.0
+        },
+        {
+          "case_id": 7,
+          "case_number": "secp appeal 2/2025 rec. apl. (sb)",
+          "case_title": "secp vs printing corporation of pakistan pvt ltd",
+          "rank": 1.0
+        },
+        {
+          "case_id": 2,
+          "case_number": "jail appeal 2/2025 against conviction (pp) above 7 years (db)",
+          "case_title": "waqas vs the state",
+          "rank": 1.0
+        },
+        {
+          "case_id": 45,
+          "case_number": "s.t.r. 2/2025 (db)",
+          "case_title": "m/s pak telecom mobile vs cir,",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "SECP VS Live Stock Diary Development Board",
+      "num_results": 1,
+      "execution_time_ms": 7.32,
+      "results": [
+        {
+          "case_id": 15,
+          "case_number": "secp appeal 3/2025 rec. apl. (sb)",
+          "case_title": "secp vs live stock diary development board",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "P.S.L.A. 3/2025 Other (SB)",
+      "num_results": 1,
+      "execution_time_ms": 5.41,
+      "results": [
+        {
+          "case_id": 14,
+          "case_number": "p.s.l.a. 3/2025 other (sb)",
+          "case_title": "dr rehiana ali vs ch riaz ahmed",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "administrative",
+      "num_results": 0,
+      "execution_time_ms": 17.06,
+      "results": []
+    },
+    {
+      "query": "CM Ind. 3/2025 Writ (SB)",
+      "num_results": 1,
+      "execution_time_ms": 3.96,
+      "results": [
+        {
+          "case_id": 10,
+          "case_number": "cm ind. 3/2025 writ (sb)",
+          "case_title": "sarfaraz yousaf vs muhammad farhan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "MALIK REHNAZ",
+      "num_results": 1,
+      "execution_time_ms": 8.91,
+      "results": [
+        {
+          "case_id": 27,
+          "case_number": "inst no. 1/2025 objection (sb)",
+          "case_title": "malik rehnaz vs mumtaz khan",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR. HAFEEZ",
+      "num_results": 2,
+      "execution_time_ms": 6.57,
+      "results": [
+        {
+          "case_id": 13,
+          "case_number": "office objection 3/2025 (sb)",
+          "case_title": "dr. hafeez ullah khan vs fop",
+          "rank": 1.0
+        },
+        {
+          "case_id": 581,
+          "case_number": "i.c.a. 1/2017 writ (db)",
+          "case_title": "dr. hafeez ullah khan vs chairman pakistan science foundation,",
+          "rank": 1.0
+        }
+      ]
+    },
+    {
+      "query": "DR REHIANA",
+      "num_results": 1,
+      "execution_time_ms": 7.8,
+      "results": [
+        {
+          "case_id": 14,
+          "case_number": "p.s.l.a. 3/2025 other (sb)",
+          "case_title": "dr rehiana ali vs ch riaz ahmed",
+          "rank": 1.0
+        }
+      ]
+    }
+  ]
+}
