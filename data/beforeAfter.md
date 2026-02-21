@@ -123,3 +123,94 @@ So for **Row 1** you see: raw Excel → import into Case/CaseDetail/DocumentText
 | **Keyword indexing** | Build **SearchMetadata** from Case/CaseDetail: **normalized** fields = lowercase + legal abbreviations (Cr.P.C.→crpc, etc.) + collapse spaces → used for BM25/keyword search. |
 
 So: **before** = raw Excel (and raw DB after import); **after** = cleaned and normalized values in the same DB plus SearchMetadata for search.
+
+---
+
+## Making data searchable (indexing)
+
+After the pipeline, we run **build_indexes** so users can search and filter.
+
+**1. Searchable (find by query)**
+
+- **Vector index:** Judgment text (from UnifiedCaseView / DocumentText.clean_text) is chunked, embedded, and stored in the vector DB (e.g. Pinecone). A user query is embedded and matched to similar chunks. So **full_text** (cleaned) is what makes judgments **searchable by meaning**.
+- **Keyword index:** SearchMetadata rows (case_number_normalized, case_title_normalized, parties_normalized, court_normalized, status_normalized, searchable_keywords) are used by BM25/keyword search. So **normalized metadata + keywords** make cases **searchable by words** (case numbers, titles, parties, etc.).
+
+**2. Filterable (narrow by court, year, status, judge)**
+
+Filtering does **not** use the vector or BM25 index content. It uses **structured fields** already stored on **Case** and **CaseDetail** at import (and cleaned by the pipeline):
+
+| Filter | Source in DB | Example (Row 1) |
+|--------|----------------|-----------------|
+| **court** | Case.court (Court.name) | Balochistan High Court |
+| **year** | Case.institution_date or CaseDetail.case_disposal_date (year part) | 2010 |
+| **status** | Case.status, CaseDetail.disposed_of_status | (empty) or e.g. Dismissed |
+| **judge** | Case.bench, CaseDetail.before_bench | GHULAM MUSTAFA MENGAL |
+
+**How filtering is applied**
+
+- The search API accepts query params: `court`, `year`, `status`, `judge` (e.g. `?court=Balochistan High Court&year=2010`).
+- **Vector path:** Chunks in the vector DB have metadata (court, year, status, judge). The search restricts to chunks whose metadata matches the filter (e.g. only court = "Balochistan High Court").
+- **Keyword path:** Search runs on the keyword index; then results are restricted to cases that match the filter (by querying Case/CaseDetail or filtering SearchMetadata by court_normalized, institution_date year, status_normalized, bench).
+- **Facets:** With `return_facets=true`, the API returns counts per court, status, year (and optionally judge) so the UI can show filter options (e.g. “Balochistan High Court (12)”, “2010 (5)”). Those counts come from Case/CaseDetail in the DB.
+
+So: **searchable** = text in vector + keyword indexes; **filterable** = structured fields on Case/CaseDetail used to restrict or facet results.
+
+---
+
+## Real data example: filter values and how filtering works
+
+Using the **same three rows** from the Excel (Rows 1–3), here is the **exact filterable data** stored for each case after import and pipeline, and how filter queries would behave.
+
+**Row 1 — 2011 SBLR 69**
+
+| Filter dimension | Stored value (from Case / CaseDetail) |
+|------------------|---------------------------------------|
+| court            | Balochistan High Court                |
+| year             | 2010 (from decision_date 2010-03-08)   |
+| status           | (empty)                                |
+| judge            | GHULAM MUSTAFA MENGAL                  |
+
+- Query **“civil revision”** → can match this case (text search).
+- Filter **court = Balochistan High Court** → this case **included**.
+- Filter **court = Sindh High Court** → this case **excluded**.
+- Filter **year = 2010** → this case **included**.
+- Filter **year = 2013** → this case **excluded**.
+- Filter **judge = GHULAM MUSTAFA MENGAL** → this case **included**.
+
+**Row 2 — 2013 PTCL 563**
+
+| Filter dimension | Stored value (from Case / CaseDetail) |
+|------------------|---------------------------------------|
+| court            | Sindh High Court                      |
+| year             | 2013 (from decision_date 2013-03-20)  |
+| status           | (empty)                               |
+| judge            | MR. JUSTICE FAISAL ARAB AND MR. JUSTICE NADEEM AKHTAR. |
+
+- Filter **court = Sindh High Court** → **included**.
+- Filter **year = 2013** → **included**.
+- Filter **court = Balochistan High Court** → **excluded**.
+
+**Row 3 — 1961 PLD 515**
+
+| Filter dimension | Stored value (from Case / CaseDetail) |
+|------------------|---------------------------------------|
+| court            | Federal Court Of Pakistan             |
+| year             | 1960 (from decision_date 1960-12-23)   |
+| status           | (empty)                                |
+| judge            | MUHAMMAD YAQUB ALI, SAJJAD AHMAD AND BASHIR AHMAD |
+
+- Filter **court = Federal Court Of Pakistan** → **included**.
+- Filter **year = 1960** → **included**.
+- Filter **year = 2010** or **2013** → **excluded**.
+
+**Example combined search + filter**
+
+- **Query:** “revision petition”  
+- **Filter:** court = Balochistan High Court, year = 2010  
+
+Only cases with court = Balochistan High Court and year = 2010 are considered; among those, results are ranked by the search (vector + keyword). So Row 1 (2011 SBLR 69) can appear, while Row 2 and Row 3 are excluded by the filter.
+
+**Summary**
+
+- **Indexing** makes the judgment text and metadata **searchable** (vector + keyword).
+- **Filtering** uses the **same real data** as in the tables above: court, year, status, and judge from Case/CaseDetail. No extra “filter index” is built—the API just restricts results (and facets) to cases matching the chosen court, year, status, and judge.
